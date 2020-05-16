@@ -66,9 +66,9 @@ Object ObjectBuilder::Create(
                     colorKey,
                     *structuralMaterial);
             }
-            else
+            else if (colorKey != rgbColor(255, 255, 255))
             {
-                // Just ignore this pixel
+                throw SLabException("Pixel at coordinate (" + std::to_string(x) + ", " + std::to_string(y) + ") is not a recognized material");
             }
         }
     }
@@ -205,7 +205,7 @@ Points ObjectBuilder::CreatePoints(std::vector<ObjectBuildPoint> const & pointIn
 
         points.Add(
             pointInfo.Position,
-            pointInfo.RenderColor,
+            pointInfo.RenderColor.toVec3f(),
             pointInfo.Material);
     }
 

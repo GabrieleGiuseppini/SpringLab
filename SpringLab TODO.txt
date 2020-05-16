@@ -1,5 +1,4 @@
-
-= Get started with V 1.0:
++ Get started with V 1.0:
 	+ Containers, buffers, special vectors
 	+ ResourceLocator
 	+ StructuralMaterial
@@ -28,25 +27,43 @@
 	+ MainFrame
 	+ MainApp
 
-	- Add to GitHub
+	+ Add to GitHub
 
-- Make json
++ Make json
 
-- Rendering:
+= Rendering:
+	+ MainFrame:
+		+ Always render with timer loop
+		+ mMainGLCanvas.Refresh()
+			+ Change OnPaint to be on canvas
+			+ OnPaint: SimulationController.Render()
+	= RenderContext:
+		! RenderContext does not take point count, does everything at upload
+		= API: 
+			+ cctor
+				+ Load shaders
+				+ Setup VBOs
+				+ Set params
+			+ RenderStart()
+			= Upload(...all...)
+				+ Points
+				- Springs
+			+ RenderEnd()
+				+ Run all shaders
+		+ Complete:
+			+ OnViewModelUpdated()
+
+- Interactions:
+	- Tools
+	- ToolController
+	- Mouse-taking @ MainFrame (see 'TODO')
+
+- ISpringSimulator architecture:
+
 	- MainFrame: RunSimulationStep()
 		- Triggered by space bar
 		- SimulationController.RunSimulationStep()
-		- mMainGLCanvas.Refresh()
-			- Change OnPaint to be on canvas
-			- OnPaint: SimulationController.Render()
-	- RenderContext:
-		- Decide if RenderContext instance takes point count, hence needs to be recreated each time
-			! YES
-		- TODO: API architecture
-		- Complete:
-			- OnViewModelUpdated()
 
-- ISpringSimulator architecture:
 	// TODOHERE
 	- ISpringSimulator
 		- cctor(Points
@@ -60,12 +77,6 @@
 				- Controlled via controller's mAreParametersDirty, @ beginning of simulation step
 
 	- Do "ClassicSpringSimulator"
-
-
-- Interactions:
-	- Tools
-	- ToolController
-	- Mouse-taking @ MainFrame (see 'TODO')
 
 - UI:
 	- MainToolBar:

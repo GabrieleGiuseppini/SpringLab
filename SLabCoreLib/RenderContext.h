@@ -6,6 +6,7 @@
 #pragma once
 
 #include "ImageData.h"
+#include "ShaderManager.h"
 #include "Vectors.h"
 #include "ViewModel.h"
 
@@ -19,9 +20,9 @@ public:
         std::function<void()> makeRenderContextCurrentFunction,
         std::function<void()> swapRenderBuffersFunction);
 
-    //
+    ////////////////////////////////////////////////////////////////
     // View properties
-    //
+    ////////////////////////////////////////////////////////////////
 
     float const & GetZoom() const
     {
@@ -115,11 +116,25 @@ public:
         return mViewModel.ScreenOffsetToWorldOffset(screenOffset);
     }
 
-    //
+    ////////////////////////////////////////////////////////////////
     // Interactions
-    //
+    ////////////////////////////////////////////////////////////////
 
     RgbImageData TakeScreenshot();
+
+    ////////////////////////////////////////////////////////////////
+    // Rendering
+    ////////////////////////////////////////////////////////////////
+
+    void RenderStart();
+
+    void UploadPoints(
+        size_t pointCount,
+        vec2f const * pointPositions,
+        vec4f const * pointColors,
+        float const * pointNormRadii);
+
+    void RenderEnd();
 
 private:
 
@@ -128,8 +143,43 @@ private:
 
 private:
 
+    ////////////////////////////////////////////////////////////////
+    // Points
+    ////////////////////////////////////////////////////////////////
+
+#pragma pack(push)
+
+    struct PointVertex
+    {
+        vec2f QuadCorner;
+        vec2f Center;
+        vec4f Color;
+
+        PointVertex(
+            vec2f const & quadCorner,
+            vec2f const & center,
+            vec4f const & color)
+            : QuadCorner(quadCorner)
+            , Center(center)
+            , Color(color)
+        {}
+    };
+
+#pragma pack(pop)
+
+    size_t mPointVertexCount;
+
+    SLabOpenGLVAO mPointVAO;
+
+    SLabOpenGLMappedBuffer<PointVertex, GL_ARRAY_BUFFER> mPointVertexBuffer;
+    SLabOpenGLVBO mPointVertexVBO;
+
+private:
+
     std::function<void()> const mMakeRenderContextCurrentFunction;
     std::function<void()> const mSwapRenderBuffersFunction;
+
+    std::unique_ptr<ShaderManager> mShaderManager;
 
     ViewModel mViewModel;
 };

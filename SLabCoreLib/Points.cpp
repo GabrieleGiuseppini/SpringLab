@@ -9,7 +9,7 @@
 
 void Points::Add(
     vec2f const & position,
-    rgbColor const & color,
+    vec3f const & color,
     StructuralMaterial const & structuralMaterial)
 {
     ElementIndex const pointIndex = static_cast<ElementIndex>(mStructuralMaterialBuffer.GetCurrentPopulatedSize());
@@ -22,8 +22,8 @@ void Points::Add(
 
     mConnectedSpringsBuffer.emplace_back();
 
-    mRenderColorBuffer.emplace_back(rgbaColor(color, 255));
-    mFactoryRenderColorBuffer.emplace_back(rgbaColor(color, 255));
+    mRenderColorBuffer.emplace_back(vec4f(color, 1.0f));
+    mFactoryRenderColorBuffer.emplace_back(vec4f(color, 1.0f));
     mRenderNormRadiusBuffer.emplace_back(1.0f);
 }
 

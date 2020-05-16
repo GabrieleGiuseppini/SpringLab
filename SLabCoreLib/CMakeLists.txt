@@ -32,7 +32,7 @@ set  (SOURCES
 	RenderContext.cpp
 	RenderContext.h
 	ResourceLocator.h
-	ShaderManager.cpp.inl
+	ShaderManager.cpp
 	ShaderManager.h
 	SimulationController.cpp
 	SimulationController.h

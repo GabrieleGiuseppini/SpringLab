@@ -109,7 +109,21 @@ void SimulationController::RunSimulationIteration()
 
 void SimulationController::Render()
 {
-    // TODO
+    assert(!!mRenderContext);
+
+    mRenderContext->RenderStart();
+
+    if (!!mObject)
+    {
+        mRenderContext->UploadPoints(
+            mObject->GetPoints().GetRawPointCount(),
+            mObject->GetPoints().GetPositionBuffer(),
+            mObject->GetPoints().GetRenderColorBuffer(),
+            mObject->GetPoints().GetRenderNormRadiusBuffer());
+
+        // TODO: springs
+    }
+    mRenderContext->RenderEnd();
 }
 
 /////////////////////////////////////////////////////////////////////////////////

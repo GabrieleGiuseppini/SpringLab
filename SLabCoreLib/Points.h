@@ -8,7 +8,6 @@
 #include "AABB.h"
 #include "Buffer.h"
 #include "BufferAllocator.h"
-#include "Colors.h"
 #include "ElementContainer.h"
 #include "ElementIndexRangeIterator.h"
 #include "FixedSizeVector.h"
@@ -67,8 +66,8 @@ public:
         // Structure
         , mConnectedSpringsBuffer(mBufferElementCount, pointCount, ConnectedSpringsVector())
         // Render
-        , mRenderColorBuffer(mBufferElementCount, pointCount, rgbaColor::zero())
-        , mFactoryRenderColorBuffer(mBufferElementCount, pointCount, rgbaColor::zero())
+        , mRenderColorBuffer(mBufferElementCount, pointCount, vec4f::zero())
+        , mFactoryRenderColorBuffer(mBufferElementCount, pointCount, vec4f::zero())
         , mRenderNormRadiusBuffer(mBufferElementCount, pointCount, 0.0f)
         //////////////////////////////////
         // Misc
@@ -100,7 +99,7 @@ public:
 
     void Add(
         vec2f const & position,
-        rgbColor const & color,
+        vec3f const & color,
         StructuralMaterial const & structuralMaterial);
 
     void Query(ElementIndex pointElementIndex) const;
@@ -142,14 +141,9 @@ public:
         return mPositionBuffer[pointElementIndex];
     }
 
-    vec2f * restrict GetPositionBufferAsVec2()
+    vec2f * GetPositionBuffer()
     {
         return mPositionBuffer.data();
-    }
-
-    float * restrict GetPositionBufferAsFloat()
-    {
-        return reinterpret_cast<float *>(mPositionBuffer.data());
     }
 
     std::shared_ptr<Buffer<vec2f>> MakePositionBufferCopy()
@@ -177,14 +171,9 @@ public:
         return mVelocityBuffer[pointElementIndex];
     }
 
-    vec2f * restrict GetVelocityBufferAsVec2()
+    vec2f * GetVelocityBuffer()
     {
         return mVelocityBuffer.data();
-    }
-
-    float * restrict GetVelocityBufferAsFloat()
-    {
-        return reinterpret_cast<float *>(mVelocityBuffer.data());
     }
 
     std::shared_ptr<Buffer<vec2f>> MakeVelocityBufferCopy()
@@ -236,19 +225,19 @@ public:
     // Render
     //
 
-    rgbaColor const & GetRenderColor(ElementIndex pointElementIndex) const
+    vec4f const & GetRenderColor(ElementIndex pointElementIndex) const
     {
         return mRenderColorBuffer[pointElementIndex];
     }
 
     void SetRenderColor(
         ElementIndex pointElementIndex,
-        rgbaColor const & color)
+        vec4f const & color)
     {
         mRenderColorBuffer[pointElementIndex] = color;
     }
 
-    rgbaColor const * GetRenderColorBuffer() const
+    vec4f const * GetRenderColorBuffer() const
     {
         return mRenderColorBuffer.data();
     }
@@ -258,7 +247,7 @@ public:
         mRenderColorBuffer.copy_from(mFactoryRenderColorBuffer);
     }
 
-    rgbaColor const & GetFactoryRenderColor(ElementIndex pointElementIndex) const
+    vec4f const & GetFactoryRenderColor(ElementIndex pointElementIndex) const
     {
         return mFactoryRenderColorBuffer[pointElementIndex];
     }
@@ -273,6 +262,11 @@ public:
         float normRadius)
     {
         mRenderNormRadiusBuffer[pointElementIndex] = normRadius;
+    }
+
+    float const * GetRenderNormRadiusBuffer() const
+    {
+        return mRenderNormRadiusBuffer.data();
     }
 
     //
@@ -322,8 +316,8 @@ private:
     // Render
     //
 
-    Buffer<rgbaColor> mRenderColorBuffer;
-    Buffer<rgbaColor> mFactoryRenderColorBuffer;
+    Buffer<vec4f> mRenderColorBuffer;
+    Buffer<vec4f> mFactoryRenderColorBuffer;
     Buffer<float> mRenderNormRadiusBuffer;
 
 

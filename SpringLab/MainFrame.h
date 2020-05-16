@@ -16,6 +16,7 @@
 #include <wx/glcanvas.h>
 #include <wx/menu.h>
 #include <wx/sizer.h>
+#include <wx/timer.h>
 
 #include <chrono>
 #include <cstdint>
@@ -68,6 +69,12 @@ private:
     std::unique_ptr<AboutDialog> mAboutDialog;
     std::unique_ptr<LoggingDialog> mLoggingDialog;
 
+    //
+    // Timers
+    //
+
+    std::unique_ptr<wxTimer> mRenderTimer;
+
 private:
 
     //
@@ -76,10 +83,10 @@ private:
 
     // App
     void OnQuit(wxCommandEvent & event);
-    void OnPaint(wxPaintEvent & event);
     void OnKeyDown(wxKeyEvent & event);
 
     // Main GL canvas
+    void OnMainGLCanvasPaint(wxPaintEvent & event);
     void OnMainGLCanvasResize(wxSizeEvent& event);
     void OnMainGLCanvasLeftDown(wxMouseEvent& event);
     void OnMainGLCanvasLeftUp(wxMouseEvent& event);
@@ -93,15 +100,16 @@ private:
     void OnZoomOutMenuItemSelected(wxCommandEvent & event);
     void OnResetViewMenuItemSelected(wxCommandEvent & event);
     void OnSaveScreenshotMenuItemSelected(wxCommandEvent & event);
-
     void OnToolMoveMenuItemSelected(wxCommandEvent & event);
-
     void OnOpenLogWindowMenuItemSelected(wxCommandEvent & event);
     void OnShowProbePanelMenuItemSelected(wxCommandEvent & event);
     void OnShowStatusTextMenuItemSelected(wxCommandEvent & event);
     void OnFullScreenMenuItemSelected(wxCommandEvent & event);
     void OnNormalScreenMenuItemSelected(wxCommandEvent & event);
     void OnAboutMenuItemSelected(wxCommandEvent & event);
+
+    // Timers
+    void OnRenderTimer(wxTimerEvent & event);
 
 private:
 

@@ -54,6 +54,8 @@ long const ID_NORMAL_SCREEN_MENUITEM = wxNewId();
 
 long const ID_ABOUT_MENUITEM = wxNewId();
 
+long const ID_RENDER_TIMER = wxNewId();
+
 MainFrame::MainFrame(wxApp * mainApp)
     : mMainApp(mainApp)
     , mSimulationController()
@@ -73,12 +75,9 @@ MainFrame::MainFrame(wxApp * mainApp)
     Maximize();
     Centre();
 
-    Bind(wxEVT_PAINT, &MainFrame::OnPaint, this);
-
     mMainPanel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, -1), wxWANTS_CHARS);
     mMainPanel->Bind(wxEVT_CHAR_HOOK, &MainFrame::OnKeyDown, this);
     mMainFrameSizer = new wxBoxSizer(wxVERTICAL);
-
 
 
     //
@@ -113,6 +112,7 @@ MainFrame::MainFrame(wxApp * mainApp)
         0L,
         _T("Main GL Canvas"));
 
+    mMainGLCanvas->Connect(wxEVT_PAINT, (wxObjectEventFunction)&MainFrame::OnMainGLCanvasPaint, 0, this);
     mMainGLCanvas->Connect(wxEVT_SIZE, (wxObjectEventFunction)&MainFrame::OnMainGLCanvasResize, 0, this);
     mMainGLCanvas->Connect(wxEVT_LEFT_DOWN, (wxObjectEventFunction)&MainFrame::OnMainGLCanvasLeftDown, 0, this);
     mMainGLCanvas->Connect(wxEVT_LEFT_UP, (wxObjectEventFunction)&MainFrame::OnMainGLCanvasLeftUp, 0, this);
@@ -246,7 +246,6 @@ MainFrame::MainFrame(wxApp * mainApp)
     mMainPanel->SetSizer(mMainFrameSizer);
 
 
-
     //
     // Initialize tooltips
     //
@@ -254,10 +253,6 @@ MainFrame::MainFrame(wxApp * mainApp)
     wxToolTip::Enable(true);
     wxToolTip::SetDelay(200);
 
-
-    //
-    // Initialize simulation
-    //
 
     //
     // Create Simulation Controller
@@ -292,7 +287,6 @@ MainFrame::MainFrame(wxApp * mainApp)
     mSimulationController->RegisterEventHandler(mProbePanel.get());
 
 
-
     //
     // PostInitialize
     //
@@ -301,6 +295,14 @@ MainFrame::MainFrame(wxApp * mainApp)
 
     if (StartInFullScreenMode)
         this->ShowFullScreen(true, wxFULLSCREEN_NOBORDER);
+
+    //
+    // Initialize timers
+    //
+
+    mRenderTimer = std::make_unique<wxTimer>(this, ID_RENDER_TIMER);
+    Connect(ID_RENDER_TIMER, wxEVT_TIMER, (wxObjectEventFunction)&MainFrame::OnRenderTimer);
+    mRenderTimer->Start(0);
 }
 
 MainFrame::~MainFrame()
@@ -314,19 +316,6 @@ MainFrame::~MainFrame()
 void MainFrame::OnQuit(wxCommandEvent & /*event*/)
 {
     Close();
-}
-
-void MainFrame::OnPaint(wxPaintEvent & event)
-{
-    // This happens sparingly, mostly when the window is resized and when it's shown
-    // TODO: change to be OnPaint of canvas
-
-    if (!!mSimulationController)
-    {
-        mSimulationController->Render();
-    }
-
-    event.Skip();
 }
 
 void MainFrame::OnKeyDown(wxKeyEvent & event)
@@ -421,6 +410,16 @@ void MainFrame::OnGameTimerTrigger(wxTimerEvent & event)
 //
 // Main canvas event handlers
 //
+
+void MainFrame::OnMainGLCanvasPaint(wxPaintEvent & event)
+{
+    if (!!mSimulationController)
+    {
+        mSimulationController->Render();
+    }
+
+    event.Skip();
+}
 
 void MainFrame::OnMainGLCanvasResize(wxSizeEvent & event)
 {
@@ -617,6 +616,11 @@ void MainFrame::OnAboutMenuItemSelected(wxCommandEvent & /*event*/)
     }
 
     mAboutDialog->Open();
+}
+
+void MainFrame::OnRenderTimer(wxTimerEvent & /*event*/)
+{
+    mMainGLCanvas->Refresh();
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
