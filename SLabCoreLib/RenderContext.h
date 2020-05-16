@@ -151,16 +151,16 @@ private:
 
     struct PointVertex
     {
-        vec2f QuadCorner;
-        vec2f Center;
+        vec2f Position;
+        vec2f VertexSpacePosition;
         vec4f Color;
 
         PointVertex(
-            vec2f const & quadCorner,
-            vec2f const & center,
+            vec2f const & position,
+            vec2f const & vertexSpacePosition,
             vec4f const & color)
-            : QuadCorner(quadCorner)
-            , Center(center)
+            : Position(position)
+            , VertexSpacePosition(vertexSpacePosition)
             , Color(color)
         {}
     };

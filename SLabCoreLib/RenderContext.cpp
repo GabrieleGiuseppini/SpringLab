@@ -60,6 +60,17 @@ RenderContext::RenderContext(
     glBindVertexArray(0);
 
     ////////////////////////////////////////////////////////////////
+    // Initialize global settings
+    ////////////////////////////////////////////////////////////////
+
+    // Enable blend for alpha transparency
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    // Disable depth test
+    glDisable(GL_DEPTH_TEST);
+
+    ////////////////////////////////////////////////////////////////
     // Set parameters in all shaders
     ////////////////////////////////////////////////////////////////
 
@@ -149,48 +160,48 @@ void RenderContext::UploadPoints(
     for (size_t p = 0; p < pointCount; ++p)
     {
         vec2f const & pointPosition = pointPositions[p];
-        float const halfRadius = pointNormRadii[p] * 0.5f / 2.0f; // World size of a point radius
+        float const halfRadius = pointNormRadii[p] * 0.3f / 2.0f; // World size of a point radius
         vec4f const & pointColor = pointColors[p];
 
-        float const xLeft = pointPositions[p].x - halfRadius;
-        float const xRight = pointPositions[p].x + halfRadius;
-        float const yTop = pointPositions[p].y + halfRadius;
-        float const yBottom = pointPositions[p].y - halfRadius;
+        float const xLeft = pointPosition.x - halfRadius;
+        float const xRight = pointPosition.x + halfRadius;
+        float const yTop = pointPosition.y + halfRadius;
+        float const yBottom = pointPosition.y - halfRadius;
 
         // Left, bottom
         mPointVertexBuffer.emplace_back(
             vec2f(xLeft, yBottom),
-            pointPosition,
+            vec2f(-1.0f, -1.0f),
             pointColor);
 
         // Left, top
         mPointVertexBuffer.emplace_back(
             vec2f(xLeft, yTop),
-            pointPosition,
+            vec2f(-1.0f, 1.0f),
             pointColor);
 
         // Right, bottom
         mPointVertexBuffer.emplace_back(
             vec2f(xRight, yBottom),
-            pointPosition,
+            vec2f(1.0f, -1.0f),
             pointColor);
 
         // Left, top
         mPointVertexBuffer.emplace_back(
             vec2f(xLeft, yTop),
-            pointPosition,
+            vec2f(-1.0f, 1.0f),
             pointColor);
 
         // Right, bottom
         mPointVertexBuffer.emplace_back(
             vec2f(xRight, yBottom),
-            pointPosition,
+            vec2f(1.0f, -1.0f),
             pointColor);
 
         // Right, top
         mPointVertexBuffer.emplace_back(
             vec2f(xRight, yTop),
-            pointPosition,
+            vec2f(1.0f, 1.0f),
             pointColor);
     }
 

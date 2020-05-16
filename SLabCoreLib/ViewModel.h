@@ -245,8 +245,8 @@ private:
 private:
 
     // Constants
-    static float constexpr MinZoom = 0.01f;
-    static float constexpr MaxZoom = 100.0f;
+    static float constexpr MinZoom = 0.02f;
+    static float constexpr MaxZoom = 50.0f;
     static float constexpr ZoomHeightConstant = 10.0f; // World height at zoom=1.0
 
     // Primary inputs

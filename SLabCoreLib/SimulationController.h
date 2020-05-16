@@ -7,7 +7,7 @@
 
 #include "Colors.h"
 #include "EventDispatcher.h"
-#include "ImageData.h"
+#include "ImageData.h""
 #include "Object.h"
 #include "RenderContext.h"
 #include "SimulationParameters.h"
@@ -17,7 +17,7 @@
 #include "Vectors.h"
 
 #include <cassert>
-#include <chrono> // TODO
+#include <chrono>
 #include <filesystem>
 #include <functional>
 #include <memory>
