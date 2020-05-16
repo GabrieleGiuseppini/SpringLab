@@ -13,12 +13,12 @@
 #include <memory>
 #include <stdexcept>
 
-wxCursor WxHelpers::LoadCursor(
+wxCursor WxHelpers::MakeCursor(
     std::string const & cursorName,
     int hotspotX,
     int hotspotY)
 {
-    wxImage img = LoadCursorImage(
+    wxImage img = MakeCursorImage(
         cursorName,
         hotspotX,
         hotspotY);
@@ -26,13 +26,17 @@ wxCursor WxHelpers::LoadCursor(
     return wxCursor(img);
 }
 
-wxImage WxHelpers::LoadCursorImage(
+wxImage WxHelpers::MakeCursorImage(
     std::string const & cursorName,
     int hotspotX,
     int hotspotY)
 {
     auto filepath = ResourceLocator::GetResourcesFolderPath() / (cursorName + ".png");
     auto bmp = std::make_unique<wxBitmap>(filepath.string(), wxBITMAP_TYPE_PNG);
+    if (!bmp->IsOk())
+    {
+        throw SLabException("Cursor \"" + filepath.string() + "\" could not be loaded");
+    }
 
     wxImage img = bmp->ConvertToImage();
 

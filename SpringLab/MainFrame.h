@@ -8,6 +8,7 @@
 #include "AboutDialog.h"
 #include "LoggingDialog.h"
 #include "ProbePanel.h"
+#include "ToolController.h"
 
 #include <SLabCoreLib/SimulationController.h>
 
@@ -94,6 +95,7 @@ private:
     void OnMainGLCanvasRightUp(wxMouseEvent& event);
     void OnMainGLCanvasMouseMove(wxMouseEvent& event);
     void OnMainGLCanvasMouseWheel(wxMouseEvent& event);
+    void OnMainGLCanvasCaptureMouseLost(wxMouseCaptureLostEvent & event);
 
     // Menu
     void OnZoomInMenuItemSelected(wxCommandEvent & event);
@@ -126,11 +128,5 @@ private:
     //
 
     std::shared_ptr<SimulationController> mSimulationController;
-
-
-    //
-    // State
-    //
-
-    bool mIsShiftKeyDown;
+    std::unique_ptr<ToolController> mToolController;
 };

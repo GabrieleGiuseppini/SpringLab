@@ -53,10 +53,27 @@
 		+ Complete:
 			+ OnViewModelUpdated()
 
-- Interactions:
-	- Tools
-	- ToolController
-	- Mouse-taking @ MainFrame (see 'TODO')
++ Interactions:
+	+ Tools
+	+ ToolController
+	+ Mouse-taking @ MainFrame (see 'TODO')
+	+ Do shift @ MouseDown & MouseMove, passing as boolean to ToolController::OnMouseXYZ(.)
+	+ See move
+
+- Put timer back
+	- Rename "RenderTimer" as "SimulationTimer"
+	- On timer:
+		- Detect shift and send to ToolController
+			- Like before
+			- Remove extra shift boolean at others
+		- Invoke ToolController::Update
+			- Remove other invocations
+
+- Point highlight when picked
+	- Tool: Controller->HighlightPoint(elementIndex, true/false)
+		- new Points buffer: float highlight
+		- "Uploaded" to RenderContext
+			- ...which populates float in struct
 
 - ISpringSimulator architecture:
 

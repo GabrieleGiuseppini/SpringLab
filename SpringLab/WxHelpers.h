@@ -16,12 +16,12 @@
 
 namespace WxHelpers
 {
-    wxCursor LoadCursor(
+    wxCursor MakeCursor(
         std::string const & cursorName,
         int hotspotX,
         int hotspotY);
 
-    wxImage LoadCursorImage(
+    wxImage MakeCursorImage(
         std::string const & cursorName,
         int hotspotX,
         int hotspotY);

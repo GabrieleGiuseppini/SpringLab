@@ -59,7 +59,6 @@ long const ID_RENDER_TIMER = wxNewId();
 MainFrame::MainFrame(wxApp * mainApp)
     : mMainApp(mainApp)
     , mSimulationController()
-    , mIsShiftKeyDown(false)
 {
     Create(
         nullptr,
@@ -120,6 +119,7 @@ MainFrame::MainFrame(wxApp * mainApp)
     mMainGLCanvas->Connect(wxEVT_RIGHT_UP, (wxObjectEventFunction)&MainFrame::OnMainGLCanvasRightUp, 0, this);
     mMainGLCanvas->Connect(wxEVT_MOTION, (wxObjectEventFunction)&MainFrame::OnMainGLCanvasMouseMove, 0, this);
     mMainGLCanvas->Connect(wxEVT_MOUSEWHEEL, (wxObjectEventFunction)&MainFrame::OnMainGLCanvasMouseWheel, 0, this);
+    mMainGLCanvas->Connect(wxEVT_MOUSE_CAPTURE_LOST, (wxObjectEventFunction)&MainFrame::OnMainGLCanvasCaptureMouseLost, 0, this);
 
     mMainFrameSizer->Add(
         mMainGLCanvas.get(),
@@ -279,6 +279,29 @@ MainFrame::MainFrame(wxApp * mainApp)
         return;
     }
 
+    //
+    // Create Tool Controller
+    //
+
+    // Set initial tool
+    ToolType initialToolType = ToolType::Move;
+    mToolsMenu->Check(ID_TOOL_MOVE_MENUITEM, true);
+
+    try
+    {
+        mToolController = std::make_unique<ToolController>(
+            initialToolType,
+            this,
+            mSimulationController);
+    }
+    catch (std::exception const & e)
+    {
+        OnError("Error during initialization of tool controller: " + std::string(e.what()), true);
+
+        return;
+    }
+
+    this->mMainApp->Yield();
 
     //
     // Register event handlers
@@ -344,16 +367,16 @@ void MainFrame::OnKeyDown(wxKeyEvent & event)
     }
     else if (event.GetKeyCode() == '/')
     {
+        assert(!!mToolController);
+
         // Query
 
-        /* TODO
         vec2f screenCoords = mToolController->GetMouseScreenCoordinates();
         vec2f worldCoords = mSimulationController->ScreenToWorld(screenCoords);
 
         LogMessage(worldCoords.toString(), ":");
 
         mSimulationController->QueryNearestPointAt(screenCoords);
-        */
     }
 
     event.Skip();
@@ -437,43 +460,44 @@ void MainFrame::OnMainGLCanvasResize(wxSizeEvent & event)
 
 void MainFrame::OnMainGLCanvasLeftDown(wxMouseEvent & /*event*/)
 {
-    // TODO
-    ////assert(!!mToolController);
-    ////mToolController->OnLeftMouseDown();
+    assert(!!mToolController);
+    mToolController->OnLeftMouseDown(wxGetKeyState(WXK_SHIFT));
 }
 
 void MainFrame::OnMainGLCanvasLeftUp(wxMouseEvent & /*event*/)
 {
-    // TODO
-    ////assert(!!mToolController);
-    ////mToolController->OnLeftMouseUp();
+    assert(!!mToolController);
+    mToolController->OnLeftMouseUp(wxGetKeyState(WXK_SHIFT));
 }
 
 void MainFrame::OnMainGLCanvasRightDown(wxMouseEvent & /*event*/)
 {
-    // TODO
-    ////assert(!!mToolController);
-    ////mToolController->OnRightMouseDown();
+    assert(!!mToolController);
+    mToolController->OnRightMouseDown();
 }
 
 void MainFrame::OnMainGLCanvasRightUp(wxMouseEvent & /*event*/)
 {
-    // TODO
-    ////assert(!!mToolController);
-    ////mToolController->OnRightMouseUp();
+    assert(!!mToolController);
+    mToolController->OnRightMouseUp();
 }
 
 void MainFrame::OnMainGLCanvasMouseMove(wxMouseEvent & event)
 {
-    // TODO
-    ////assert(!!mToolController);
-    ////mToolController->OnMouseMove(event.GetX(), event.GetY());
+    assert(!!mToolController);
+    mToolController->OnMouseMove(event.GetX(), event.GetY(), wxGetKeyState(WXK_SHIFT));
 }
 
 void MainFrame::OnMainGLCanvasMouseWheel(wxMouseEvent & event)
 {
     assert(!!mSimulationController);
     mSimulationController->AdjustZoom(powf(1.002f, event.GetWheelRotation()));
+}
+
+void MainFrame::OnMainGLCanvasCaptureMouseLost(wxMouseCaptureLostEvent & /*event*/)
+{
+    assert(!!mToolController);
+    mToolController->UnsetTool();
 }
 
 //
@@ -558,13 +582,15 @@ void MainFrame::OnZoomOutMenuItemSelected(wxCommandEvent & /*event*/)
     mSimulationController->AdjustZoom(1.0f / 1.05f);
 }
 
+////////////////////////////////////////////////////////////////////////////
+
 void MainFrame::OnToolMoveMenuItemSelected(wxCommandEvent & /*event*/)
 {
-    // TODO
+    assert(!!mToolController);
+    mToolController->SetTool(ToolType::Move);
 }
 
-
-//////////
+////////////////////////////////////////////////////////////////////////////
 
 void MainFrame::OnOpenLogWindowMenuItemSelected(wxCommandEvent & /*event*/)
 {

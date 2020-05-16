@@ -7,7 +7,7 @@
 
 #include "Colors.h"
 #include "EventDispatcher.h"
-#include "ImageData.h""
+#include "ImageData.h"
 #include "Object.h"
 #include "RenderContext.h"
 #include "SimulationParameters.h"
@@ -64,9 +64,11 @@ public:
     // Simulation Interactions
     //
 
+    void SetPointHighlightState(ElementIndex pointElementIndex, bool highlightState);
+
     std::optional<ElementIndex> GetNearestPointAt(vec2f const & screenCoordinates) const;
 
-    void MovePoint(ElementIndex pointElementIndex, vec2f const & screenOffset);
+    void MovePoint(ElementIndex pointElementIndex, vec2f const & screenCoordinates);
 
     void QueryNearestPointAt(vec2f const & screenCoordinates) const;
 

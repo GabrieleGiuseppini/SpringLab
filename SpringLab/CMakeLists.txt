@@ -17,6 +17,10 @@ set  (SPRING_LAB_SOURCES
 	ScalarTimeSeriesProbeControl.h
 	StandardSystemPaths.cpp
 	StandardSystemPaths.h
+	ToolController.cpp
+	ToolController.h
+	Tools.cpp
+	Tools.h
 	WxHelpers.cpp
 	WxHelpers.h
 )
