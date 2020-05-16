@@ -74,7 +74,7 @@ private:
     // Timers
     //
 
-    std::unique_ptr<wxTimer> mRenderTimer;
+    std::unique_ptr<wxTimer> mSimulationTimer;
 
 private:
 
@@ -111,7 +111,7 @@ private:
     void OnAboutMenuItemSelected(wxCommandEvent & event);
 
     // Timers
-    void OnRenderTimer(wxTimerEvent & event);
+    void OnSimulationTimer(wxTimerEvent & event);
 
 private:
 

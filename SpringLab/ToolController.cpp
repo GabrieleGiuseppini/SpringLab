@@ -38,13 +38,11 @@ ToolController::ToolController(
 
 void ToolController::OnMouseMove(
     int x,
-    int y,
-    bool isShiftDown)
+    int y)
 {
     // Update input state
     mInputState.PreviousMousePosition = mInputState.MousePosition;
     mInputState.MousePosition = vec2f(x, y);
-    ProcessShiftState(isShiftDown);
 
     // Perform action
     if (mInputState.IsRightMouseDown)
@@ -55,40 +53,18 @@ void ToolController::OnMouseMove(
         vec2f screenOffset = mInputState.PreviousMousePosition - mInputState.MousePosition;
         mSimulationController->Pan(screenOffset);
     }
-    else
-    {
-        // Perform current tool's action
-        if (nullptr != mCurrentTool)
-        {
-            mCurrentTool->Update(mInputState);
-        }
-    }
 }
 
-void ToolController::OnLeftMouseDown(bool isShiftDown)
+void ToolController::OnLeftMouseDown()
 {
     // Update input state
     mInputState.IsLeftMouseDown = true;
-    ProcessShiftState(isShiftDown);
-
-    // Perform current tool's action
-    if (nullptr != mCurrentTool)
-    {
-        mCurrentTool->Update(mInputState);
-    }
 }
 
-void ToolController::OnLeftMouseUp(bool isShiftDown)
+void ToolController::OnLeftMouseUp()
 {
     // Update input state
     mInputState.IsLeftMouseDown = false;
-    ProcessShiftState(isShiftDown);
-
-    // Perform current tool's action
-    if (nullptr != mCurrentTool)
-    {
-        mCurrentTool->Update(mInputState);
-    }
 }
 
 void ToolController::OnRightMouseDown()
@@ -112,17 +88,14 @@ void ToolController::OnRightMouseUp()
     }
 }
 
-void ToolController::ProcessShiftState(bool isDown)
+void ToolController::OnShiftKeyDown()
 {
-    auto oldState = mInputState.IsShiftKeyDown;
-
     // Update input state
-    mInputState.IsShiftKeyDown = isDown;
+    mInputState.IsShiftKeyDown = true;
+}
 
-    // Perform current tool's action
-    if (oldState != isDown
-        && nullptr != mCurrentTool)
-    {
-        mCurrentTool->Update(mInputState);
-    }
+void ToolController::OnShiftKeyUp()
+{
+    // Update input state
+    mInputState.IsShiftKeyDown = false;
 }

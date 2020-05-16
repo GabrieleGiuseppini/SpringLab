@@ -54,7 +54,7 @@ long const ID_NORMAL_SCREEN_MENUITEM = wxNewId();
 
 long const ID_ABOUT_MENUITEM = wxNewId();
 
-long const ID_RENDER_TIMER = wxNewId();
+long const ID_SIMULATION_TIMER = wxNewId();
 
 MainFrame::MainFrame(wxApp * mainApp)
     : mMainApp(mainApp)
@@ -323,9 +323,9 @@ MainFrame::MainFrame(wxApp * mainApp)
     // Initialize timers
     //
 
-    mRenderTimer = std::make_unique<wxTimer>(this, ID_RENDER_TIMER);
-    Connect(ID_RENDER_TIMER, wxEVT_TIMER, (wxObjectEventFunction)&MainFrame::OnRenderTimer);
-    mRenderTimer->Start(0);
+    mSimulationTimer = std::make_unique<wxTimer>(this, ID_SIMULATION_TIMER);
+    Connect(ID_SIMULATION_TIMER, wxEVT_TIMER, (wxObjectEventFunction)&MainFrame::OnSimulationTimer);
+    mSimulationTimer->Start(0);
 }
 
 MainFrame::~MainFrame()
@@ -461,13 +461,13 @@ void MainFrame::OnMainGLCanvasResize(wxSizeEvent & event)
 void MainFrame::OnMainGLCanvasLeftDown(wxMouseEvent & /*event*/)
 {
     assert(!!mToolController);
-    mToolController->OnLeftMouseDown(wxGetKeyState(WXK_SHIFT));
+    mToolController->OnLeftMouseDown();
 }
 
 void MainFrame::OnMainGLCanvasLeftUp(wxMouseEvent & /*event*/)
 {
     assert(!!mToolController);
-    mToolController->OnLeftMouseUp(wxGetKeyState(WXK_SHIFT));
+    mToolController->OnLeftMouseUp();
 }
 
 void MainFrame::OnMainGLCanvasRightDown(wxMouseEvent & /*event*/)
@@ -485,7 +485,7 @@ void MainFrame::OnMainGLCanvasRightUp(wxMouseEvent & /*event*/)
 void MainFrame::OnMainGLCanvasMouseMove(wxMouseEvent & event)
 {
     assert(!!mToolController);
-    mToolController->OnMouseMove(event.GetX(), event.GetY(), wxGetKeyState(WXK_SHIFT));
+    mToolController->OnMouseMove(event.GetX(), event.GetY());
 }
 
 void MainFrame::OnMainGLCanvasMouseWheel(wxMouseEvent & event)
@@ -644,8 +644,26 @@ void MainFrame::OnAboutMenuItemSelected(wxCommandEvent & /*event*/)
     mAboutDialog->Open();
 }
 
-void MainFrame::OnRenderTimer(wxTimerEvent & /*event*/)
+void MainFrame::OnSimulationTimer(wxTimerEvent & /*event*/)
 {
+    assert(!!mToolController);
+
+    // Update tools's SHIFT state
+    if (wxGetKeyState(WXK_SHIFT))
+    {
+        if (!mToolController->IsShiftKeyDown())
+            mToolController->OnShiftKeyDown();
+    }
+    else
+    {
+        if (mToolController->IsShiftKeyDown())
+            mToolController->OnShiftKeyUp();
+    }
+
+    // Update tools
+    mToolController->Update();
+
+    // Render
     mMainGLCanvas->Refresh();
 }
 

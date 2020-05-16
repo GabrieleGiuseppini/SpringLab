@@ -60,14 +60,16 @@
 	+ Do shift @ MouseDown & MouseMove, passing as boolean to ToolController::OnMouseXYZ(.)
 	+ See move
 
-- Put timer back
-	- Rename "RenderTimer" as "SimulationTimer"
-	- On timer:
-		- Detect shift and send to ToolController
-			- Like before
-			- Remove extra shift boolean at others
-		- Invoke ToolController::Update
-			- Remove other invocations
+= Put timer back
+	+ Rename "RenderTimer" as "SimulationTimer"
+	+ On timer:
+		+ Detect shift and send to ToolController
+			+ Like before
+			+ Remove extra shift boolean at others
+		+ Invoke ToolController::Update
+			+ Remove other invocations
+
+- Reset menu
 
 - Point highlight when picked
 	- Tool: Controller->HighlightPoint(elementIndex, true/false)

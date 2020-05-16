@@ -63,26 +63,30 @@ public:
         return mInputState.MousePosition;
     }
 
+    bool IsShiftKeyDown() const
+    {
+        return mInputState.IsShiftKeyDown;
+    }
+
     //
     // External event handlers
     //
 
     void OnMouseMove(
         int x,
-        int y,
-        bool isShiftDown);
+        int y);
 
-    void OnLeftMouseDown(bool isShiftDown);
+    void OnLeftMouseDown();
 
-    void OnLeftMouseUp(bool isShiftDown);
+    void OnLeftMouseUp();
 
     void OnRightMouseDown();
 
     void OnRightMouseUp();
 
-private:
+    void OnShiftKeyDown();
 
-    void ProcessShiftState(bool isDown);
+    void OnShiftKeyUp();
 
 private:
 

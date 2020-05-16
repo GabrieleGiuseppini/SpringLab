@@ -8,7 +8,7 @@
 #include <limits>
 
 // Interaction constants
-float constexpr PointSearchRadius = 10.0f;
+float constexpr PointSearchRadius = 0.5f;
 
 void SimulationController::SetPointHighlightState(ElementIndex pointElementIndex, bool highlightState)
 {
@@ -32,7 +32,8 @@ std::optional<ElementIndex> SimulationController::GetNearestPointAt(vec2f const 
     for (auto p : points.RawPoints())
     {
         float const squareDistance = (points.GetPosition(p) - worldCoordinates).squareLength();
-        if (squareDistance < SquareSearchRadius)
+        if (squareDistance < SquareSearchRadius
+            && squareDistance < bestSquareDistance)
         {
             bestSquareDistance = squareDistance;
             bestPoint = p;

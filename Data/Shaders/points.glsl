@@ -36,8 +36,16 @@ in vec4 pointColor;
 
 void main()
 {
-    float d = distance(vertexSpacePosition, vec2(.0, .0));
-    float alpha = 1.0 - smoothstep(0.9, 1.0, d);
+    float d1 = distance(vertexSpacePosition, vec2(.0, .0));
+    float alpha = 1.0 - smoothstep(0.85, 1.0, d1);
 
-    gl_FragColor = vec4(pointColor.xyz, alpha);
+    float d2 = distance(vertexSpacePosition, vec2(-0.3, 0.3));
+    float reflection = 1.0 - smoothstep(0.0, 0.5, d2);
+
+    gl_FragColor = vec4(
+        mix(
+            vec3(pointColor.xyz), 
+            vec3(1., 1.,1.),
+            reflection),
+        alpha * pointColor.w);
 } 
