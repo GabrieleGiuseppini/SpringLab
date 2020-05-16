@@ -1,0 +1,158 @@
+[
+    {
+        "color_key": "#808090", 
+        "mass": {
+            "density": 0.00935, 
+            "nominal_mass": 7850
+        }, 
+        "name": "Iron Grey",
+        "stiffness": 1.0, 
+        "template": {
+            "column": 0, 
+            "row": "0|Iron"
+        }
+    }, 
+
+    {
+        "color_key": "#9E0F00", 
+        "mass": {
+            "density": 0.00935, 
+            "nominal_mass": 7850
+        }, 
+        "name": "Iron Red",
+        "stiffness": 1.0, 
+        "template": {
+            "column": 1, 
+            "row": "0|Iron"
+        }
+    }, 
+   
+    {
+        "color_key": "#997200", 
+        "mass": {
+            "density": 0.00935, 
+            "nominal_mass": 7850
+        }, 
+        "name": "Iron Yellow",
+        "stiffness": 1.0, 
+        "template": {
+            "column": 2, 
+            "row": "0|Iron"
+        }
+    }, 
+
+    {
+        "color_key": "#569200", 
+        "mass": {
+            "density": 0.00935, 
+            "nominal_mass": 7850
+        }, 
+        "name": "Iron Green",
+        "stiffness": 1.0, 
+        "template": {
+            "column": 3, 
+            "row": "0|Iron"
+        }
+    }, 
+
+    {
+        "color_key": "#00818C", 
+        "mass": {
+            "density": 0.00935, 
+            "nominal_mass": 7850
+        }, 
+        "name": "Iron Blue",
+        "stiffness": 1.0, 
+        "template": {
+            "column": 4, 
+            "row": "0|Iron"
+        }
+    }, 
+
+
+
+
+    {
+        "color_key": "#10A19D", 
+        "mass": {
+            "density": 0.022935, 
+            "nominal_mass": 800
+        }, 
+        "name": "Wood Brown", 
+        "stiffness": 1.0, 
+        "template": {
+            "column": 0, 
+            "row": "10|Wood"
+        }
+    }, 
+
+    {
+        "color_key": "#036E8C", 
+        "mass": {
+            "density": 0.022935, 
+            "nominal_mass": 800
+        }, 
+        "name": "Wood Blue", 
+        "stiffness": 1.0, 
+        "template": {
+            "column": 1,
+            "row": "10|Wood"
+        }
+    }, 
+
+    {
+        "color_key": "#090909", 
+        "mass": {
+            "density": 0.022935, 
+            "nominal_mass": 800
+        }, 
+        "name": "Wood Black", 
+        "stiffness": 1.0, 
+        "template": {
+            "column": 2,
+            "row": "10|Wood"
+        }
+    }, 
+
+    {
+        "color_key": "#B51B1B", 
+        "mass": {
+            "density": 0.022935, 
+            "nominal_mass": 800
+        }, 
+        "name": "Wood Red", 
+        "stiffness": 1.0, 
+        "template": {
+            "column": 3,
+            "row": "10|Wood"
+        }
+    }, 
+
+    {
+        "color_key": "#AF7C18", 
+        "mass": {
+            "density": 0.022935, 
+            "nominal_mass": 800
+        }, 
+        "name": "Wood Yellow", 
+        "stiffness": 1.0, 
+        "template": {
+            "column": 4,
+            "row": "10|Wood"
+        }
+    }, 
+
+    {
+        "color_key": "#439206", 
+        "mass": {
+            "density": 0.022935, 
+            "nominal_mass": 800
+        }, 
+        "name": "Wood Green", 
+        "stiffness": 1.0, 
+        "template": {
+            "column": 5,
+            "row": "10|Wood"
+        }
+    }
+]

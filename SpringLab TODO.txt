@@ -1,0 +1,89 @@
+
+= Get started with V 1.0:
+	+ Containers, buffers, special vectors
+	+ ResourceLocator
+	+ StructuralMaterial
+	+ StructuralMaterialDatabase
+	+ Points
+		+ Phys: position, velocity
+		+ Network: springs
+		+ Render: render radius, render color (vec4f), factory render color
+	+ Springs
+		+ Physics:
+			+ Stiffness
+			+ RestLength
+		+ Network
+		+ Render: render thickness, render color (vec4f), factory render color
+	+ Object: purely data
+		+ Points
+		+ Springs
+	+ ObjectDefinition/File
+	+ ObjectBuilder
+
+	+ ViewModel
+	+ RenderContext skeleton
+
+	+ SimulationController
+
+	+ MainFrame
+	+ MainApp
+
+	- Add to GitHub
+
+- Make json
+
+- Rendering:
+	- MainFrame: RunSimulationStep()
+		- Triggered by space bar
+		- SimulationController.RunSimulationStep()
+		- mMainGLCanvas.Refresh()
+			- Change OnPaint to be on canvas
+			- OnPaint: SimulationController.Render()
+	- RenderContext:
+		- Decide if RenderContext instance takes point count, hence needs to be recreated each time
+			! YES
+		- TODO: API architecture
+		- Complete:
+			- OnViewModelUpdated()
+
+- ISpringSimulator architecture:
+	// TODOHERE
+	- ISpringSimulator
+		- cctor(Points
+
+	- SimulationController::SetSimulator(enum from SLabTypes)
+
+	- Setting paramers:
+		- Controller::Set(common parameter @ SimulationParameters)
+		- Controller::Set(specific parameter @ SimulationParameters::SimulatorXParameters)
+			- ISpringSimulator->OnSimulationParametersChanged()
+				- Controlled via controller's mAreParametersDirty, @ beginning of simulation step
+
+	- Do "ClassicSpringSimulator"
+
+
+- Interactions:
+	- Tools
+	- ToolController
+	- Mouse-taking @ MainFrame (see 'TODO')
+
+- UI:
+	- MainToolBar:
+		- SimulatorType drop-down
+		- Step button
+		- Reset button
+		- OpenObject button
+	- Icons
+	- ProbePanel:
+		- ScalarTimeSeries
+		- Scalar
+			- Also @ EventHandler
+		- TODO: also used to display stats & simulator-specific outputs
+			- Simulation step #
+			- Simulation time
+			- Update elapsed: last, avg
+
+	- Vector rendering
+
+- Experiment:
+	- OpenGL on separate thread
