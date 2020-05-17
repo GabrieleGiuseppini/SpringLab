@@ -69,6 +69,7 @@ public:
         , mRenderColorBuffer(mBufferElementCount, pointCount, vec4f::zero())
         , mFactoryRenderColorBuffer(mBufferElementCount, pointCount, vec4f::zero())
         , mRenderNormRadiusBuffer(mBufferElementCount, pointCount, 0.0f)
+        , mRenderHighlightBuffer(mBufferElementCount, pointCount, 0.0f)
         //////////////////////////////////
         // Misc
         //////////////////////////////////
@@ -269,6 +270,18 @@ public:
         return mRenderNormRadiusBuffer.data();
     }
 
+    void SetRenderHighlight(
+        ElementIndex pointElementIndex,
+        float hightlight)
+    {
+        mRenderHighlightBuffer[pointElementIndex] = hightlight;
+    }
+
+    float const * GetRenderHighlightBuffer() const
+    {
+        return mRenderHighlightBuffer.data();
+    }
+
     //
     // Temporary buffer
     //
@@ -319,6 +332,7 @@ private:
     Buffer<vec4f> mRenderColorBuffer;
     Buffer<vec4f> mFactoryRenderColorBuffer;
     Buffer<float> mRenderNormRadiusBuffer;
+    Buffer<float> mRenderHighlightBuffer;
 
 
     //////////////////////////////////////////////////////////

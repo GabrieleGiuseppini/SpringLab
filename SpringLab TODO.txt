@@ -47,7 +47,9 @@
 			+ RenderStart()
 			= Upload(...all...)
 				+ Points
-				- Springs
+					+ Shader
+				+ Springs
+					- Shader
 			+ RenderEnd()
 				+ Run all shaders
 		+ Complete:
@@ -60,7 +62,7 @@
 	+ Do shift @ MouseDown & MouseMove, passing as boolean to ToolController::OnMouseXYZ(.)
 	+ See move
 
-= Put timer back
++ Put timer back
 	+ Rename "RenderTimer" as "SimulationTimer"
 	+ On timer:
 		+ Detect shift and send to ToolController
@@ -68,14 +70,26 @@
 			+ Remove extra shift boolean at others
 		+ Invoke ToolController::Update
 			+ Remove other invocations
++ Reset menu
 
-- Reset menu
++ Point highlight when picked
+	+ Tool: Controller->HighlightPoint(elementIndex, true/false)
+		+ new Points buffer: float highlight
+		+ Uploaded to RenderContext
+			+ ...which populates float in struct
++ BGColor
 
-- Point highlight when picked
-	- Tool: Controller->HighlightPoint(elementIndex, true/false)
-		- new Points buffer: float highlight
-		- "Uploaded" to RenderContext
-			- ...which populates float in struct
+- ViewModel: recalc zoom at resize
+	+ See if exists API to get max size
+	+ Communicate size @ controller creation
+		+ See if available by then
+	- Also do camera calculation
+
+= MoveTool:
+	+ Consider offset, not absolute position
+	+ Controller::GetPointPosition(), store in engagement state, and use it for offset
+
+- Check assembly of SimulationController::Render() wrt accesses to mObject->GetSprings()
 
 - ISpringSimulator architecture:
 
@@ -113,7 +127,9 @@
 			- Simulation time
 			- Update elapsed: last, avg
 
-	- Vector rendering
+	- Load Object
 
 - Experiment:
 	- OpenGL on separate thread
+
+-------------------------------------------------------

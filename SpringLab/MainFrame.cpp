@@ -38,6 +38,8 @@
 
 long const ID_MAIN_CANVAS = wxNewId();
 
+long const ID_LOAD_OBJECT_MENUITEM = wxNewId();
+long const ID_RESET_MENUITEM = wxNewId();
 long const ID_SAVE_SCREENSHOT_MENUITEM = wxNewId();
 long const ID_QUIT_MENUITEM = wxNewId();
 
@@ -66,17 +68,16 @@ MainFrame::MainFrame(wxApp * mainApp)
         std::string(APPLICATION_NAME_WITH_SHORT_VERSION),
         wxDefaultPosition,
         wxDefaultSize,
-        wxDEFAULT_FRAME_STYLE,
+        wxDEFAULT_FRAME_STYLE | wxMAXIMIZE,
         _T("Main Frame"));
 
     SetIcon(wxICON(BBB_SLAB_ICON));
     SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
-    Maximize();
     Centre();
 
-    mMainPanel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(-1, -1), wxWANTS_CHARS);
+    mMainPanel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxWANTS_CHARS);
     mMainPanel->Bind(wxEVT_CHAR_HOOK, &MainFrame::OnKeyDown, this);
-    mMainFrameSizer = new wxBoxSizer(wxVERTICAL);
+    mMainPanelSizer = new wxBoxSizer(wxVERTICAL);
 
 
     //
@@ -107,7 +108,7 @@ MainFrame::MainFrame(wxApp * mainApp)
         ID_MAIN_CANVAS,
         mainGLCanvasAttributes,
         wxDefaultPosition,
-        wxSize(1, 1),
+        wxDefaultSize,
         0L,
         _T("Main GL Canvas"));
 
@@ -121,7 +122,7 @@ MainFrame::MainFrame(wxApp * mainApp)
     mMainGLCanvas->Connect(wxEVT_MOUSEWHEEL, (wxObjectEventFunction)&MainFrame::OnMainGLCanvasMouseWheel, 0, this);
     mMainGLCanvas->Connect(wxEVT_MOUSE_CAPTURE_LOST, (wxObjectEventFunction)&MainFrame::OnMainGLCanvasCaptureMouseLost, 0, this);
 
-    mMainFrameSizer->Add(
+    mMainPanelSizer->Add(
         mMainGLCanvas.get(),
         1,                  // Occupy all available vertical space
         wxEXPAND,           // Expand also horizontally
@@ -141,6 +142,16 @@ MainFrame::MainFrame(wxApp * mainApp)
     // File
 
     wxMenu * fileMenu = new wxMenu();
+
+    wxMenuItem * loadObjectMenuItem = new wxMenuItem(fileMenu, ID_LOAD_OBJECT_MENUITEM, _("Load Object\tCtrl+O"), wxEmptyString, wxITEM_NORMAL);
+    fileMenu->Append(loadObjectMenuItem);
+    Connect(ID_LOAD_OBJECT_MENUITEM, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&MainFrame::OnLoadObjectMenuItemSelected);
+
+    wxMenuItem * resetMenuItem = new wxMenuItem(fileMenu, ID_RESET_MENUITEM, _("Reset\tCtrl+R"), wxEmptyString, wxITEM_NORMAL);
+    fileMenu->Append(resetMenuItem);
+    Connect(ID_RESET_MENUITEM, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&MainFrame::OnResetMenuItemSelected);
+
+    fileMenu->Append(new wxMenuItem(fileMenu, wxID_SEPARATOR));
 
     wxMenuItem * saveScreenshotMenuItem = new wxMenuItem(fileMenu, ID_SAVE_SCREENSHOT_MENUITEM, _("Save Screenshot\tCtrl+C"), wxEmptyString, wxITEM_NORMAL);
     fileMenu->Append(saveScreenshotMenuItem);
@@ -234,16 +245,17 @@ MainFrame::MainFrame(wxApp * mainApp)
 
     mProbePanel = std::make_unique<ProbePanel>(mMainPanel);
 
-    mMainFrameSizer->Add(mProbePanel.get(), 0, wxEXPAND); // Expand horizontally
+    mMainPanelSizer->Add(mProbePanel.get(), 0, wxEXPAND); // Expand horizontally
 
-    mMainFrameSizer->Hide(mProbePanel.get());
+    mMainPanelSizer->Hide(mProbePanel.get());
 
 
     //
     // Finalize frame
     //
 
-    mMainPanel->SetSizer(mMainFrameSizer);
+    mMainPanel->SetSizer(mMainPanelSizer);
+    mMainPanel->Layout();
 
 
     //
@@ -261,6 +273,8 @@ MainFrame::MainFrame(wxApp * mainApp)
     try
     {
         mSimulationController = SimulationController::Create(
+            mMainGLCanvas->GetSize().x,
+            mMainGLCanvas->GetSize().y,
             [this]()
             {
                 // Activate context
@@ -301,8 +315,6 @@ MainFrame::MainFrame(wxApp * mainApp)
         return;
     }
 
-    this->mMainApp->Yield();
-
     //
     // Register event handlers
     //
@@ -314,10 +326,10 @@ MainFrame::MainFrame(wxApp * mainApp)
     // PostInitialize
     //
 
-    this->Show(true);
+    Show(true);
 
     if (StartInFullScreenMode)
-        this->ShowFullScreen(true, wxFULLSCREEN_NOBORDER);
+        ShowFullScreen(true, wxFULLSCREEN_NOBORDER);
 
     //
     // Initialize timers
@@ -456,6 +468,8 @@ void MainFrame::OnMainGLCanvasResize(wxSizeEvent & event)
             event.GetSize().GetX(),
             event.GetSize().GetY());
     }
+
+    event.Skip();
 }
 
 void MainFrame::OnMainGLCanvasLeftDown(wxMouseEvent & /*event*/)
@@ -503,6 +517,17 @@ void MainFrame::OnMainGLCanvasCaptureMouseLost(wxMouseCaptureLostEvent & /*event
 //
 // Menu event handlers
 //
+
+void MainFrame::OnLoadObjectMenuItemSelected(wxCommandEvent & /*event*/)
+{
+    // TODO
+}
+
+void MainFrame::OnResetMenuItemSelected(wxCommandEvent & /*event*/)
+{
+    assert(!!mSimulationController);
+    mSimulationController->Reset();
+}
 
 void MainFrame::OnSaveScreenshotMenuItemSelected(wxCommandEvent & /*event*/)
 {
@@ -608,14 +633,14 @@ void MainFrame::OnShowProbePanelMenuItemSelected(wxCommandEvent & /*event*/)
 
     if (mShowProbePanelMenuItem->IsChecked())
     {
-        mMainFrameSizer->Show(mProbePanel.get());
+        mMainPanelSizer->Show(mProbePanel.get());
     }
     else
     {
-        mMainFrameSizer->Hide(mProbePanel.get());
+        mMainPanelSizer->Hide(mProbePanel.get());
     }
 
-    mMainFrameSizer->Layout();
+    mMainPanelSizer->Layout();
 }
 
 void MainFrame::OnFullScreenMenuItemSelected(wxCommandEvent & /*event*/)

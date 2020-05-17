@@ -26,4 +26,5 @@ void Springs::Add(
     mRenderColorBuffer.emplace_back(points.GetFactoryRenderColor(pointAIndex));
     mFactoryRenderColorBuffer.emplace_back(points.GetFactoryRenderColor(pointAIndex));
     mRenderNormThicknessBuffer.emplace_back(1.0f);
+    mRenderHighlightBuffer.emplace_back(0.0f);
 }

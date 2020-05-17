@@ -102,7 +102,7 @@ public:
     {
         if (mCurrentEngagementState.has_value())
         {
-            mSimulationController->SetPointHighlightState(mCurrentEngagementState->PointIndex, false);
+            mSimulationController->SetPointHighlight(mCurrentEngagementState->PointIndex, 0.0f);
         }
     }
 
@@ -124,18 +124,23 @@ public:
                 // ...see if we're able to pick a point and thus start engagement
                 //
 
-                auto elementId = mSimulationController->GetNearestPointAt(inputState.MousePosition);
+                vec2f const mousePosition = inputState.MousePosition;
+
+                auto elementId = mSimulationController->GetNearestPointAt(mousePosition);
                 if (elementId.has_value())
                 {
                     //
                     // Engage!
                     //
 
+                    vec2f const pointScreenPosition = mSimulationController->GetPointPositionInScreenCoordinates(*elementId);
+
                     mCurrentEngagementState.emplace(
                         *elementId,
-                        inputState.MousePosition);
+                        inputState.MousePosition,
+                        pointScreenPosition - mousePosition);
 
-                    mSimulationController->SetPointHighlightState(mCurrentEngagementState->PointIndex, true);
+                    mSimulationController->SetPointHighlight(mCurrentEngagementState->PointIndex, 1.0f);
                 }
             }
             else
@@ -179,9 +184,9 @@ public:
                     * mCurrentEngagementState->CurrentConvergenceSpeed;
 
                 // 4. Move point to current position
-                mSimulationController->MovePoint(
+                mSimulationController->MovePointTo(
                     mCurrentEngagementState->PointIndex,
-                    mCurrentEngagementState->CurrentScreenPosition);
+                    mCurrentEngagementState->CurrentScreenPosition + mCurrentEngagementState->PickScreenOffset);
             }
         }
         else
@@ -191,7 +196,7 @@ public:
                 // Disengage
                 mCurrentEngagementState.reset();
 
-                mSimulationController->SetPointHighlightState(mCurrentEngagementState->PointIndex, false);
+                mSimulationController->SetPointHighlight(mCurrentEngagementState->PointIndex, 0.0f);
             }
         }
 
@@ -216,14 +221,18 @@ private:
         vec2f LastScreenPosition;
         float CurrentConvergenceSpeed;
 
+        vec2f PickScreenOffset;
+
         EngagementState(
             ElementIndex pointIndex,
-            vec2f startScreenPosition)
+            vec2f startScreenPosition,
+            vec2f pickScreenOffset)
             : PointIndex(pointIndex)
             , CurrentScreenPosition(startScreenPosition)
             , TargetScreenPosition(startScreenPosition)
             , LastScreenPosition(startScreenPosition)
             , CurrentConvergenceSpeed(0.03f)
+            , PickScreenOffset(pickScreenOffset)
         {}
     };
 

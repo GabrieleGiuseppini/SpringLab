@@ -8,10 +8,9 @@
 #include "ObjectBuilder.h"
 #include "ResourceLocator.h"
 
-#include <iomanip> // TODO
-#include <sstream>
-
 std::unique_ptr<SimulationController> SimulationController::Create(
+    int canvasWidth,
+    int canvasHeight,
     std::function<void()> makeRenderContextCurrentFunction,
     std::function<void()> swapRenderBuffersFunction)
 {
@@ -20,6 +19,8 @@ std::unique_ptr<SimulationController> SimulationController::Create(
 
     // Create render context
     std::unique_ptr<RenderContext> renderContext = std::make_unique<RenderContext>(
+        canvasWidth,
+        canvasHeight,
         std::move(makeRenderContextCurrentFunction),
         std::move(swapRenderBuffersFunction));
 
@@ -119,10 +120,24 @@ void SimulationController::Render()
             mObject->GetPoints().GetRawPointCount(),
             mObject->GetPoints().GetPositionBuffer(),
             mObject->GetPoints().GetRenderColorBuffer(),
-            mObject->GetPoints().GetRenderNormRadiusBuffer());
+            mObject->GetPoints().GetRenderNormRadiusBuffer(),
+            mObject->GetPoints().GetRenderHighlightBuffer());
 
-        // TODO: springs
+        mRenderContext->UploadSpringsStart(mObject->GetSprings().GetElementCount());
+
+        for (auto s : mObject->GetSprings())
+        {
+            mRenderContext->UploadSpring(
+                mObject->GetPoints().GetPosition(mObject->GetSprings().GetEndpointAIndex(s)),
+                mObject->GetPoints().GetPosition(mObject->GetSprings().GetEndpointBIndex(s)),
+                mObject->GetSprings().GetRenderColor(s),
+                mObject->GetSprings().GetRenderNormThickness(s),
+                mObject->GetSprings().GetRenderHighlight(s));
+        }
+
+        mRenderContext->UploadSpringsEnd();
     }
+
     mRenderContext->RenderEnd();
 }
 
@@ -172,18 +187,26 @@ void SimulationController::Reset(
     mCurrentObjectDefinitionFilepath = objectDefinitionFilepath;
 
     //
-    // Auto-zoom
+    // Auto-zoom & center
     //
 
     {
-        // Calculate zoom to fit width and height (plus a nicely-looking margin)
-        vec2f const objectSize = mObject->GetPoints().GetAABB().GetSize();
+        AABB const objectAABB = mObject->GetPoints().GetAABB();
+
+        vec2f const objectSize = objectAABB.GetSize();
+
+        // Zoom to fit width and height (plus a nicely-looking margin)
         float const newZoom = std::min(
             mRenderContext->CalculateZoomForWorldWidth(objectSize.x + 5.0f),
             mRenderContext->CalculateZoomForWorldHeight(objectSize.y + 3.0f));
-
-        // Set zoom
         mRenderContext->SetZoom(newZoom);
+
+        // Center
+        vec2f const objectCenter(
+            (objectAABB.BottomLeft.x + objectAABB.TopRight.x) / 2.0f,
+            (objectAABB.BottomLeft.y + objectAABB.TopRight.y) / 2.0f);
+        mRenderContext->SetCameraWorldPosition(objectCenter);
+
     }
 
     //

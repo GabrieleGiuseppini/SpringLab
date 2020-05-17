@@ -159,6 +159,13 @@ public:
             -screenOffset.y / static_cast<float>(mCanvasHeight) * mVisibleWorldHeight);
     }
 
+    inline vec2f WorldToScreen(vec2f const & worldCoordinates) const
+    {
+        return vec2f(
+            ((worldCoordinates.x - mCam.x) / mVisibleWorldWidth + 0.5f) * static_cast<float>(mCanvasWidth),
+            ((worldCoordinates.y - mCam.y) / -mVisibleWorldHeight + 0.5f) * static_cast<float>(mCanvasHeight));
+    }
+
     inline float PixelWidthToWorldWidth(float pixelWidth) const
     {
         // Width in NDC coordinates (between 0 and 2.0)

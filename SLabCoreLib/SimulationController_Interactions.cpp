@@ -10,13 +10,17 @@
 // Interaction constants
 float constexpr PointSearchRadius = 0.5f;
 
-void SimulationController::SetPointHighlightState(ElementIndex pointElementIndex, bool highlightState)
+void SimulationController::SetPointHighlight(ElementIndex pointElementIndex, float highlight)
 {
-    // TODOHERE
+    assert(!!mObject);
+
+    mObject->GetPoints().SetRenderHighlight(pointElementIndex, highlight);
 }
 
 std::optional<ElementIndex> SimulationController::GetNearestPointAt(vec2f const & screenCoordinates) const
 {
+    assert(!!mObject);
+
     //
     // Find closest point within the radius
     //
@@ -46,15 +50,33 @@ std::optional<ElementIndex> SimulationController::GetNearestPointAt(vec2f const 
         return std::nullopt;
 }
 
-void SimulationController::MovePoint(ElementIndex pointElementIndex, vec2f const & screenCoordinates)
+vec2f SimulationController::GetPointPosition(ElementIndex pointElementIndex) const
 {
+    assert(!!mObject);
+
+    return mObject->GetPoints().GetPosition(pointElementIndex);
+}
+
+vec2f SimulationController::GetPointPositionInScreenCoordinates(ElementIndex pointElementIndex) const
+{
+    assert(!!mRenderContext);
+
+    return mRenderContext->WorldToScreen(GetPointPosition(pointElementIndex));
+}
+
+void SimulationController::MovePointTo(ElementIndex pointElementIndex, vec2f const & screenCoordinates)
+{
+    assert(!!mObject);
+
     vec2f const worldCoordinates = ScreenToWorld(screenCoordinates);
 
-    mObject->GetPoints().GetPosition(pointElementIndex) = worldCoordinates;
+    mObject->GetPoints().SetPosition(pointElementIndex, worldCoordinates);
 }
 
 void SimulationController::QueryNearestPointAt(vec2f const & screenCoordinates) const
 {
+    assert(!!mObject);
+
     auto const nearestPoint = GetNearestPointAt(screenCoordinates);
     if (nearestPoint.has_value())
     {

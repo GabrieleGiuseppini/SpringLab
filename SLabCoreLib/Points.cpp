@@ -25,6 +25,7 @@ void Points::Add(
     mRenderColorBuffer.emplace_back(vec4f(color, 1.0f));
     mFactoryRenderColorBuffer.emplace_back(vec4f(color, 1.0f));
     mRenderNormRadiusBuffer.emplace_back(1.0f);
+    mRenderHighlightBuffer.emplace_back(0.0f);
 }
 
 void Points::Query(ElementIndex pointElementIndex) const

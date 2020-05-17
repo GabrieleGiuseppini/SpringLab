@@ -43,6 +43,7 @@ public:
 private:
 
     wxPanel * mMainPanel;
+    wxBoxSizer * mMainPanelSizer;
 
     //
     // Canvas
@@ -55,7 +56,6 @@ private:
     // Controls that we're interacting with
     //
 
-    wxBoxSizer * mMainFrameSizer;
     wxMenu * mToolsMenu;
     wxMenuItem * mShowProbePanelMenuItem;
     wxMenuItem * mFullScreenMenuItem;
@@ -98,14 +98,15 @@ private:
     void OnMainGLCanvasCaptureMouseLost(wxMouseCaptureLostEvent & event);
 
     // Menu
+    void OnLoadObjectMenuItemSelected(wxCommandEvent & event);
+    void OnResetMenuItemSelected(wxCommandEvent & event);
+    void OnSaveScreenshotMenuItemSelected(wxCommandEvent & event);
     void OnZoomInMenuItemSelected(wxCommandEvent & event);
     void OnZoomOutMenuItemSelected(wxCommandEvent & event);
     void OnResetViewMenuItemSelected(wxCommandEvent & event);
-    void OnSaveScreenshotMenuItemSelected(wxCommandEvent & event);
     void OnToolMoveMenuItemSelected(wxCommandEvent & event);
     void OnOpenLogWindowMenuItemSelected(wxCommandEvent & event);
     void OnShowProbePanelMenuItemSelected(wxCommandEvent & event);
-    void OnShowStatusTextMenuItemSelected(wxCommandEvent & event);
     void OnFullScreenMenuItemSelected(wxCommandEvent & event);
     void OnNormalScreenMenuItemSelected(wxCommandEvent & event);
     void OnAboutMenuItemSelected(wxCommandEvent & event);

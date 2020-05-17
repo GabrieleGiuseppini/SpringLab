@@ -34,6 +34,8 @@ class SimulationController
 public:
 
     static std::unique_ptr<SimulationController> Create(
+        int canvasWidth,
+        int canvasHeight,
         std::function<void()> makeRenderContextCurrentFunction,
         std::function<void()> swapRenderBuffersFunction);
 
@@ -64,11 +66,15 @@ public:
     // Simulation Interactions
     //
 
-    void SetPointHighlightState(ElementIndex pointElementIndex, bool highlightState);
+    void SetPointHighlight(ElementIndex pointElementIndex, float highlight);
 
     std::optional<ElementIndex> GetNearestPointAt(vec2f const & screenCoordinates) const;
 
-    void MovePoint(ElementIndex pointElementIndex, vec2f const & screenCoordinates);
+    vec2f GetPointPosition(ElementIndex pointElementIndex) const;
+
+    vec2f GetPointPositionInScreenCoordinates(ElementIndex pointElementIndex) const;
+
+    void MovePointTo(ElementIndex pointElementIndex, vec2f const & screenCoordinates);
 
     void QueryNearestPointAt(vec2f const & screenCoordinates) const;
 
@@ -117,6 +123,12 @@ public:
     {
         assert(!!mRenderContext);
         return mRenderContext->ScreenOffsetToWorldOffset(screenOffset);
+    }
+
+    vec2f WorldToScreen(vec2f const & worldCoordinates) const
+    {
+        assert(!!mRenderContext);
+        return mRenderContext->WorldToScreen(worldCoordinates);
     }
 
     RgbImageData TakeScreenshot();

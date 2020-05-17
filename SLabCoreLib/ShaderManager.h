@@ -28,8 +28,9 @@ public:
     enum class ProgramType : size_t
     {
         Points = 0,
+        Springs = 1,
 
-        _Last = Points
+        _Last = Springs
     };
 
     enum class ProgramParameterType : size_t
@@ -40,7 +41,12 @@ public:
     enum class VertexAttributeType : size_t
     {
         PointAttributeGroup1 = 0,
-        PointAttributeGroup2 = 1
+        PointAttributeGroup2 = 1,
+        PointAttributeGroup3 = 2,
+
+        SpringAttributeGroup1 = 0,
+        SpringAttributeGroup2 = 1,
+        SpringAttributeGroup3 = 2
     };
 
 private:

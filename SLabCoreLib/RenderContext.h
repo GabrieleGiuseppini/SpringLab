@@ -17,6 +17,8 @@ class RenderContext
 public:
 
     RenderContext(
+        int canvasWidth,
+        int canvasHeight,
         std::function<void()> makeRenderContextCurrentFunction,
         std::function<void()> swapRenderBuffersFunction);
 
@@ -116,6 +118,11 @@ public:
         return mViewModel.ScreenOffsetToWorldOffset(screenOffset);
     }
 
+    inline vec2f WorldToScreen(vec2f const & worldCoordinates) const
+    {
+        return mViewModel.WorldToScreen(worldCoordinates);
+    }
+
     ////////////////////////////////////////////////////////////////
     // Interactions
     ////////////////////////////////////////////////////////////////
@@ -132,7 +139,19 @@ public:
         size_t pointCount,
         vec2f const * pointPositions,
         vec4f const * pointColors,
-        float const * pointNormRadii);
+        float const * pointNormRadii,
+        float const * pointHighlights);
+
+    void UploadSpringsStart(size_t springCount);
+
+    void UploadSpring(
+        vec2f const & springEndpointAPosition,
+        vec2f const & springEndpointBPosition,
+        vec4f const & springColor,
+        float springNormThickness,
+        float springHighlight);
+
+    void UploadSpringsEnd();
 
     void RenderEnd();
 
@@ -154,14 +173,17 @@ private:
         vec2f Position;
         vec2f VertexSpacePosition;
         vec4f Color;
+        float Highlight;
 
         PointVertex(
             vec2f const & position,
             vec2f const & vertexSpacePosition,
-            vec4f const & color)
+            vec4f const & color,
+            float highlight)
             : Position(position)
             , VertexSpacePosition(vertexSpacePosition)
             , Color(color)
+            , Highlight(highlight)
         {}
     };
 
@@ -173,6 +195,40 @@ private:
 
     SLabOpenGLMappedBuffer<PointVertex, GL_ARRAY_BUFFER> mPointVertexBuffer;
     SLabOpenGLVBO mPointVertexVBO;
+
+    ////////////////////////////////////////////////////////////////
+    // Springs
+    ////////////////////////////////////////////////////////////////
+
+#pragma pack(push)
+
+    struct SpringVertex
+    {
+        vec2f Position;
+        vec2f VertexSpacePosition;
+        vec4f Color;
+        float Highlight;
+
+        SpringVertex(
+            vec2f const & position,
+            vec2f const & vertexSpacePosition,
+            vec4f const & color,
+            float highlight)
+            : Position(position)
+            , VertexSpacePosition(vertexSpacePosition)
+            , Color(color)
+            , Highlight(highlight)
+        {}
+    };
+
+#pragma pack(pop)
+
+    size_t mSpringVertexCount;
+
+    SLabOpenGLVAO mSpringVAO;
+
+    SLabOpenGLMappedBuffer<SpringVertex, GL_ARRAY_BUFFER> mSpringVertexBuffer;
+    SLabOpenGLVBO mSpringVertexVBO;
 
 private:
 

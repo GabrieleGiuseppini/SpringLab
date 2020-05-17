@@ -47,9 +47,10 @@ public:
         , mMaterialStiffnessBuffer(mBufferElementCount, mElementCount, 0.0f)
         , mRestLengthBuffer(mBufferElementCount, mElementCount, 1.0f)
         // Render
-        , mRenderColorBuffer(mBufferElementCount, mElementCount, rgbaColor::zero())
-        , mFactoryRenderColorBuffer(mBufferElementCount, mElementCount, rgbaColor::zero())
+        , mRenderColorBuffer(mBufferElementCount, mElementCount, vec4f::zero())
+        , mFactoryRenderColorBuffer(mBufferElementCount, mElementCount, vec4f::zero())
         , mRenderNormThicknessBuffer(mBufferElementCount, mElementCount, 0.0f)
+        , mRenderHighlightBuffer(mBufferElementCount, mElementCount, 0.0f)
         //////////////////////////////////
         // Misc
         //////////////////////////////////
@@ -149,6 +150,37 @@ public:
     }
 
     //
+    // Render
+    //
+
+    vec4f const & GetRenderColor(ElementIndex springElementIndex) const
+    {
+        return mRenderColorBuffer[springElementIndex];
+    }
+
+    float GetRenderNormThickness(ElementIndex springElementIndex) const
+    {
+        return mRenderNormThicknessBuffer[springElementIndex];
+    }
+
+    float GetRenderHighlight(ElementIndex springElementIndex) const
+    {
+        return mRenderHighlightBuffer[springElementIndex];
+    }
+
+    void SetRenderHighlight(
+        ElementIndex springElementIndex,
+        float hightlight)
+    {
+        mRenderHighlightBuffer[springElementIndex] = hightlight;
+    }
+
+    float const * GetRenderHighlightBuffer() const
+    {
+        return mRenderHighlightBuffer.data();
+    }
+
+    //
     // Temporary buffer
     //
 
@@ -180,9 +212,10 @@ private:
     // Render
     //
 
-    Buffer<rgbaColor> mRenderColorBuffer;
-    Buffer<rgbaColor> mFactoryRenderColorBuffer;
+    Buffer<vec4f> mRenderColorBuffer;
+    Buffer<vec4f> mFactoryRenderColorBuffer;
     Buffer<float> mRenderNormThicknessBuffer;
+    Buffer<float> mRenderHighlightBuffer;
 
     //////////////////////////////////////////////////////////
     // Misc

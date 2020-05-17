@@ -464,6 +464,8 @@ ShaderManager::ProgramType ShaderManager::ShaderFilenameToProgramType(std::strin
 {
     if (Utils::CaseInsensitiveEquals(str, "Points"))
         return ProgramType::Points;
+    else if (Utils::CaseInsensitiveEquals(str, "Springs"))
+        return ProgramType::Springs;
     else
         throw SLabException("Unrecognized program \"" + str + "\"");
 }
@@ -474,6 +476,8 @@ std::string ShaderManager::ProgramTypeToStr(ProgramType program)
     {
         case ProgramType::Points:
             return "Points";
+        case ProgramType::Springs:
+            return "Springs";
         default:
             assert(false);
             throw SLabException("Unsupported ProgramType");
@@ -506,6 +510,14 @@ ShaderManager::VertexAttributeType ShaderManager::StrToVertexAttributeType(std::
         return VertexAttributeType::PointAttributeGroup1;
     else if (Utils::CaseInsensitiveEquals(str, "PointAttributeGroup2"))
         return VertexAttributeType::PointAttributeGroup2;
+    else if (Utils::CaseInsensitiveEquals(str, "PointAttributeGroup3"))
+        return VertexAttributeType::PointAttributeGroup3;
+    else if (Utils::CaseInsensitiveEquals(str, "SpringAttributeGroup1"))
+        return VertexAttributeType::SpringAttributeGroup1;
+    else if (Utils::CaseInsensitiveEquals(str, "SpringAttributeGroup2"))
+        return VertexAttributeType::SpringAttributeGroup2;
+    else if (Utils::CaseInsensitiveEquals(str, "SpringAttributeGroup3"))
+        return VertexAttributeType::SpringAttributeGroup3;
     else
         throw SLabException("Unrecognized vertex attribute \"" + str + "\"");
 }
