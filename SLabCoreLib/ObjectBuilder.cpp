@@ -105,7 +105,7 @@ Object ObjectBuilder::Create(
     //
 
     LogMessage("Created object: W=", objectDefinition.StructuralLayerImage.Size.Width, ", H=", objectDefinition.StructuralLayerImage.Size.Height, ", ",
-        points.GetRawPointCount(), "/", points.GetBufferElementCount(), "buf points, ",
+        points.GetElementCount(), "/", points.GetBufferElementCount(), "buf points, ",
         springs.GetElementCount(), " springs.");
 
     return Object(

@@ -538,6 +538,28 @@ void MainFrame::OnSaveScreenshotMenuItemSelected(wxCommandEvent & /*event*/)
     assert(!!mSimulationController);
     auto screenshotImage = mSimulationController->TakeScreenshot();
 
+    //
+    // Ensure pictures folder exists
+    //
+
+    auto const folderPath = StandardSystemPaths::GetInstance().GetUserPicturesGameFolderPath();
+
+    if (!std::filesystem::exists(folderPath))
+    {
+        try
+        {
+            std::filesystem::create_directories(folderPath);
+        }
+        catch (std::filesystem::filesystem_error const & fex)
+        {
+            OnError(
+                std::string("Could not save screenshot to path \"") + folderPath.string() + "\": " + fex.what(),
+                false);
+
+            return;
+        }
+    }
+
 
     //
     // Choose filename
@@ -562,9 +584,7 @@ void MainFrame::OnSaveScreenshotMenuItemSelected(wxCommandEvent & /*event*/)
             << "_"
             << "SpringLab.png";
 
-        screenshotFilePath =
-            StandardSystemPaths::GetInstance().GetUserPicturesGameFolderPath()
-            / std::filesystem::path(ssFilename.str());
+        screenshotFilePath = folderPath / std::filesystem::path(ssFilename.str());
 
     } while (std::filesystem::exists(screenshotFilePath));
 

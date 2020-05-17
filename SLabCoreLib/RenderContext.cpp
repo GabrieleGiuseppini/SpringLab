@@ -63,6 +63,30 @@ RenderContext::RenderContext(
 
     glBindVertexArray(0);
 
+    //
+    // Springs
+    //
+
+    mSpringVertexCount = 0;
+
+    glGenVertexArrays(1, &tmpGLuint);
+    mSpringVAO = tmpGLuint;
+
+    glBindVertexArray(*mSpringVAO);
+
+    glGenBuffers(1, &tmpGLuint);
+    mSpringVertexVBO = tmpGLuint;
+    glBindBuffer(GL_ARRAY_BUFFER, *mSpringVertexVBO);
+
+    glEnableVertexAttribArray(static_cast<GLuint>(ShaderManager::VertexAttributeType::SpringAttributeGroup1));
+    glVertexAttribPointer(static_cast<GLuint>(ShaderManager::VertexAttributeType::SpringAttributeGroup1), 4, GL_FLOAT, GL_FALSE, sizeof(SpringVertex), (void *)0);
+    glEnableVertexAttribArray(static_cast<GLuint>(ShaderManager::VertexAttributeType::SpringAttributeGroup2));
+    glVertexAttribPointer(static_cast<GLuint>(ShaderManager::VertexAttributeType::SpringAttributeGroup2), 4, GL_FLOAT, GL_FALSE, sizeof(SpringVertex), (void *)(4 * sizeof(float)));
+    glEnableVertexAttribArray(static_cast<GLuint>(ShaderManager::VertexAttributeType::SpringAttributeGroup3));
+    glVertexAttribPointer(static_cast<GLuint>(ShaderManager::VertexAttributeType::SpringAttributeGroup3), 1, GL_FLOAT, GL_FALSE, sizeof(SpringVertex), (void *)(8 * sizeof(float)));
+
+    glBindVertexArray(0);
+
     ////////////////////////////////////////////////////////////////
     // Initialize global settings
     ////////////////////////////////////////////////////////////////
@@ -162,10 +186,12 @@ void RenderContext::UploadPoints(
     // Upload buffer
     //
 
+    float constexpr WorldRadius = 0.3f;
+
     for (size_t p = 0; p < pointCount; ++p)
     {
         vec2f const & pointPosition = pointPositions[p];
-        float const halfRadius = pointNormRadii[p] * 0.3f / 2.0f; // World size of a point radius
+        float const halfRadius = pointNormRadii[p] * WorldRadius / 2.0f;
         vec4f const & pointColor = pointColors[p];
         float const pointHighlight = pointHighlights[p];
 
@@ -219,8 +245,10 @@ void RenderContext::UploadPoints(
 
 
     //
-    // Unmap
+    // Unmap buffer
     //
+
+    assert(mPointVertexBuffer.size() == mPointVertexCount);
 
     mPointVertexBuffer.unmap();
 
@@ -230,7 +258,22 @@ void RenderContext::UploadPoints(
 
 void RenderContext::UploadSpringsStart(size_t springCount)
 {
-    // TODO
+    //
+    // Map buffer
+    //
+
+    glBindBuffer(GL_ARRAY_BUFFER, *mSpringVertexVBO);
+
+    // Check whether we need to re-allocate the buffers
+    if (springCount * 6 != mSpringVertexCount)
+    {
+        mSpringVertexCount = springCount * 6;
+
+        glBufferData(GL_ARRAY_BUFFER, mSpringVertexCount * sizeof(SpringVertex), nullptr, GL_STREAM_DRAW);
+        CheckOpenGLError();
+    }
+
+    mSpringVertexBuffer.map(mSpringVertexCount);
 }
 
 void RenderContext::UploadSpring(
@@ -240,16 +283,88 @@ void RenderContext::UploadSpring(
     float springNormThickness,
     float springHighlight)
 {
-    // tODO
+    float constexpr WorldThickness = 0.1f;
+
+    vec2f const springVector = springEndpointBPosition - springEndpointAPosition;
+    vec2f const springNormal = springVector.to_perpendicular().normalise()
+        * springNormThickness * WorldThickness / 2.0f;
+
+    vec2f const bottomLeft = springEndpointAPosition - springNormal;
+    vec2f const bottomRight = springEndpointAPosition + springNormal;
+    vec2f const topLeft = springEndpointBPosition - springNormal;
+    vec2f const topRight = springEndpointBPosition + springNormal;
+
+    // Left, bottom
+    mSpringVertexBuffer.emplace_back(
+        bottomLeft,
+        vec2f(-1.0f, -1.0f),
+        springColor,
+        springHighlight);
+
+    // Left, top
+    mSpringVertexBuffer.emplace_back(
+        topLeft,
+        vec2f(-1.0f, 1.0f),
+        springColor,
+        springHighlight);
+
+    // Right, bottom
+    mSpringVertexBuffer.emplace_back(
+        bottomRight,
+        vec2f(1.0f, -1.0f),
+        springColor,
+        springHighlight);
+
+    // Left, top
+    mSpringVertexBuffer.emplace_back(
+        topLeft,
+        vec2f(-1.0f, 1.0f),
+        springColor,
+        springHighlight);
+
+    // Right, bottom
+    mSpringVertexBuffer.emplace_back(
+        bottomRight,
+        vec2f(1.0f, -1.0f),
+        springColor,
+        springHighlight);
+
+    // Right, top
+    mSpringVertexBuffer.emplace_back(
+        topRight,
+        vec2f(1.0f, 1.0f),
+        springColor,
+        springHighlight);
 }
 
 void RenderContext::UploadSpringsEnd()
 {
-    // TODO
+    //
+    // Unmap buffer
+    //
+
+    assert(mSpringVertexBuffer.size() == mSpringVertexCount);
+
+    mSpringVertexBuffer.unmap();
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 void RenderContext::RenderEnd()
 {
+    ////////////////////////////////////////////////////////////////
+    // Render springs
+    ////////////////////////////////////////////////////////////////
+
+    glBindVertexArray(*mSpringVAO);
+
+    mShaderManager->ActivateProgram<ShaderManager::ProgramType::Springs>();
+
+    assert((mSpringVertexCount % 6) == 0);
+    glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(mSpringVertexCount));
+
+    glBindVertexArray(0);
+
     ////////////////////////////////////////////////////////////////
     // Render points
     ////////////////////////////////////////////////////////////////
@@ -291,5 +406,9 @@ void RenderContext::OnViewModelUpdated()
 
     mShaderManager->ActivateProgram<ShaderManager::ProgramType::Points>();
     mShaderManager->SetProgramParameter<ShaderManager::ProgramType::Points, ShaderManager::ProgramParameterType::OrthoMatrix>(
+        orthoMatrix);
+
+    mShaderManager->ActivateProgram<ShaderManager::ProgramType::Springs>();
+    mShaderManager->SetProgramParameter<ShaderManager::ProgramType::Springs, ShaderManager::ProgramParameterType::OrthoMatrix>(
         orthoMatrix);
 }

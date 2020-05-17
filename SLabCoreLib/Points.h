@@ -51,9 +51,7 @@ public:
 public:
 
     Points(ElementCount pointCount)
-        : ElementContainer(make_aligned_float_element_count(pointCount))
-        , mRawPointCount(pointCount)
-        , mAlignedPointCount(make_aligned_float_element_count(pointCount))
+        : ElementContainer(pointCount)
         //////////////////////////////////
         // Buffers
         //////////////////////////////////
@@ -80,24 +78,6 @@ public:
 
     Points(Points && other) = default;
 
-    /*
-     * Returns an iterator for the (unaligned) points.
-     */
-    inline auto RawPoints() const
-    {
-        return ElementIndexRangeIterable(0, mRawPointCount);
-    }
-
-    ElementCount GetRawPointCount() const
-    {
-        return mRawPointCount;
-    }
-
-    ElementCount GetAlignedPointCount() const
-    {
-        return mAlignedPointCount;
-    }
-
     void Add(
         vec2f const & position,
         vec3f const & color,
@@ -108,7 +88,7 @@ public:
     AABB GetAABB() const
     {
         AABB box;
-        for (ElementIndex pointIndex : RawPoints())
+        for (ElementIndex pointIndex : *this)
         {
             box.ExtendTo(GetPosition(pointIndex));
         }
@@ -297,9 +277,6 @@ public:
     }
 
 private:
-
-    ElementCount const mRawPointCount;
-    ElementCount const mAlignedPointCount;
 
     //////////////////////////////////////////////////////////
     // Buffers

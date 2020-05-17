@@ -33,7 +33,7 @@ std::optional<ElementIndex> SimulationController::GetNearestPointAt(vec2f const 
     ElementIndex bestPoint = NoneElementIndex;
 
     auto const & points = mObject->GetPoints();
-    for (auto p : points.RawPoints())
+    for (auto p : points)
     {
         float const squareDistance = (points.GetPosition(p) - worldCoordinates).squareLength();
         if (squareDistance < SquareSearchRadius

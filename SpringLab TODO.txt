@@ -31,21 +31,21 @@
 
 + Make json
 
-= Rendering:
++ Rendering:
 	+ MainFrame:
 		+ Always render with timer loop
 		+ mMainGLCanvas.Refresh()
 			+ Change OnPaint to be on canvas
 			+ OnPaint: SimulationController.Render()
-	= RenderContext:
+	+ RenderContext:
 		! RenderContext does not take point count, does everything at upload
-		= API: 
+		+ API: 
 			+ cctor
 				+ Load shaders
 				+ Setup VBOs
 				+ Set params
 			+ RenderStart()
-			= Upload(...all...)
+			+ Upload(...all...)
 				+ Points
 					+ Shader
 				+ Springs
@@ -79,15 +79,17 @@
 			+ ...which populates float in struct
 + BGColor
 
-- ViewModel: recalc zoom at resize
++ ViewModel: recalc zoom at resize
 	+ See if exists API to get max size
 	+ Communicate size @ controller creation
 		+ See if available by then
-	- Also do camera calculation
+	+ Also do camera calculation
 
-= MoveTool:
++ MoveTool:
 	+ Consider offset, not absolute position
 	+ Controller::GetPointPosition(), store in engagement state, and use it for offset
+
+================================================================
 
 - Check assembly of SimulationController::Render() wrt accesses to mObject->GetSprings()
 

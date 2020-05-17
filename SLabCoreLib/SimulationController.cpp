@@ -117,7 +117,7 @@ void SimulationController::Render()
     if (!!mObject)
     {
         mRenderContext->UploadPoints(
-            mObject->GetPoints().GetRawPointCount(),
+            mObject->GetPoints().GetElementCount(),
             mObject->GetPoints().GetPositionBuffer(),
             mObject->GetPoints().GetRenderColorBuffer(),
             mObject->GetPoints().GetRenderNormRadiusBuffer(),
