@@ -2,11 +2,13 @@
 UI and framework to experiment with two-dimensional mass-spring networks in C++.
 
 # Overview
-This project is a laboratory for experimenting with different mathematical formulations and different implementations of mass-spring networks.
+This project is an interactive laboratory for experimenting with different mathematical formulations and different implementations of mass-spring networks.
+
+The idea is to allow the user to interactively switch between different spring relaxation algorithms, moving particles, imparting forces, and running and comparing results of the different algorithms' simulations.
 
 <img src="https://i.imgur.com/pMsZVeU.png">
 
-The project is a spin-off from [FloatingSandbox](https://github.com/GabrieleGiuseppini/Floating-Sandbox), a 2D physics simulator. This project was born to find a better alternative to the naive Euclidean implementation of the mass-spring network in the simulator.
+The project is a spin-off from [FloatingSandbox](https://github.com/GabrieleGiuseppini/Floating-Sandbox), a 2D physics simulator. With this project I will have a testbed to try out different algorithms, until I find a better alternative to the naive Euclidean implementation of the mass-spring network in Floating Sandbox.
 
 # Building the Project
 I build this project with Visual Studio 2019 (thus full C++ 17 support).
