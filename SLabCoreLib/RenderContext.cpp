@@ -13,106 +13,104 @@ RenderContext::RenderContext(
     : mMakeRenderContextCurrentFunction(std::move(makeRenderContextCurrentFunction))
     , mSwapRenderBuffersFunction(std::move(swapRenderBuffersFunction))
     , mViewModel(1.0f, vec2f::zero(), canvasWidth, canvasHeight)
+    , mRenderThread()
+    , mPreviousRenderTaskCompletionIndicator()
 {
-    GLuint tmpGLuint;
+    mRenderThread.RunSynchronously(
+        [this]()
+        {
+            GLuint tmpGLuint;
 
-    //
-    // Initialize OpenGL
-    //
+            //
+            // Initialize OpenGL
+            //
 
-    // Make render context current
-    mMakeRenderContextCurrentFunction();
+            // Make render context current
+            mMakeRenderContextCurrentFunction();
 
-    // Initialize OpenGL
-    try
-    {
-        SLabOpenGL::InitOpenGL();
-    }
-    catch (std::exception const & e)
-    {
-        throw std::runtime_error("Error during OpenGL initialization: " + std::string(e.what()));
-    }
+            // Initialize OpenGL
+            try
+            {
+                SLabOpenGL::InitOpenGL();
+            }
+            catch (std::exception const & e)
+            {
+                throw std::runtime_error("Error during OpenGL initialization: " + std::string(e.what()));
+            }
 
-    ////////////////////////////////////////////////////////////////
-    // Initialize shaders, VAO's, and VBOs
-    ////////////////////////////////////////////////////////////////
+            ////////////////////////////////////////////////////////////////
+            // Initialize shaders, VAO's, and VBOs
+            ////////////////////////////////////////////////////////////////
 
-    mShaderManager = ShaderManager::CreateInstance();
+            mShaderManager = ShaderManager::CreateInstance();
 
-    //
-    // Points
-    //
+            //
+            // Points
+            //
 
-    mPointVertexCount = 0;
+            mPointVertexCount = 0;
 
-    glGenVertexArrays(1, &tmpGLuint);
-    mPointVAO = tmpGLuint;
+            glGenVertexArrays(1, &tmpGLuint);
+            mPointVAO = tmpGLuint;
 
-    glBindVertexArray(*mPointVAO);
+            glBindVertexArray(*mPointVAO);
 
-    glGenBuffers(1, &tmpGLuint);
-    mPointVertexVBO = tmpGLuint;
-    glBindBuffer(GL_ARRAY_BUFFER, *mPointVertexVBO);
+            glGenBuffers(1, &tmpGLuint);
+            mPointVertexVBO = tmpGLuint;
+            glBindBuffer(GL_ARRAY_BUFFER, *mPointVertexVBO);
 
-    glEnableVertexAttribArray(static_cast<GLuint>(ShaderManager::VertexAttributeType::PointAttributeGroup1));
-    glVertexAttribPointer(static_cast<GLuint>(ShaderManager::VertexAttributeType::PointAttributeGroup1), 4, GL_FLOAT, GL_FALSE, sizeof(PointVertex), (void *)0);
-    glEnableVertexAttribArray(static_cast<GLuint>(ShaderManager::VertexAttributeType::PointAttributeGroup2));
-    glVertexAttribPointer(static_cast<GLuint>(ShaderManager::VertexAttributeType::PointAttributeGroup2), 4, GL_FLOAT, GL_FALSE, sizeof(PointVertex), (void *)(4 * sizeof(float)));
-    glEnableVertexAttribArray(static_cast<GLuint>(ShaderManager::VertexAttributeType::PointAttributeGroup3));
-    glVertexAttribPointer(static_cast<GLuint>(ShaderManager::VertexAttributeType::PointAttributeGroup3), 1, GL_FLOAT, GL_FALSE, sizeof(PointVertex), (void *)(8 * sizeof(float)));
+            glEnableVertexAttribArray(static_cast<GLuint>(ShaderManager::VertexAttributeType::PointAttributeGroup1));
+            glVertexAttribPointer(static_cast<GLuint>(ShaderManager::VertexAttributeType::PointAttributeGroup1), 4, GL_FLOAT, GL_FALSE, sizeof(PointVertex), (void *)0);
+            glEnableVertexAttribArray(static_cast<GLuint>(ShaderManager::VertexAttributeType::PointAttributeGroup2));
+            glVertexAttribPointer(static_cast<GLuint>(ShaderManager::VertexAttributeType::PointAttributeGroup2), 4, GL_FLOAT, GL_FALSE, sizeof(PointVertex), (void *)(4 * sizeof(float)));
+            glEnableVertexAttribArray(static_cast<GLuint>(ShaderManager::VertexAttributeType::PointAttributeGroup3));
+            glVertexAttribPointer(static_cast<GLuint>(ShaderManager::VertexAttributeType::PointAttributeGroup3), 1, GL_FLOAT, GL_FALSE, sizeof(PointVertex), (void *)(8 * sizeof(float)));
 
-    glBindVertexArray(0);
+            glBindVertexArray(0);
 
-    //
-    // Springs
-    //
+            //
+            // Springs
+            //
 
-    mSpringVertexCount = 0;
+            glGenVertexArrays(1, &tmpGLuint);
+            mSpringVAO = tmpGLuint;
 
-    glGenVertexArrays(1, &tmpGLuint);
-    mSpringVAO = tmpGLuint;
+            glBindVertexArray(*mSpringVAO);
 
-    glBindVertexArray(*mSpringVAO);
+            glGenBuffers(1, &tmpGLuint);
+            mSpringVertexVBO = tmpGLuint;
+            glBindBuffer(GL_ARRAY_BUFFER, *mSpringVertexVBO);
 
-    glGenBuffers(1, &tmpGLuint);
-    mSpringVertexVBO = tmpGLuint;
-    glBindBuffer(GL_ARRAY_BUFFER, *mSpringVertexVBO);
+            glEnableVertexAttribArray(static_cast<GLuint>(ShaderManager::VertexAttributeType::SpringAttributeGroup1));
+            glVertexAttribPointer(static_cast<GLuint>(ShaderManager::VertexAttributeType::SpringAttributeGroup1), 4, GL_FLOAT, GL_FALSE, sizeof(SpringVertex), (void *)0);
+            glEnableVertexAttribArray(static_cast<GLuint>(ShaderManager::VertexAttributeType::SpringAttributeGroup2));
+            glVertexAttribPointer(static_cast<GLuint>(ShaderManager::VertexAttributeType::SpringAttributeGroup2), 4, GL_FLOAT, GL_FALSE, sizeof(SpringVertex), (void *)(4 * sizeof(float)));
+            glEnableVertexAttribArray(static_cast<GLuint>(ShaderManager::VertexAttributeType::SpringAttributeGroup3));
+            glVertexAttribPointer(static_cast<GLuint>(ShaderManager::VertexAttributeType::SpringAttributeGroup3), 1, GL_FLOAT, GL_FALSE, sizeof(SpringVertex), (void *)(8 * sizeof(float)));
 
-    glEnableVertexAttribArray(static_cast<GLuint>(ShaderManager::VertexAttributeType::SpringAttributeGroup1));
-    glVertexAttribPointer(static_cast<GLuint>(ShaderManager::VertexAttributeType::SpringAttributeGroup1), 4, GL_FLOAT, GL_FALSE, sizeof(SpringVertex), (void *)0);
-    glEnableVertexAttribArray(static_cast<GLuint>(ShaderManager::VertexAttributeType::SpringAttributeGroup2));
-    glVertexAttribPointer(static_cast<GLuint>(ShaderManager::VertexAttributeType::SpringAttributeGroup2), 4, GL_FLOAT, GL_FALSE, sizeof(SpringVertex), (void *)(4 * sizeof(float)));
-    glEnableVertexAttribArray(static_cast<GLuint>(ShaderManager::VertexAttributeType::SpringAttributeGroup3));
-    glVertexAttribPointer(static_cast<GLuint>(ShaderManager::VertexAttributeType::SpringAttributeGroup3), 1, GL_FLOAT, GL_FALSE, sizeof(SpringVertex), (void *)(8 * sizeof(float)));
+            glBindVertexArray(0);
 
-    glBindVertexArray(0);
+            ////////////////////////////////////////////////////////////////
+            // Initialize global settings
+            ////////////////////////////////////////////////////////////////
 
-    ////////////////////////////////////////////////////////////////
-    // Initialize global settings
-    ////////////////////////////////////////////////////////////////
+            // Enable blend for alpha transparency
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    // Enable blend for alpha transparency
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            // Disable depth test
+            glDisable(GL_DEPTH_TEST);
 
-    // Disable depth test
-    glDisable(GL_DEPTH_TEST);
+            ////////////////////////////////////////////////////////////////
+            // Set parameters in all shaders
+            ////////////////////////////////////////////////////////////////
 
-    ////////////////////////////////////////////////////////////////
-    // Set parameters in all shaders
-    ////////////////////////////////////////////////////////////////
-
-    OnViewModelUpdated();
+            OnViewModelUpdated();
+        });
 }
 
 RgbImageData RenderContext::TakeScreenshot()
 {
-    //
-    // Flush draw calls
-    //
-
-    glFinish();
-
     //
     // Allocate buffer
     //
@@ -123,20 +121,35 @@ RgbImageData RenderContext::TakeScreenshot()
     auto pixelBuffer = std::make_unique<rgbColor[]>(canvasWidth * canvasHeight);
 
     //
-    // Read pixels
+    // Take screenshot
     //
 
-    // Alignment is byte
-    glPixelStorei(GL_PACK_ALIGNMENT, 1);
-    CheckOpenGLError();
+    // Synchronously
+    mRenderThread.RunSynchronously(
+        [&]()
+        {
+            //
+            // Flush draw calls
+            //
 
-    // Read the front buffer
-    glReadBuffer(GL_FRONT);
-    CheckOpenGLError();
+            glFinish();
 
-    // Read
-    glReadPixels(0, 0, canvasWidth, canvasHeight, GL_RGB, GL_UNSIGNED_BYTE, pixelBuffer.get());
-    CheckOpenGLError();
+            //
+            // Read pixels
+            //
+
+            // Alignment is byte
+            glPixelStorei(GL_PACK_ALIGNMENT, 1);
+            CheckOpenGLError();
+
+            // Read the front buffer
+            glReadBuffer(GL_FRONT);
+            CheckOpenGLError();
+
+            // Read
+            glReadPixels(0, 0, canvasWidth, canvasHeight, GL_RGB, GL_UNSIGNED_BYTE, pixelBuffer.get());
+            CheckOpenGLError();
+        });
 
     return RgbImageData(
         ImageSize(canvasWidth, canvasHeight),
@@ -145,16 +158,28 @@ RgbImageData RenderContext::TakeScreenshot()
 
 void RenderContext::RenderStart()
 {
-    // Set polygon mode
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    // Wait for current render to complete, if any
+    if (!!mPreviousRenderTaskCompletionIndicator.has_value())
+    {
+        mPreviousRenderTaskCompletionIndicator->Wait();
+        mPreviousRenderTaskCompletionIndicator.reset();
+    }
 
-    // Clear canvas - and depth buffer
-    vec3f constexpr ClearColor = rgbColor(0xca, 0xf4, 0xf4).toVec3f();
-    glClearColor(ClearColor.x, ClearColor.y, ClearColor.z, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    // Synrhonously
+    mRenderThread.RunSynchronously(
+        [this]()
+        {
+            // Set polygon mode
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-    // Reset all counts
-    mPointVertexCount = 0;
+            // Clear canvas - and depth buffer
+            vec3f constexpr ClearColor = rgbColor(0xca, 0xf4, 0xf4).toVec3f();
+            glClearColor(ClearColor.x, ClearColor.y, ClearColor.z, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+            // Reset all counts
+            mPointVertexCount = 0;
+        });
 }
 
 void RenderContext::UploadPoints(
@@ -164,116 +189,110 @@ void RenderContext::UploadPoints(
     float const * pointNormRadii,
     float const * pointHighlights)
 {
-    //
-    // Map buffer
-    //
+    // Synchronously
+    mRenderThread.RunSynchronously(
+        [&]()
+        {
+            //
+            // Map buffer
+            //
 
-    glBindBuffer(GL_ARRAY_BUFFER, *mPointVertexVBO);
+            glBindBuffer(GL_ARRAY_BUFFER, *mPointVertexVBO);
 
-    // Check whether we need to re-allocate the buffers
-    if (pointCount * 6 != mPointVertexCount)
-    {
-        mPointVertexCount = pointCount * 6;
+            // Check whether we need to re-allocate the buffers
+            if (pointCount * 6 != mPointVertexCount)
+            {
+                mPointVertexCount = pointCount * 6;
 
-        glBufferData(GL_ARRAY_BUFFER, mPointVertexCount * sizeof(PointVertex), nullptr, GL_STREAM_DRAW);
-        CheckOpenGLError();
-    }
+                glBufferData(GL_ARRAY_BUFFER, mPointVertexCount * sizeof(PointVertex), nullptr, GL_STREAM_DRAW);
+                CheckOpenGLError();
+            }
 
-    mPointVertexBuffer.map(mPointVertexCount);
-
-
-    //
-    // Upload buffer
-    //
-
-    float constexpr WorldRadius = 0.3f;
-
-    for (size_t p = 0; p < pointCount; ++p)
-    {
-        vec2f const & pointPosition = pointPositions[p];
-        float const halfRadius = pointNormRadii[p] * WorldRadius / 2.0f;
-        vec4f const & pointColor = pointColors[p];
-        float const pointHighlight = pointHighlights[p];
-
-        float const xLeft = pointPosition.x - halfRadius;
-        float const xRight = pointPosition.x + halfRadius;
-        float const yTop = pointPosition.y + halfRadius;
-        float const yBottom = pointPosition.y - halfRadius;
-
-        // Left, bottom
-        mPointVertexBuffer.emplace_back(
-            vec2f(xLeft, yBottom),
-            vec2f(-1.0f, -1.0f),
-            pointColor,
-            pointHighlight);
-
-        // Left, top
-        mPointVertexBuffer.emplace_back(
-            vec2f(xLeft, yTop),
-            vec2f(-1.0f, 1.0f),
-            pointColor,
-            pointHighlight);
-
-        // Right, bottom
-        mPointVertexBuffer.emplace_back(
-            vec2f(xRight, yBottom),
-            vec2f(1.0f, -1.0f),
-            pointColor,
-            pointHighlight);
-
-        // Left, top
-        mPointVertexBuffer.emplace_back(
-            vec2f(xLeft, yTop),
-            vec2f(-1.0f, 1.0f),
-            pointColor,
-            pointHighlight);
-
-        // Right, bottom
-        mPointVertexBuffer.emplace_back(
-            vec2f(xRight, yBottom),
-            vec2f(1.0f, -1.0f),
-            pointColor,
-            pointHighlight);
-
-        // Right, top
-        mPointVertexBuffer.emplace_back(
-            vec2f(xRight, yTop),
-            vec2f(1.0f, 1.0f),
-            pointColor,
-            pointHighlight);
-    }
+            mPointVertexBuffer.map(mPointVertexCount);
 
 
-    //
-    // Unmap buffer
-    //
+            //
+            // Upload buffer
+            //
 
-    assert(mPointVertexBuffer.size() == mPointVertexCount);
+            float constexpr WorldRadius = 0.3f;
 
-    mPointVertexBuffer.unmap();
+            for (size_t p = 0; p < pointCount; ++p)
+            {
+                vec2f const & pointPosition = pointPositions[p];
+                float const halfRadius = pointNormRadii[p] * WorldRadius / 2.0f;
+                vec4f const & pointColor = pointColors[p];
+                float const pointHighlight = pointHighlights[p];
 
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+                float const xLeft = pointPosition.x - halfRadius;
+                float const xRight = pointPosition.x + halfRadius;
+                float const yTop = pointPosition.y + halfRadius;
+                float const yBottom = pointPosition.y - halfRadius;
+
+                // Left, bottom
+                mPointVertexBuffer.emplace_back(
+                    vec2f(xLeft, yBottom),
+                    vec2f(-1.0f, -1.0f),
+                    pointColor,
+                    pointHighlight);
+
+                // Left, top
+                mPointVertexBuffer.emplace_back(
+                    vec2f(xLeft, yTop),
+                    vec2f(-1.0f, 1.0f),
+                    pointColor,
+                    pointHighlight);
+
+                // Right, bottom
+                mPointVertexBuffer.emplace_back(
+                    vec2f(xRight, yBottom),
+                    vec2f(1.0f, -1.0f),
+                    pointColor,
+                    pointHighlight);
+
+                // Left, top
+                mPointVertexBuffer.emplace_back(
+                    vec2f(xLeft, yTop),
+                    vec2f(-1.0f, 1.0f),
+                    pointColor,
+                    pointHighlight);
+
+                // Right, bottom
+                mPointVertexBuffer.emplace_back(
+                    vec2f(xRight, yBottom),
+                    vec2f(1.0f, -1.0f),
+                    pointColor,
+                    pointHighlight);
+
+                // Right, top
+                mPointVertexBuffer.emplace_back(
+                    vec2f(xRight, yTop),
+                    vec2f(1.0f, 1.0f),
+                    pointColor,
+                    pointHighlight);
+            }
+
+
+            //
+            // Unmap buffer
+            //
+
+            assert(mPointVertexBuffer.size() == mPointVertexCount);
+
+            mPointVertexBuffer.unmap();
+
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
+        });
 }
-
 
 void RenderContext::UploadSpringsStart(size_t springCount)
 {
     //
-    // Map buffer
+    // Prepare buffer
     //
 
-    glBindBuffer(GL_ARRAY_BUFFER, *mSpringVertexVBO);
-
-    // Check whether we need to re-allocate the buffers
-    if (springCount * 6 != mSpringVertexCount)
-    {
-        mSpringVertexCount = springCount * 6;
-
-        glBufferData(GL_ARRAY_BUFFER, mSpringVertexCount * sizeof(SpringVertex), nullptr, GL_STREAM_DRAW);
-        CheckOpenGLError();
-    }
-
-    mSpringVertexBuffer.map(mSpringVertexCount);
+    mSpringVertexBuffer.clear();
+    mSpringVertexBuffer.reserve(springCount * 6);
 }
 
 void RenderContext::UploadSpring(
@@ -339,54 +358,73 @@ void RenderContext::UploadSpring(
 
 void RenderContext::UploadSpringsEnd()
 {
-    //
-    // Unmap buffer
-    //
+    // Synchronously
+    auto result = mRenderThread.QueueTask(
+        [&]()
+        {
+            //
+            // Upload buffer, if needed
+            //
 
-    assert(mSpringVertexBuffer.size() == mSpringVertexCount);
+            if (!mSpringVertexBuffer.empty())
+            {
+                glBindBuffer(GL_ARRAY_BUFFER, *mSpringVertexVBO);
+                glBufferData(GL_ARRAY_BUFFER, sizeof(SpringVertex) * mSpringVertexBuffer.size(), mSpringVertexBuffer.data(), GL_STREAM_DRAW);
+                glBindBuffer(GL_ARRAY_BUFFER, 0);
+            }
+        });
 
-    mSpringVertexBuffer.unmap();
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    result.Wait();
 }
 
 void RenderContext::RenderEnd()
 {
-    ////////////////////////////////////////////////////////////////
-    // Render springs
-    ////////////////////////////////////////////////////////////////
+    assert(!mPreviousRenderTaskCompletionIndicator.has_value());
 
-    glBindVertexArray(*mSpringVAO);
+    // Run asynhronously; we'll wait for this at the next RenderStart()
+    mPreviousRenderTaskCompletionIndicator.emplace(
+        mRenderThread.QueueTask(
+            [this]()
+            {
+                ////////////////////////////////////////////////////////////////
+                // Render springs
+                ////////////////////////////////////////////////////////////////
 
-    mShaderManager->ActivateProgram<ShaderManager::ProgramType::Springs>();
+                if (!mSpringVertexBuffer.empty())
+                {
+                    glBindVertexArray(*mSpringVAO);
 
-    assert((mSpringVertexCount % 6) == 0);
-    glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(mSpringVertexCount));
+                    mShaderManager->ActivateProgram<ShaderManager::ProgramType::Springs>();
 
-    glBindVertexArray(0);
+                    assert((mSpringVertexBuffer.size() % 6) == 0);
+                    glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(mSpringVertexBuffer.size()));
 
-    ////////////////////////////////////////////////////////////////
-    // Render points
-    ////////////////////////////////////////////////////////////////
+                    glBindVertexArray(0);
+                }
 
-    glBindVertexArray(*mPointVAO);
+                ////////////////////////////////////////////////////////////////
+                // Render points
+                ////////////////////////////////////////////////////////////////
 
-    mShaderManager->ActivateProgram<ShaderManager::ProgramType::Points>();
+                glBindVertexArray(*mPointVAO);
 
-    assert((mPointVertexCount % 6) == 0);
-    glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(mPointVertexCount));
+                mShaderManager->ActivateProgram<ShaderManager::ProgramType::Points>();
 
-    glBindVertexArray(0);
+                assert((mPointVertexCount % 6) == 0);
+                glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(mPointVertexCount));
 
-    ////////////////////////////////////////////////////////////////
-    // Terminate
-    ////////////////////////////////////////////////////////////////
+                glBindVertexArray(0);
 
-    // Flush all pending commands (but not the GPU buffer)
-    SLabOpenGL::Flush();
+                ////////////////////////////////////////////////////////////////
+                // Terminate
+                ////////////////////////////////////////////////////////////////
 
-    // Swap buffer
-    mSwapRenderBuffersFunction();
+                // Flush all pending commands (but not the GPU buffer)
+                SLabOpenGL::Flush();
+
+                // Swap buffers
+                mSwapRenderBuffersFunction();
+            }));
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////

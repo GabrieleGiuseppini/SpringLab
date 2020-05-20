@@ -91,6 +91,14 @@
 
 ================================================================
 
+- OpenGL on separate thread:
+	- TODO:
+		- ViewModel zoom/camera get/set synchronization: need to clamp; how to sync?
+		- Other getters/setters: 
+			- TODO: how about setting on main thread, and queing "OnXYZUpdated()" changes?
+
+================================================================
+
 - Architecture:
 	- MainFrame: (via toolbar)
 		- Simulation control:
@@ -178,6 +186,3 @@
 			- Simulation step #
 			- Simulation time
 			- Update elapsed: last, avg
-
-	- Experiment:
-		- OpenGL on separate thread

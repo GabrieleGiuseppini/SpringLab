@@ -7,10 +7,13 @@
 
 #include "ImageData.h"
 #include "ShaderManager.h"
+#include "TaskThread.h"
 #include "Vectors.h"
 #include "ViewModel.h"
 
 #include <functional>
+#include <optional>
+#include <vector>
 
 class RenderContext
 {
@@ -33,9 +36,13 @@ public:
 
     void SetZoom(float zoom)
     {
-        mViewModel.SetZoom(zoom);
+        mRenderThread.QueueTask(
+            [this, zoom]()
+            {
+                mViewModel.SetZoom(zoom);
 
-        OnViewModelUpdated();
+                OnViewModelUpdated();
+            });
     }
 
     vec2f const & GetCameraWorldPosition() const
@@ -45,9 +52,13 @@ public:
 
     void SetCameraWorldPosition(vec2f const & pos)
     {
-        mViewModel.SetCameraWorldPosition(pos);
+        mRenderThread.QueueTask(
+            [this, pos]()
+            {
+                mViewModel.SetCameraWorldPosition(pos);
 
-        OnViewModelUpdated();
+                OnViewModelUpdated();
+            });
     }
 
     int GetCanvasWidth() const
@@ -62,10 +73,14 @@ public:
 
     void SetCanvasSize(int width, int height)
     {
-        mViewModel.SetCanvasSize(width, height);
+        mRenderThread.QueueTask(
+            [this, width, height]()
+            {
+                mViewModel.SetCanvasSize(width, height);
 
-        OnCanvasSizeUpdated();
-        OnViewModelUpdated();
+                OnCanvasSizeUpdated();
+                OnViewModelUpdated();
+            });
     }
 
     float GetVisibleWorldWidth() const
@@ -223,11 +238,9 @@ private:
 
 #pragma pack(pop)
 
-    size_t mSpringVertexCount;
-
     SLabOpenGLVAO mSpringVAO;
 
-    SLabOpenGLMappedBuffer<SpringVertex, GL_ARRAY_BUFFER> mSpringVertexBuffer;
+    std::vector<SpringVertex> mSpringVertexBuffer;
     SLabOpenGLVBO mSpringVertexVBO;
 
 private:
@@ -238,4 +251,16 @@ private:
     std::unique_ptr<ShaderManager> mShaderManager;
 
     ViewModel mViewModel;
+
+private:
+
+    ////////////////////////////////////////////////////////////////
+    // Thread
+    ////////////////////////////////////////////////////////////////
+
+    // The thread running all of our OpenGL calls
+    TaskThread mRenderThread;
+
+    // The asynhronous rendering task
+    std::optional<TaskThread::TaskCompletionIndicator> mPreviousRenderTaskCompletionIndicator;
 };
