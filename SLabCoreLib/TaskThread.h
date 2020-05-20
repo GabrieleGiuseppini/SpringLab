@@ -12,6 +12,16 @@
 #include <mutex>
 #include <thread>
 
+/*
+ * A thread that runs tasks provided by the main thread. The "user" of this
+ * class may simply queue-and-forget tasks, or queue-and-wait until those
+ * tasks are completed.
+ *
+ * The implementation assumes that there is only one thread "using" this
+ * class (the main thread), and that thread is responsible for the lifetime
+ * of this class (cctor and dctor).
+ *
+ */
 class TaskThread
 {
 public:
@@ -20,7 +30,7 @@ public:
 
     // Note: instances of this class are owned by the main thread, which is
     // also responsible for invoking the destructor of TaskThread, hence if
-    // we assume there won't be any waits after TaskThread has been destroyed,
+    // we assume there won't be any Wait() calls after TaskThread has been destroyed,
     // then there's no need for instances of this class to outlive the TaskThread
     // instance that generated them.
     struct TaskCompletionIndicator
@@ -72,7 +82,7 @@ public:
     ~TaskThread();
 
     TaskThread(TaskThread const & other) = delete;
-    TaskThread(TaskThread && other) = default;
+    TaskThread(TaskThread && other) = delete;
     TaskThread & operator=(TaskThread const & other) = delete;
     TaskThread & operator=(TaskThread && other) = delete;
 
