@@ -89,13 +89,7 @@
 	+ Consider offset, not absolute position
 	+ Controller::GetPointPosition(), store in engagement state, and use it for offset
 
-================================================================
-
-- OpenGL on separate thread:
-	- TODO:
-		- ViewModel zoom/camera get/set synchronization: need to clamp; how to sync?
-		- Other getters/setters: 
-			- TODO: how about setting on main thread, and queing "OnXYZUpdated()" changes?
++ OpenGL on separate thread
 
 ================================================================
 

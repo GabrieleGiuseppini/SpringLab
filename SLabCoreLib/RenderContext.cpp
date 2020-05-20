@@ -13,6 +13,11 @@ RenderContext::RenderContext(
     : mMakeRenderContextCurrentFunction(std::move(makeRenderContextCurrentFunction))
     , mSwapRenderBuffersFunction(std::move(swapRenderBuffersFunction))
     , mViewModel(1.0f, vec2f::zero(), canvasWidth, canvasHeight)
+    // Settings
+    , mSettingsMutex()
+    , mIsCanvasSizeDirty(false)
+    , mIsViewModelDirty(false)
+    // Thread
     , mRenderThread()
     , mPreviousRenderTaskCompletionIndicator()
 {
@@ -177,8 +182,11 @@ void RenderContext::RenderStart()
             glClearColor(ClearColor.x, ClearColor.y, ClearColor.z, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-            // Reset all counts
+            // Reset all buffers
             mPointVertexCount = 0;
+
+            // Process setting changes
+            ProcessSettingChanges();
         });
 }
 
@@ -428,6 +436,23 @@ void RenderContext::RenderEnd()
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
+
+void RenderContext::ProcessSettingChanges()
+{
+    std::lock_guard<std::mutex> const lock(mSettingsMutex);
+
+    if (mIsCanvasSizeDirty)
+    {
+        OnCanvasSizeUpdated();
+        mIsCanvasSizeDirty = false;
+    }
+
+    if (mIsViewModelDirty)
+    {
+        OnViewModelUpdated();
+        mIsViewModelDirty = false;
+    }
+}
 
 void RenderContext::OnCanvasSizeUpdated()
 {

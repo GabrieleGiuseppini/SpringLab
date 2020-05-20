@@ -12,6 +12,7 @@
 #include "ViewModel.h"
 
 #include <functional>
+#include <mutex>
 #include <optional>
 #include <vector>
 
@@ -36,13 +37,10 @@ public:
 
     void SetZoom(float zoom)
     {
-        mRenderThread.QueueTask(
-            [this, zoom]()
-            {
-                mViewModel.SetZoom(zoom);
+        std::lock_guard<std::mutex> const lock(mSettingsMutex);
 
-                OnViewModelUpdated();
-            });
+        mViewModel.SetZoom(zoom);
+        mIsViewModelDirty = true;
     }
 
     vec2f const & GetCameraWorldPosition() const
@@ -52,13 +50,10 @@ public:
 
     void SetCameraWorldPosition(vec2f const & pos)
     {
-        mRenderThread.QueueTask(
-            [this, pos]()
-            {
-                mViewModel.SetCameraWorldPosition(pos);
+        std::lock_guard<std::mutex> const lock(mSettingsMutex);
 
-                OnViewModelUpdated();
-            });
+        mViewModel.SetCameraWorldPosition(pos);
+        mIsViewModelDirty = true;
     }
 
     int GetCanvasWidth() const
@@ -73,14 +68,11 @@ public:
 
     void SetCanvasSize(int width, int height)
     {
-        mRenderThread.QueueTask(
-            [this, width, height]()
-            {
-                mViewModel.SetCanvasSize(width, height);
+        std::lock_guard<std::mutex> const lock(mSettingsMutex);
 
-                OnCanvasSizeUpdated();
-                OnViewModelUpdated();
-            });
+        mViewModel.SetCanvasSize(width, height);
+        mIsViewModelDirty = true;
+        mIsCanvasSizeDirty = true;
     }
 
     float GetVisibleWorldWidth() const
@@ -172,7 +164,30 @@ public:
 
 private:
 
+    std::function<void()> const mMakeRenderContextCurrentFunction;
+    std::function<void()> const mSwapRenderBuffersFunction;
+
+    std::unique_ptr<ShaderManager> mShaderManager;
+
+    ViewModel mViewModel;
+
+private:
+
+    ////////////////////////////////////////////////////////////////
+    // Settings
+    ////////////////////////////////////////////////////////////////
+
+    void ProcessSettingChanges();
+
+    // Lock guarding:
+    // - changes to setting and its dirty indicator
+    // - consumption of that setting
+    std::mutex mSettingsMutex;
+
+    bool mIsCanvasSizeDirty;
     void OnCanvasSizeUpdated();
+
+    bool mIsViewModelDirty;
     void OnViewModelUpdated();
 
 private:
@@ -245,15 +260,6 @@ private:
 
 private:
 
-    std::function<void()> const mMakeRenderContextCurrentFunction;
-    std::function<void()> const mSwapRenderBuffersFunction;
-
-    std::unique_ptr<ShaderManager> mShaderManager;
-
-    ViewModel mViewModel;
-
-private:
-
     ////////////////////////////////////////////////////////////////
     // Thread
     ////////////////////////////////////////////////////////////////
@@ -261,6 +267,6 @@ private:
     // The thread running all of our OpenGL calls
     TaskThread mRenderThread;
 
-    // The asynhronous rendering task
+    // The asynhronous rendering task that is currently running
     std::optional<TaskThread::TaskCompletionIndicator> mPreviousRenderTaskCompletionIndicator;
 };
