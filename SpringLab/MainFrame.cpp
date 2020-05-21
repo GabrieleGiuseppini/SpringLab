@@ -138,6 +138,12 @@ MainFrame::MainFrame(wxApp * mainApp)
         mControlToolbar = new ControlToolbar(mMainPanel);
         mControlToolbar->Connect(ControlToolbar::ID_SIMULATION_CONTROL_PLAY, wxEVT_BUTTON, (wxObjectEventFunction)&MainFrame::OnSimulationControlPlay);
         mControlToolbar->Connect(ControlToolbar::ID_SIMULATION_CONTROL_FAST_PLAY, wxEVT_BUTTON, (wxObjectEventFunction)&MainFrame::OnSimulationControlFastPlay);
+        mControlToolbar->Connect(ControlToolbar::ID_SIMULATION_CONTROL_PAUSE, wxEVT_BUTTON, (wxObjectEventFunction)&MainFrame::OnSimulationControlPause);
+        mControlToolbar->Connect(ControlToolbar::ID_SIMULATION_CONTROL_STEP, wxEVT_BUTTON, (wxObjectEventFunction)&MainFrame::OnSimulationControlStep);
+        mControlToolbar->Connect(ControlToolbar::ID_INITIAL_CONDITIONS_GRAVITY, wxEVT_BUTTON, (wxObjectEventFunction)&MainFrame::OnInitialConditionsGravity);
+        mControlToolbar->Connect(ControlToolbar::ID_INITIAL_CONDITIONS_MOVE, wxEVT_BUTTON, (wxObjectEventFunction)&MainFrame::OnInitialConditionsMove);
+        mControlToolbar->Connect(ControlToolbar::ID_INITIAL_CONDITIONS_PIN, wxEVT_BUTTON, (wxObjectEventFunction)&MainFrame::OnInitialConditionsPin);
+        mControlToolbar->Connect(ControlToolbar::ID_INITIAL_CONDITIONS_PARTICLE_FORCE, wxEVT_BUTTON, (wxObjectEventFunction)&MainFrame::OnInitialConditionsParticleForce);
         mMainPanelTopHSizer->Add(
             mControlToolbar,
             0,                  // Use own horizontal size
@@ -431,8 +437,15 @@ void MainFrame::OnKeyDown(wxKeyEvent & event)
 
         mSimulationController->QueryNearestPointAt(screenCoords);
     }
+    else if (mControlToolbar->ProcessKeyDown(event.GetKeyCode(), event.GetModifiers()))
+    {
 
-    event.Skip();
+    }
+    else
+    {
+        // Keep processing it
+        event.Skip();
+    }
 }
 
 /* TODO
@@ -738,6 +751,36 @@ void MainFrame::OnSimulationControlPlay(wxCommandEvent & /*event*/)
 void MainFrame::OnSimulationControlFastPlay(wxCommandEvent & /*event*/)
 {
     LogMessage("TODO: OnSimulationControlFastPlay");
+}
+
+void MainFrame::OnSimulationControlPause(wxCommandEvent & /*event*/)
+{
+    LogMessage("TODO: OnSimulationControlPause");
+}
+
+void MainFrame::OnSimulationControlStep(wxCommandEvent & /*event*/)
+{
+    LogMessage("TODO: OnSimulationControlStep");
+}
+
+void MainFrame::OnInitialConditionsGravity(wxCommandEvent & event)
+{
+    LogMessage("TODO: OnInitialConditionsGravity: ", event.GetInt());
+}
+
+void MainFrame::OnInitialConditionsMove(wxCommandEvent & /*event*/)
+{
+    LogMessage("TODO: OnInitialConditionsMove");
+}
+
+void MainFrame::OnInitialConditionsPin(wxCommandEvent & /*event*/)
+{
+    LogMessage("TODO: OnInitialConditionsPin");
+}
+
+void MainFrame::OnInitialConditionsParticleForce(wxCommandEvent & /*event*/)
+{
+    LogMessage("TODO: OnInitialConditionsParticleForce");
 }
 
 void MainFrame::OnSimulationTimer(wxTimerEvent & /*event*/)

@@ -100,7 +100,7 @@
 			- Fast-Forward: 1 simulation step as fast as possible
 			- Pause: step on-demand				
 			- UI:
-				- All sticky buttons, mutex
+				= All sticky buttons, mutex
 				- Pause: space
 				- Step on-demand: via Enter
 		- Initial conditions:
@@ -110,7 +110,7 @@
 				- As now
 			- Pin:
 				- Sets in Points::mIsPinnedBuffer
-			- Particle Force: (TBD: better name: ~individual)
+			- Particle Force:
 				- Sets in Points::mIndividualForceBuffer
 			- UI:
 				- Gravity: sticky button, independent

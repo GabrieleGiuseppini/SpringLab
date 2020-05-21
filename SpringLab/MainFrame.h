@@ -121,6 +121,12 @@ private:
     // Control toolbar
     void OnSimulationControlPlay(wxCommandEvent & event);
     void OnSimulationControlFastPlay(wxCommandEvent & event);
+    void OnSimulationControlPause(wxCommandEvent & event);
+    void OnSimulationControlStep(wxCommandEvent & event);
+    void OnInitialConditionsGravity(wxCommandEvent & event);
+    void OnInitialConditionsMove(wxCommandEvent & event);
+    void OnInitialConditionsPin(wxCommandEvent & event);
+    void OnInitialConditionsParticleForce(wxCommandEvent & event);
 
     // Timers
     void OnSimulationTimer(wxTimerEvent & event);
