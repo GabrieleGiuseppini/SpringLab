@@ -16,6 +16,8 @@
 #include "StructuralMaterialDatabase.h"
 #include "Vectors.h"
 
+#include "Simulator/Common/ISimulator.h"
+
 #include <cassert>
 #include <chrono>
 #include <filesystem>
@@ -50,10 +52,12 @@ public:
     // Simulation
     //
 
+    void SetSimulator(std::string const & simulatorName);
+
     void LoadObject(std::filesystem::path const & objectDefinitionFilepath);
     void Reset();
 
-    void RunSimulationIteration();
+    void UpdateSimulation();
 
     void Render();
 
@@ -170,6 +174,9 @@ private:
     //
     // Current simulation state
     //
+
+    std::unique_ptr<ISimulator> mSimulator;
+    std::string mCurrentSimulatorTypeName;
 
     float mCurrentSimulationTime;
     size_t mTotalSimulationSteps;

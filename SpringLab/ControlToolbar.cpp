@@ -251,9 +251,12 @@ bool ControlToolbar::ProcessKeyDown(
     else if (keyCode == WXK_RETURN)
     {
         // Step
-        wxCommandEvent evt(wxEVT_BUTTON, ID_SIMULATION_CONTROL_STEP);
-        mSimulationControlStepButton->Command(evt);
-        return true;
+        if (mSimulationControlPauseButton->GetValue())
+        {
+            wxCommandEvent evt(wxEVT_BUTTON, ID_SIMULATION_CONTROL_STEP);
+            mSimulationControlStepButton->Command(evt);
+            return true;
+        }
     }
 
     return false;

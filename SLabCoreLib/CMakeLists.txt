@@ -75,6 +75,7 @@ set  (SIMULATOR_COMMON_SOURCES
 )
 
 set  (SIMULATOR_CLASSIC_SOURCES
+	Simulator/Classic/ClassicSimulator.cpp
 	Simulator/Classic/ClassicSimulator.h
 	Simulator/Classic/ClassicSimulatorParameters.h
 )
@@ -98,8 +99,8 @@ add_library (SLabCoreLib
 	${SIMULATOR_CLASSIC_SOURCES})
 
 target_include_directories(SLabCoreLib PRIVATE ${IL_INCLUDE_DIR})
-target_include_directories(SLabCoreLib PRIVATE .)
 target_include_directories(SLabCoreLib PUBLIC ${PICOJSON_INCLUDE_DIRS})
+target_include_directories(SLabCoreLib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(SLabCoreLib INTERFACE ..)
 
 target_link_libraries (SLabCoreLib

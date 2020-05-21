@@ -9,6 +9,10 @@
 
 #include <string>
 
+/*
+ * This simulator calculates the next step's physical properties
+ * based on their current values and on the Hookean forces of springs.
+ */
 class ClassicSimulator final : public ISimulator
 {
 public:
@@ -23,6 +27,11 @@ public:
     //////////////////////////////////////////////////////////
     // ISimulator
     //////////////////////////////////////////////////////////
+
+    void Update(
+        Object & object,
+        float currentSimulationTime,
+        SimulationParameters const & simulationParameters) override;
 
 private:
 

@@ -7,6 +7,7 @@
 
 #include "ISimulator.h"
 
+#include <cassert>
 #include <functional>
 #include <memory>
 #include <string>
@@ -17,6 +18,13 @@ class SimulatorRegistry
 {
 public:
 
+    static std::string const & GetDefaultSimulatorTypeName()
+    {
+        assert(!mInstance.mSimulatorTypeNames.empty());
+
+        return mInstance.mSimulatorTypeNames[0];
+    }
+
     static std::vector<std::string> const & GetSimulatorTypeNames()
     {
         return mInstance.mSimulatorTypeNames;
@@ -24,6 +32,8 @@ public:
 
     static std::unique_ptr<ISimulator> MakeSimulator(std::string const & simulatorName)
     {
+        assert(mInstance.mSimulatorFactories.count(simulatorName) == 1);
+
         return mInstance.mSimulatorFactories[simulatorName]();
     }
 

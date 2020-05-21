@@ -8,6 +8,8 @@
 #include "ObjectBuilder.h"
 #include "ResourceLocator.h"
 
+#include "Simulator/Common/SimulatorRegistry.h"
+
 std::unique_ptr<SimulationController> SimulationController::Create(
     int canvasWidth,
     int canvasHeight,
@@ -41,6 +43,8 @@ SimulationController::SimulationController(
     , mRenderContext(std::move(renderContext))
     , mStructuralMaterialDatabase(std::move(structuralMaterialDatabase))
     // Simulation state
+    , mSimulator()
+    , mCurrentSimulatorTypeName(SimulatorRegistry::GetDefaultSimulatorTypeName())
     , mCurrentSimulationTime(0.0f)
     , mTotalSimulationSteps(0)
     , mSimulationParameters()
@@ -51,6 +55,15 @@ SimulationController::SimulationController(
     , mOriginTimestamp(SLabWallClock::time_point::max())
 {
     LoadObject(ResourceLocator::GetDefaultObjectDefinitionFilePath());
+}
+
+void SimulationController::SetSimulator(std::string const & simulatorName)
+{
+    LogMessage("SimulationController::SetSimulator(", simulatorName, ")");
+
+    mCurrentSimulatorTypeName = simulatorName;
+
+    Reset();
 }
 
 void SimulationController::LoadObject(std::filesystem::path const & objectDefinitionFilepath)
@@ -84,7 +97,7 @@ void SimulationController::Reset()
     LoadObject(mCurrentObjectDefinitionFilepath);
 }
 
-void SimulationController::RunSimulationIteration()
+void SimulationController::UpdateSimulation()
 {
     ////////////////////////////////////////////////////////
     // Update
@@ -92,9 +105,18 @@ void SimulationController::RunSimulationIteration()
 
     auto const updateStartTimestamp = std::chrono::steady_clock::now();
 
-    // TODO
+    assert(!!mSimulator);
+
+    // Update simulation
+    mSimulator->Update(
+        *mObject,
+        mCurrentSimulationTime,
+        mSimulationParameters);
 
     auto const updateEndTimestamp = std::chrono::steady_clock::now();
+
+    // Update simulation time
+    mCurrentSimulationTime += mSimulationParameters.SimulationStepTimeDuration<float>;
 
     ////////////////////////////////////////////////////////
     // Book-Keeping
@@ -212,6 +234,8 @@ void SimulationController::Reset(
     //
     // Reset simulation
     //
+
+    mSimulator = SimulatorRegistry::MakeSimulator(mCurrentSimulatorTypeName);
 
     mCurrentSimulationTime = 0.0f;
     mTotalSimulationSteps = 0;

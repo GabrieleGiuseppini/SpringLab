@@ -58,6 +58,9 @@ long const ID_SIMULATION_TIMER = wxNewId();
 MainFrame::MainFrame(wxApp * mainApp)
     : mMainApp(mainApp)
     , mSimulationController()
+    , mSimulationControlState(static_cast<SimulationControlStateType>(0))
+    , mSimulationControlImpulse(false)
+    , mLastSimulationStepTimestamp(std::chrono::steady_clock::time_point::min())
 {
     Create(
         nullptr,
@@ -133,15 +136,15 @@ MainFrame::MainFrame(wxApp * mainApp)
 
         // Control toolbar
         mControlToolbar = new ControlToolbar(mMainPanel);
-        mControlToolbar->Connect(ControlToolbar::ID_SIMULATION_CONTROL_PLAY, ControlToolbar::wxEVT_TOOLBAR_ACTION, (wxObjectEventFunction)&MainFrame::OnSimulationControlPlay);
-        mControlToolbar->Connect(ControlToolbar::ID_SIMULATION_CONTROL_FAST_PLAY, ControlToolbar::wxEVT_TOOLBAR_ACTION, (wxObjectEventFunction)&MainFrame::OnSimulationControlFastPlay);
-        mControlToolbar->Connect(ControlToolbar::ID_SIMULATION_CONTROL_PAUSE, ControlToolbar::wxEVT_TOOLBAR_ACTION, (wxObjectEventFunction)&MainFrame::OnSimulationControlPause);
-        mControlToolbar->Connect(ControlToolbar::ID_SIMULATION_CONTROL_STEP, ControlToolbar::wxEVT_TOOLBAR_ACTION, (wxObjectEventFunction)&MainFrame::OnSimulationControlStep);
-        mControlToolbar->Connect(ControlToolbar::ID_INITIAL_CONDITIONS_GRAVITY, ControlToolbar::wxEVT_TOOLBAR_ACTION, (wxObjectEventFunction)&MainFrame::OnInitialConditionsGravity);
-        mControlToolbar->Connect(ControlToolbar::ID_INITIAL_CONDITIONS_MOVE, ControlToolbar::wxEVT_TOOLBAR_ACTION, (wxObjectEventFunction)&MainFrame::OnInitialConditionsMove);
-        mControlToolbar->Connect(ControlToolbar::ID_INITIAL_CONDITIONS_PIN, ControlToolbar::wxEVT_TOOLBAR_ACTION, (wxObjectEventFunction)&MainFrame::OnInitialConditionsPin);
-        mControlToolbar->Connect(ControlToolbar::ID_INITIAL_CONDITIONS_PARTICLE_FORCE, ControlToolbar::wxEVT_TOOLBAR_ACTION, (wxObjectEventFunction)&MainFrame::OnInitialConditionsParticleForce);
-        mControlToolbar->Connect(ControlToolbar::ID_SIMULATOR_TYPE, ControlToolbar::wxEVT_TOOLBAR_ACTION, (wxObjectEventFunction)&MainFrame::OnSimulatorTypeChanged);
+        mControlToolbar->Connect(ControlToolbar::ID_SIMULATION_CONTROL_PLAY, ControlToolbar::wxEVT_TOOLBAR_ACTION, (wxObjectEventFunction)&MainFrame::OnSimulationControlPlay, 0, this);
+        mControlToolbar->Connect(ControlToolbar::ID_SIMULATION_CONTROL_FAST_PLAY, ControlToolbar::wxEVT_TOOLBAR_ACTION, (wxObjectEventFunction)&MainFrame::OnSimulationControlFastPlay, 0, this);
+        mControlToolbar->Connect(ControlToolbar::ID_SIMULATION_CONTROL_PAUSE, ControlToolbar::wxEVT_TOOLBAR_ACTION, (wxObjectEventFunction)&MainFrame::OnSimulationControlPause, 0, this);
+        mControlToolbar->Connect(ControlToolbar::ID_SIMULATION_CONTROL_STEP, ControlToolbar::wxEVT_TOOLBAR_ACTION, (wxObjectEventFunction)&MainFrame::OnSimulationControlStep, 0, this);
+        mControlToolbar->Connect(ControlToolbar::ID_INITIAL_CONDITIONS_GRAVITY, ControlToolbar::wxEVT_TOOLBAR_ACTION, (wxObjectEventFunction)&MainFrame::OnInitialConditionsGravity, 0, this);
+        mControlToolbar->Connect(ControlToolbar::ID_INITIAL_CONDITIONS_MOVE, ControlToolbar::wxEVT_TOOLBAR_ACTION, (wxObjectEventFunction)&MainFrame::OnInitialConditionsMove, 0, this);
+        mControlToolbar->Connect(ControlToolbar::ID_INITIAL_CONDITIONS_PIN, ControlToolbar::wxEVT_TOOLBAR_ACTION, (wxObjectEventFunction)&MainFrame::OnInitialConditionsPin, 0, this);
+        mControlToolbar->Connect(ControlToolbar::ID_INITIAL_CONDITIONS_PARTICLE_FORCE, ControlToolbar::wxEVT_TOOLBAR_ACTION, (wxObjectEventFunction)&MainFrame::OnInitialConditionsParticleForce, 0, this);
+        mControlToolbar->Connect(ControlToolbar::ID_SIMULATOR_TYPE, ControlToolbar::wxEVT_TOOLBAR_ACTION, (wxObjectEventFunction)&MainFrame::OnSimulatorTypeChanged, 0, this);
         mMainPanelTopHSizer->Add(
             mControlToolbar,
             0,                  // Use own horizontal size
@@ -423,54 +426,6 @@ void MainFrame::OnKeyDown(wxKeyEvent & event)
     }
 }
 
-/* TODO
-void MainFrame::OnGameTimerTrigger(wxTimerEvent & event)
-{
-    // Update SHIFT key state
-    if (wxGetKeyState(WXK_SHIFT))
-    {
-        if (!mIsShiftKeyDown)
-        {
-            mIsShiftKeyDown = true;
-            mToolController->OnShiftKeyDown();
-        }
-    }
-    else
-    {
-        if (mIsShiftKeyDown)
-        {
-            mIsShiftKeyDown = false;
-            mToolController->OnShiftKeyUp();
-        }
-    }
-
-
-    //
-    // Run a game step
-    //
-
-    try
-    {
-        // Update game - will also render
-        assert(!!mGameController);
-        mGameController->RunGameIteration();
-
-        // Update probe panel
-        assert(!!mProbePanel);
-        mProbePanel->UpdateSimulation();
-
-        // Do after-render chores
-        AfterGameRender();
-    }
-    catch (std::exception const & e)
-    {
-        OnError("Error during simulation step: " + std::string(e.what()), true);
-
-        return;
-    }
-}
-*/
-
 //
 // Main canvas event handlers
 //
@@ -696,22 +651,22 @@ void MainFrame::OnAboutMenuItemSelected(wxCommandEvent & /*event*/)
 
 void MainFrame::OnSimulationControlPlay(wxCommandEvent & /*event*/)
 {
-    LogMessage("TODO: OnSimulationControlPlay");
+    mSimulationControlState = SimulationControlStateType::SlowPlay;
 }
 
 void MainFrame::OnSimulationControlFastPlay(wxCommandEvent & /*event*/)
 {
-    LogMessage("TODO: OnSimulationControlFastPlay");
+    mSimulationControlState = SimulationControlStateType::FastPlay;
 }
 
 void MainFrame::OnSimulationControlPause(wxCommandEvent & /*event*/)
 {
-    LogMessage("TODO: OnSimulationControlPause");
+    mSimulationControlState = SimulationControlStateType::Paused;
 }
 
 void MainFrame::OnSimulationControlStep(wxCommandEvent & /*event*/)
 {
-    LogMessage("TODO: OnSimulationControlStep");
+    mSimulationControlImpulse = true;
 }
 
 void MainFrame::OnInitialConditionsGravity(wxCommandEvent & event)
@@ -737,14 +692,19 @@ void MainFrame::OnInitialConditionsParticleForce(wxCommandEvent & /*event*/)
 
 void MainFrame::OnSimulatorTypeChanged(wxCommandEvent & event)
 {
-    LogMessage("TODO: OnSimulatorTypeChanged: ", event.GetString().ToStdString());
+    assert(!!mSimulationController);
+
+    mSimulationController->SetSimulator(event.GetString().ToStdString());
 }
 
 void MainFrame::OnSimulationTimer(wxTimerEvent & /*event*/)
 {
+    //
+    // Update tools
+    //
+
     assert(!!mToolController);
 
-    // Update tools's SHIFT state
     if (wxGetKeyState(WXK_SHIFT))
     {
         if (!mToolController->IsShiftKeyDown())
@@ -756,11 +716,46 @@ void MainFrame::OnSimulationTimer(wxTimerEvent & /*event*/)
             mToolController->OnShiftKeyUp();
     }
 
-    // Update tools
     mToolController->Update();
 
+
+    //
+    // Update
+    //
+
+    assert(!!mSimulationController);
+
+    auto constexpr SlowPlayInterval = std::chrono::milliseconds(500);
+
+    if (auto const now = std::chrono::steady_clock::now();
+        mSimulationControlState == SimulationControlStateType::FastPlay
+        || (mSimulationControlState == SimulationControlStateType::SlowPlay && now >= mLastSimulationStepTimestamp + SlowPlayInterval)
+        || mSimulationControlImpulse)
+    {
+        mSimulationController->UpdateSimulation();
+
+        // Update state
+        mSimulationControlImpulse = false;
+        mLastSimulationStepTimestamp = now;
+    }
+
+
+    //
     // Render
+    //
+
+    assert(!!mMainGLCanvas);
+
     mMainGLCanvas->Refresh();
+
+
+    //
+    // Update probe toolbar
+    //
+
+    assert(!!mProbeToolbar);
+
+    mProbeToolbar->UpdateSimulation();
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////

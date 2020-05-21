@@ -144,4 +144,19 @@ private:
 
     std::shared_ptr<SimulationController> mSimulationController;
     std::unique_ptr<ToolController> mToolController;
+
+    //
+    // Simulation control
+    //
+
+    enum class SimulationControlStateType
+    {
+        Paused = 0,
+        SlowPlay,
+        FastPlay
+    };
+
+    SimulationControlStateType mSimulationControlState;
+    bool mSimulationControlImpulse;
+    std::chrono::steady_clock::time_point mLastSimulationStepTimestamp;
 };
