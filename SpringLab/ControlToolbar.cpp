@@ -44,76 +44,76 @@ ControlToolbar::ControlToolbar(wxWindow* parent)
 
         // Play
         {
-            auto button = mSimulationControlButtons.emplace_back(
-                new wxBitmapToggleButton(
-                    this,
-                    ID_SIMULATION_CONTROL_PLAY,
-                    wxBitmap(
-                        (ResourceLocator::GetResourcesFolderPath() / "simcontrol_play.png").string(),
-                        wxBITMAP_TYPE_PNG),
-                    wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT));
+            mSimulationControlPlayButton = new wxBitmapToggleButton(
+                this,
+                ID_SIMULATION_CONTROL_PLAY,
+                wxBitmap(
+                    (ResourceLocator::GetResourcesFolderPath() / "simcontrol_play.png").string(),
+                    wxBITMAP_TYPE_PNG),
+                wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
 
-            button->Bind(wxEVT_TOGGLEBUTTON, [this, button](wxCommandEvent & /*event*/) { OnSimulationControlButton(button); });
+            mSimulationControlPlayButton->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent & /*event*/) { OnSimulationControlButton(mSimulationControlPlayButton); });
 
-            button->SetToolTip("Start simulation auto-play step-by-step");
+            mSimulationControlPlayButton->SetToolTip("Start simulation auto-play step-by-step");
 
-            gridSizer->Add(button);
+            gridSizer->Add(mSimulationControlPlayButton);
         }
 
         // Fast Play
         {
-            auto button = mSimulationControlButtons.emplace_back(
-                new wxBitmapToggleButton(
-                    this,
-                    ID_SIMULATION_CONTROL_FAST_PLAY,
-                    wxBitmap(
-                        (ResourceLocator::GetResourcesFolderPath() / "simcontrol_play_fast.png").string(),
-                        wxBITMAP_TYPE_PNG),
-                    wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT));
+            mSimulationControlFastPlayButton = new wxBitmapToggleButton(
+                this,
+                ID_SIMULATION_CONTROL_FAST_PLAY,
+                wxBitmap(
+                    (ResourceLocator::GetResourcesFolderPath() / "simcontrol_play_fast.png").string(),
+                    wxBITMAP_TYPE_PNG),
+                wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
 
-            button->Bind(wxEVT_TOGGLEBUTTON, [this, button](wxCommandEvent & /*event*/) { OnSimulationControlButton(button); });
+            mSimulationControlFastPlayButton->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent & /*event*/) { OnSimulationControlButton(mSimulationControlFastPlayButton); });
 
-            button->SetToolTip("Start simulation auto-play as fast as possible");
+            mSimulationControlFastPlayButton->SetToolTip("Start simulation auto-play as fast as possible");
 
-            gridSizer->Add(button);
+            gridSizer->Add(mSimulationControlFastPlayButton);
         }
 
         // Pause
         {
-            auto button = mSimulationControlButtons.emplace_back(
-                new wxBitmapToggleButton(
-                    this,
-                    ID_SIMULATION_CONTROL_PAUSE,
-                    wxBitmap(
-                        (ResourceLocator::GetResourcesFolderPath() / "simcontrol_pause.png").string(),
-                        wxBITMAP_TYPE_PNG),
-                    wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT));
+            mSimulationControlPauseButton = new wxBitmapToggleButton(
+                this,
+                ID_SIMULATION_CONTROL_PAUSE,
+                wxBitmap(
+                    (ResourceLocator::GetResourcesFolderPath() / "simcontrol_pause.png").string(),
+                    wxBITMAP_TYPE_PNG),
+                wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
 
-            button->SetValue(true); // We start in pause
+            mSimulationControlPauseButton->SetValue(true); // We start in pause
 
-            button->Bind(wxEVT_TOGGLEBUTTON, [this, button](wxCommandEvent & /*event*/) { OnSimulationControlButton(button); });
+            mSimulationControlPauseButton->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent & /*event*/) { OnSimulationControlButton(mSimulationControlPauseButton); });
 
-            button->SetToolTip("Pause simulation auto-play (SPACE)");
+            mSimulationControlPauseButton->SetToolTip("Pause simulation auto-play (SPACE)");
 
-            gridSizer->Add(button);
+            gridSizer->Add(mSimulationControlPauseButton);
         }
 
         // Step
         {
-            auto button = mSimulationControlButtons.emplace_back(
-                new wxBitmapToggleButton(
-                    this,
-                    ID_SIMULATION_CONTROL_STEP,
-                    wxBitmap(
-                        (ResourceLocator::GetResourcesFolderPath() / "simcontrol_step.png").string(),
-                        wxBITMAP_TYPE_PNG),
-                    wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT));
+            mSimulationControlStepButton = new wxButton(
+                this,
+                ID_SIMULATION_CONTROL_STEP,
+                wxEmptyString, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
 
-            button->Bind(wxEVT_TOGGLEBUTTON, [this, button](wxCommandEvent & /*event*/) { OnSimulationControlButton(button); });
+            mSimulationControlStepButton->SetBitmap(
+                wxBitmap(
+                    (ResourceLocator::GetResourcesFolderPath() / "simcontrol_step.png").string(),
+                    wxBITMAP_TYPE_PNG));
 
-            button->SetToolTip("Run a single simulation step (ENTER)");
+            mSimulationControlStepButton->Enable(true); // We start in pause
 
-            gridSizer->Add(button);
+            mSimulationControlStepButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent & /*event*/) { OnSimulationControlStepButton(); });
+
+            mSimulationControlStepButton->SetToolTip("Run a single simulation step (ENTER)");
+
+            gridSizer->Add(mSimulationControlStepButton);
         }
 
         vSizer->Add(gridSizer, 0, wxALIGN_CENTER | wxALL, 5);
@@ -127,76 +127,72 @@ ControlToolbar::ControlToolbar(wxWindow* parent)
 
         // Gravity
         {
-            auto button = mSimulationControlButtons.emplace_back(
-                new wxBitmapToggleButton(
-                    this,
-                    ID_INITIAL_CONDITIONS_GRAVITY,
-                    wxBitmap(
-                        (ResourceLocator::GetResourcesFolderPath() / "initialconds_gravity.png").string(),
-                        wxBITMAP_TYPE_PNG),
-                    wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT));
+            mInitialConditionsGravityButton = new wxBitmapToggleButton(
+                this,
+                ID_INITIAL_CONDITIONS_GRAVITY,
+                wxBitmap(
+                    (ResourceLocator::GetResourcesFolderPath() / "initialconds_gravity.png").string(),
+                    wxBITMAP_TYPE_PNG),
+                wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
 
-            button->Bind(wxEVT_TOGGLEBUTTON, [this, button](wxCommandEvent & /*event*/) { OnInitialConditionsButton(button); });
+            mInitialConditionsGravityButton->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent & /*event*/) { OnInitialConditionsButton(mInitialConditionsGravityButton); });
 
-            button->SetToolTip("Enable or disable gravity");
+            mInitialConditionsGravityButton->SetToolTip("Enable or disable gravity");
 
-            gridSizer->Add(button);
+            gridSizer->Add(mInitialConditionsGravityButton);
         }
 
         // Move
         {
-            auto button = mSimulationControlButtons.emplace_back(
-                new wxBitmapToggleButton(
-                    this,
-                    ID_INITIAL_CONDITIONS_MOVE,
-                    wxBitmap(
-                        (ResourceLocator::GetResourcesFolderPath() / "move_cursor_up.png").string(),
-                        wxBITMAP_TYPE_PNG),
-                    wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT));
+            mInitialConditionsMoveButton = new wxBitmapToggleButton(
+                this,
+                ID_INITIAL_CONDITIONS_MOVE,
+                wxBitmap(
+                    (ResourceLocator::GetResourcesFolderPath() / "move_cursor_up.png").string(),
+                    wxBITMAP_TYPE_PNG),
+                wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
 
-            button->SetValue(true); // Initial tool
+            mInitialConditionsMoveButton->SetValue(true); // Initial tool
 
-            button->Bind(wxEVT_TOGGLEBUTTON, [this, button](wxCommandEvent & /*event*/) { OnInitialConditionsButton(button); });
+            mInitialConditionsMoveButton->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent & /*event*/) { OnInitialConditionsButton(mInitialConditionsMoveButton); });
 
-            button->SetToolTip("Move particles");
+            mInitialConditionsMoveButton->SetToolTip("Move particles");
 
-            gridSizer->Add(button);
+            gridSizer->Add(mInitialConditionsMoveButton);
         }
 
         // Pin
         {
-            auto button = mSimulationControlButtons.emplace_back(
-                new wxBitmapToggleButton(
-                    this,
-                    ID_INITIAL_CONDITIONS_MOVE,
-                    wxBitmap(
-                        (ResourceLocator::GetResourcesFolderPath() / "pin_cursor.png").string(),
-                        wxBITMAP_TYPE_PNG),
-                    wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT));
+            mInitialConditionsPinButton = new wxBitmapToggleButton(
+                this,
+                ID_INITIAL_CONDITIONS_PIN,
+                wxBitmap(
+                    (ResourceLocator::GetResourcesFolderPath() / "pin_cursor.png").string(),
+                    wxBITMAP_TYPE_PNG),
+                wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
 
-            button->Bind(wxEVT_TOGGLEBUTTON, [this, button](wxCommandEvent & /*event*/) { OnInitialConditionsButton(button); });
+            mInitialConditionsPinButton->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent & /*event*/) { OnInitialConditionsButton(mInitialConditionsPinButton); });
 
-            button->SetToolTip("Pin particles to their current positions");
+            mInitialConditionsPinButton->SetToolTip("Pin particles to their current positions");
 
-            gridSizer->Add(button);
+            gridSizer->Add(mInitialConditionsPinButton);
         }
 
         // Particle Force
         {
-            auto button = mSimulationControlButtons.emplace_back(
-                new wxBitmapToggleButton(
-                    this,
-                    ID_INITIAL_CONDITIONS_PARTICLE_FORCE,
-                    wxBitmap(
-                        (ResourceLocator::GetResourcesFolderPath() / "particle_force_cursor.png").string(),
-                        wxBITMAP_TYPE_PNG),
-                    wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT));
+            mInitialConditionsParticleForceButton = new wxBitmapToggleButton(
+                this,
+                ID_INITIAL_CONDITIONS_PARTICLE_FORCE,
+                wxBitmap(
+                    (ResourceLocator::GetResourcesFolderPath() / "particle_force_cursor.png").string(),
+                    wxBITMAP_TYPE_PNG),
+                wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
 
-            button->Bind(wxEVT_TOGGLEBUTTON, [this, button](wxCommandEvent & /*event*/) { OnInitialConditionsButton(button); });
+            mInitialConditionsParticleForceButton->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent & /*event*/) { OnInitialConditionsButton(mInitialConditionsParticleForceButton); });
 
-            button->SetToolTip("Set a force on individual particles");
+            mInitialConditionsParticleForceButton->SetToolTip("Set a force on individual particles");
 
-            gridSizer->Add(button);
+            gridSizer->Add(mInitialConditionsParticleForceButton);
         }
 
         vSizer->Add(gridSizer, 0, wxALIGN_CENTER | wxALL, 5);
@@ -218,15 +214,18 @@ bool ControlToolbar::ProcessKeyDown(
     if (keyCode == WXK_SPACE)
     {
         // Pause
-        mSimulationControlButtons[2]->SetValue(true);
-        OnSimulationControlButton(mSimulationControlButtons[2]);
-        return true;
+        if (!mSimulationControlPauseButton->GetValue())
+        {
+            mSimulationControlPauseButton->SetValue(true);
+            OnSimulationControlButton(mSimulationControlPauseButton);
+            return true;
+        }
     }
     else if (keyCode == WXK_RETURN)
     {
         // Step
-        mSimulationControlButtons[3]->SetValue(true);
-        OnSimulationControlButton(mSimulationControlButtons[3]);
+        wxCommandEvent evt(wxEVT_BUTTON, ID_SIMULATION_CONTROL_STEP);
+        mSimulationControlStepButton->Command(evt);
         return true;
     }
 
@@ -235,24 +234,78 @@ bool ControlToolbar::ProcessKeyDown(
 
 void ControlToolbar::OnSimulationControlButton(wxBitmapToggleButton * button)
 {
-    if (button->GetValue())
+    if (button->GetId() == ID_SIMULATION_CONTROL_PLAY)
     {
-        // Turn off all others
-        for (auto btn : mSimulationControlButtons)
+        if (button->GetValue())
         {
-            if (btn->GetId() != button->GetId())
-                btn->SetValue(false);
-        }
+            // Set all others to off
+            mSimulationControlFastPlayButton->SetValue(false);
+            mSimulationControlPauseButton->SetValue(false);
 
-        // Fire event
-        wxCommandEvent evt(wxEVT_BUTTON, button->GetId());
-        ProcessEvent(evt);
+            // Disable step
+            mSimulationControlStepButton->Enable(false);
+
+            // Fire event
+            wxCommandEvent evt(wxEVT_BUTTON, ID_SIMULATION_CONTROL_PLAY);
+            ProcessEvent(evt);
+        }
+        else
+        {
+            // Set back to on
+            mSimulationControlPlayButton->SetValue(true);
+        }
+    }
+    else if (button->GetId() == ID_SIMULATION_CONTROL_FAST_PLAY)
+    {
+        if (button->GetValue())
+        {
+            // Set all others to off
+            mSimulationControlPlayButton->SetValue(false);
+            mSimulationControlPauseButton->SetValue(false);
+
+            // Disable step
+            mSimulationControlStepButton->Enable(false);
+
+            // Fire event
+            wxCommandEvent evt(wxEVT_BUTTON, ID_SIMULATION_CONTROL_FAST_PLAY);
+            ProcessEvent(evt);
+        }
+        else
+        {
+            // Set back to on
+            mSimulationControlFastPlayButton->SetValue(true);
+        }
     }
     else
     {
-        // Re-turn on this one
-        button->SetValue(true);
+        assert(button->GetId() == ID_SIMULATION_CONTROL_PAUSE);
+
+        if (button->GetValue())
+        {
+            // Set all others to off
+            mSimulationControlPlayButton->SetValue(false);
+            mSimulationControlFastPlayButton->SetValue(false);
+
+            // Enable step
+            mSimulationControlStepButton->Enable(true);
+
+            // Fire event
+            wxCommandEvent evt(wxEVT_BUTTON, ID_SIMULATION_CONTROL_PAUSE);
+            ProcessEvent(evt);
+        }
+        else
+        {
+            // Set back to on
+            mSimulationControlPauseButton->SetValue(true);
+        }
     }
+}
+
+void ControlToolbar::OnSimulationControlStepButton()
+{
+    // Fire event
+    wxCommandEvent evt(wxEVT_BUTTON, ID_SIMULATION_CONTROL_STEP);
+    ProcessEvent(evt);
 }
 
 void ControlToolbar::OnInitialConditionsButton(wxBitmapToggleButton * button)
@@ -260,21 +313,23 @@ void ControlToolbar::OnInitialConditionsButton(wxBitmapToggleButton * button)
     if (button->GetId() == ID_INITIAL_CONDITIONS_GRAVITY)
     {
         // Fire event
-        wxCommandEvent evt(wxEVT_BUTTON, button->GetId());
-        evt.SetId(button->GetValue() ? 1 : 0);
+        wxCommandEvent evt(wxEVT_BUTTON, ID_INITIAL_CONDITIONS_GRAVITY);
+        evt.SetInt(button->GetValue() ? 1 : 0);
         ProcessEvent(evt);
     }
-    else
+    else if (button->GetId() == ID_INITIAL_CONDITIONS_MOVE
+        || button->GetId() == ID_INITIAL_CONDITIONS_PIN
+        || button->GetId() == ID_INITIAL_CONDITIONS_PARTICLE_FORCE)
     {
         if (button->GetValue())
         {
             // Turn off all others
-            for (auto btn : mInitialConditionsButtons)
-            {
-                if (btn->GetId() != button->GetId()
-                    && btn->GetId() != ID_INITIAL_CONDITIONS_GRAVITY)
-                    btn->SetValue(false);
-            }
+            if (button->GetId() != mInitialConditionsMoveButton->GetId())
+                mInitialConditionsMoveButton->SetValue(false);
+            if (button->GetId() != mInitialConditionsPinButton->GetId())
+                mInitialConditionsPinButton->SetValue(false);
+            if (button->GetId() != mInitialConditionsParticleForceButton->GetId())
+                mInitialConditionsParticleForceButton->SetValue(false);
 
             // Fire event
             wxCommandEvent evt(wxEVT_BUTTON, button->GetId());
@@ -282,7 +337,7 @@ void ControlToolbar::OnInitialConditionsButton(wxBitmapToggleButton * button)
         }
         else
         {
-            // Re-turn on this one
+            // Turn back on
             button->SetValue(true);
         }
     }

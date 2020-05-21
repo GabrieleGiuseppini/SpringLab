@@ -10,8 +10,6 @@
 
 #include <memory>
 #include <string>
-#include <unordered_map>
-#include <vector>
 
 class ControlToolbar final : public wxPanel
 {
@@ -40,10 +38,18 @@ public:
 private:
 
     void OnSimulationControlButton(wxBitmapToggleButton * button);
+    void OnSimulationControlStepButton();
     void OnInitialConditionsButton(wxBitmapToggleButton * button);
 
 private:
 
-    std::vector<wxBitmapToggleButton *> mSimulationControlButtons;
-    std::vector<wxBitmapToggleButton *> mInitialConditionsButtons;
+    wxBitmapToggleButton * mSimulationControlPlayButton;
+    wxBitmapToggleButton * mSimulationControlFastPlayButton;
+    wxBitmapToggleButton * mSimulationControlPauseButton;
+    wxButton * mSimulationControlStepButton;
+
+    wxBitmapToggleButton * mInitialConditionsGravityButton;
+    wxBitmapToggleButton * mInitialConditionsMoveButton;
+    wxBitmapToggleButton * mInitialConditionsPinButton;
+    wxBitmapToggleButton * mInitialConditionsParticleForceButton;
 };
