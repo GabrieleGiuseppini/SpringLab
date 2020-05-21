@@ -77,8 +77,6 @@ MainFrame::MainFrame(wxApp * mainApp)
 
     mMainPanel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxWANTS_CHARS);
     mMainPanel->Bind(wxEVT_CHAR_HOOK, &MainFrame::OnKeyDown, this);
-    mMainPanelSizer = new wxBoxSizer(wxVERTICAL);
-
 
     //
     // Build main GL canvas and activate GL context
@@ -122,140 +120,72 @@ MainFrame::MainFrame(wxApp * mainApp)
     mMainGLCanvas->Connect(wxEVT_MOUSEWHEEL, (wxObjectEventFunction)&MainFrame::OnMainGLCanvasMouseWheel, 0, this);
     mMainGLCanvas->Connect(wxEVT_MOUSE_CAPTURE_LOST, (wxObjectEventFunction)&MainFrame::OnMainGLCanvasCaptureMouseLost, 0, this);
 
-    mMainPanelSizer->Add(
-        mMainGLCanvas.get(),
-        1,                  // Occupy all available vertical space
-        wxEXPAND,           // Expand also horizontally
-        0);                 // Border
-
     // Take context for this canvas
     mMainGLCanvasContext = std::make_unique<wxGLContext>(mMainGLCanvas.get());
 
 
     //
-    // Build menu
+    // Layout panel
     //
 
-    wxMenuBar * mainMenuBar = new wxMenuBar();
+    mMainPanelVSizer = new wxBoxSizer(wxVERTICAL);
 
+    // Top
+    {
+        mMainPanelTopHSizer = new wxBoxSizer(wxHORIZONTAL);
 
-    // File
+        // Control toolbar
+        mControlToolbar = new ControlToolbar(mMainPanel);
+        mControlToolbar->Connect(ControlToolbar::ID_SIMULATION_CONTROL_PLAY, wxEVT_BUTTON, (wxObjectEventFunction)&MainFrame::OnSimulationControlPlay);
+        mControlToolbar->Connect(ControlToolbar::ID_SIMULATION_CONTROL_FAST_PLAY, wxEVT_BUTTON, (wxObjectEventFunction)&MainFrame::OnSimulationControlFastPlay);
+        mMainPanelTopHSizer->Add(
+            mControlToolbar,
+            0,                  // Use own horizontal size
+            wxEXPAND,           // Expand vertically
+            0);                 // Border
 
-    wxMenu * fileMenu = new wxMenu();
+        // Canvas
+        mMainPanelTopHSizer->Add(
+            mMainGLCanvas.get(),
+            1,                  // Occupy all available horizontal space
+            wxEXPAND,           // Expand also vertically
+            0);                 // Border
 
-    wxMenuItem * loadObjectMenuItem = new wxMenuItem(fileMenu, ID_LOAD_OBJECT_MENUITEM, _("Load Object\tCtrl+O"), wxEmptyString, wxITEM_NORMAL);
-    fileMenu->Append(loadObjectMenuItem);
-    Connect(ID_LOAD_OBJECT_MENUITEM, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&MainFrame::OnLoadObjectMenuItemSelected);
+        mMainPanelVSizer->Add(
+            mMainPanelTopHSizer,
+            1,                  // Occupy all available vertical space
+            wxEXPAND,           // Expand also horizontally
+            0);                 // Border
+    }
 
-    wxMenuItem * resetMenuItem = new wxMenuItem(fileMenu, ID_RESET_MENUITEM, _("Reset\tCtrl+R"), wxEmptyString, wxITEM_NORMAL);
-    fileMenu->Append(resetMenuItem);
-    Connect(ID_RESET_MENUITEM, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&MainFrame::OnResetMenuItemSelected);
+    // Bottom
+    {
+        // Probe panel
+        mProbePanel = std::make_unique<ProbePanel>(mMainPanel);
 
-    fileMenu->Append(new wxMenuItem(fileMenu, wxID_SEPARATOR));
+        mMainPanelVSizer->Add(
+            mProbePanel.get(),
+            0,                  // Own height
+            wxEXPAND);          // Expand horizontally
 
-    wxMenuItem * saveScreenshotMenuItem = new wxMenuItem(fileMenu, ID_SAVE_SCREENSHOT_MENUITEM, _("Save Screenshot\tCtrl+C"), wxEmptyString, wxITEM_NORMAL);
-    fileMenu->Append(saveScreenshotMenuItem);
-    Connect(ID_SAVE_SCREENSHOT_MENUITEM, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&MainFrame::OnSaveScreenshotMenuItemSelected);
+        // Start hidden
+        mMainPanelVSizer->Hide(mProbePanel.get());
+    }
 
-    fileMenu->Append(new wxMenuItem(fileMenu, wxID_SEPARATOR));
-
-    wxMenuItem* quitMenuItem = new wxMenuItem(fileMenu, ID_QUIT_MENUITEM, _("Quit\tAlt-F4"), _("Quit the application"), wxITEM_NORMAL);
-    fileMenu->Append(quitMenuItem);
-    Connect(ID_QUIT_MENUITEM, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&MainFrame::OnQuit);
-
-    mainMenuBar->Append(fileMenu, _("&File"));
-
-
-    // Controls
-
-    wxMenu * controlsMenu = new wxMenu();
-
-    wxMenuItem * zoomInMenuItem = new wxMenuItem(controlsMenu, ID_ZOOM_IN_MENUITEM, _("Zoom In\t+"), wxEmptyString, wxITEM_NORMAL);
-    controlsMenu->Append(zoomInMenuItem);
-    Connect(ID_ZOOM_IN_MENUITEM, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&MainFrame::OnZoomInMenuItemSelected);
-
-    wxMenuItem * zoomOutMenuItem = new wxMenuItem(controlsMenu, ID_ZOOM_OUT_MENUITEM, _("Zoom Out\t-"), wxEmptyString, wxITEM_NORMAL);
-    controlsMenu->Append(zoomOutMenuItem);
-    Connect(ID_ZOOM_OUT_MENUITEM, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&MainFrame::OnZoomOutMenuItemSelected);
-
-    controlsMenu->Append(new wxMenuItem(controlsMenu, wxID_SEPARATOR));
-
-    wxMenuItem * resetViewMenuItem = new wxMenuItem(controlsMenu, ID_RESET_VIEW_MENUITEM, _("Reset View\tHOME"), wxEmptyString, wxITEM_NORMAL);
-    controlsMenu->Append(resetViewMenuItem);
-    Connect(ID_RESET_VIEW_MENUITEM, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&MainFrame::OnResetViewMenuItemSelected);
-
-    mainMenuBar->Append(controlsMenu, _("Controls"));
-
-
-    // Tools
-
-    mToolsMenu = new wxMenu();
-
-    wxMenuItem * toolMoveMenuItem = new wxMenuItem(mToolsMenu, ID_TOOL_MOVE_MENUITEM, _("Move\tM"), wxEmptyString, wxITEM_RADIO);
-    mToolsMenu->Append(toolMoveMenuItem);
-    Connect(ID_TOOL_MOVE_MENUITEM, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&MainFrame::OnToolMoveMenuItemSelected);
-
-    mainMenuBar->Append(mToolsMenu, _("Tools"));
-
-
-    // Options
-
-    wxMenu * optionsMenu = new wxMenu();
-
-    wxMenuItem * openLogWindowMenuItem = new wxMenuItem(optionsMenu, ID_OPEN_LOG_WINDOW_MENUITEM, _("Open Log Window\tCtrl+L"), wxEmptyString, wxITEM_NORMAL);
-    optionsMenu->Append(openLogWindowMenuItem);
-    Connect(ID_OPEN_LOG_WINDOW_MENUITEM, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&MainFrame::OnOpenLogWindowMenuItemSelected);
-
-    mShowProbePanelMenuItem = new wxMenuItem(optionsMenu, ID_SHOW_PROBE_PANEL_MENUITEM, _("Show Probe Panel\tCtrl+P"), wxEmptyString, wxITEM_CHECK);
-    optionsMenu->Append(mShowProbePanelMenuItem);
-    mShowProbePanelMenuItem->Check(false);
-    Connect(ID_SHOW_PROBE_PANEL_MENUITEM, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&MainFrame::OnShowProbePanelMenuItemSelected);
-
-    optionsMenu->Append(new wxMenuItem(optionsMenu, wxID_SEPARATOR));
-
-    mFullScreenMenuItem = new wxMenuItem(optionsMenu, ID_FULL_SCREEN_MENUITEM, _("Full Screen\tF11"), wxEmptyString, wxITEM_NORMAL);
-    optionsMenu->Append(mFullScreenMenuItem);
-    Connect(ID_FULL_SCREEN_MENUITEM, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&MainFrame::OnFullScreenMenuItemSelected);
-    mFullScreenMenuItem->Enable(!StartInFullScreenMode);
-
-    mNormalScreenMenuItem = new wxMenuItem(optionsMenu, ID_NORMAL_SCREEN_MENUITEM, _("Normal Screen\tESC"), wxEmptyString, wxITEM_NORMAL);
-    optionsMenu->Append(mNormalScreenMenuItem);
-    Connect(ID_NORMAL_SCREEN_MENUITEM, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&MainFrame::OnNormalScreenMenuItemSelected);
-    mNormalScreenMenuItem->Enable(StartInFullScreenMode);
-
-    mainMenuBar->Append(optionsMenu, _("Options"));
-
-
-    // Help
-
-    wxMenu * helpMenu = new wxMenu();
-
-    wxMenuItem * aboutMenuItem = new wxMenuItem(helpMenu, ID_ABOUT_MENUITEM, _("About\tF2"), _("Show credits and other I'vedunnit stuff"), wxITEM_NORMAL);
-    helpMenu->Append(aboutMenuItem);
-    Connect(ID_ABOUT_MENUITEM, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&MainFrame::OnAboutMenuItemSelected);
-
-    mainMenuBar->Append(helpMenu, _("Help"));
-
-    SetMenuBar(mainMenuBar);
-
-
-    //
-    // Probe panel
-    //
-
-    mProbePanel = std::make_unique<ProbePanel>(mMainPanel);
-
-    mMainPanelSizer->Add(mProbePanel.get(), 0, wxEXPAND); // Expand horizontally
-
-    mMainPanelSizer->Hide(mProbePanel.get());
 
 
     //
     // Finalize frame
     //
 
-    mMainPanel->SetSizer(mMainPanelSizer);
-    mMainPanel->Layout();
+    {
+        mMainPanel->SetSizer(mMainPanelVSizer);
+        mMainPanel->Layout();
+
+        auto * wholeSizer = new wxBoxSizer(wxVERTICAL);
+        wholeSizer->Add(mMainPanel, 1, wxEXPAND, 0);
+        this->SetSizer(wholeSizer);
+    }
 
 
     //
@@ -264,6 +194,116 @@ MainFrame::MainFrame(wxApp * mainApp)
 
     wxToolTip::Enable(true);
     wxToolTip::SetDelay(200);
+
+
+    //
+    // Build menu
+    //
+
+    {
+        wxMenuBar * mainMenuBar = new wxMenuBar();
+
+
+        // File
+
+        wxMenu * fileMenu = new wxMenu();
+
+        wxMenuItem * loadObjectMenuItem = new wxMenuItem(fileMenu, ID_LOAD_OBJECT_MENUITEM, _("Load Object\tCtrl+O"), wxEmptyString, wxITEM_NORMAL);
+        fileMenu->Append(loadObjectMenuItem);
+        Connect(ID_LOAD_OBJECT_MENUITEM, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&MainFrame::OnLoadObjectMenuItemSelected);
+
+        wxMenuItem * resetMenuItem = new wxMenuItem(fileMenu, ID_RESET_MENUITEM, _("Reset\tCtrl+R"), wxEmptyString, wxITEM_NORMAL);
+        fileMenu->Append(resetMenuItem);
+        Connect(ID_RESET_MENUITEM, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&MainFrame::OnResetMenuItemSelected);
+
+        fileMenu->Append(new wxMenuItem(fileMenu, wxID_SEPARATOR));
+
+        wxMenuItem * saveScreenshotMenuItem = new wxMenuItem(fileMenu, ID_SAVE_SCREENSHOT_MENUITEM, _("Save Screenshot\tCtrl+C"), wxEmptyString, wxITEM_NORMAL);
+        fileMenu->Append(saveScreenshotMenuItem);
+        Connect(ID_SAVE_SCREENSHOT_MENUITEM, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&MainFrame::OnSaveScreenshotMenuItemSelected);
+
+        fileMenu->Append(new wxMenuItem(fileMenu, wxID_SEPARATOR));
+
+        wxMenuItem * quitMenuItem = new wxMenuItem(fileMenu, ID_QUIT_MENUITEM, _("Quit\tAlt-F4"), _("Quit the application"), wxITEM_NORMAL);
+        fileMenu->Append(quitMenuItem);
+        Connect(ID_QUIT_MENUITEM, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&MainFrame::OnQuit);
+
+        mainMenuBar->Append(fileMenu, _("&File"));
+
+
+        // Controls
+
+        wxMenu * controlsMenu = new wxMenu();
+
+        wxMenuItem * zoomInMenuItem = new wxMenuItem(controlsMenu, ID_ZOOM_IN_MENUITEM, _("Zoom In\t+"), wxEmptyString, wxITEM_NORMAL);
+        controlsMenu->Append(zoomInMenuItem);
+        Connect(ID_ZOOM_IN_MENUITEM, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&MainFrame::OnZoomInMenuItemSelected);
+
+        wxMenuItem * zoomOutMenuItem = new wxMenuItem(controlsMenu, ID_ZOOM_OUT_MENUITEM, _("Zoom Out\t-"), wxEmptyString, wxITEM_NORMAL);
+        controlsMenu->Append(zoomOutMenuItem);
+        Connect(ID_ZOOM_OUT_MENUITEM, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&MainFrame::OnZoomOutMenuItemSelected);
+
+        controlsMenu->Append(new wxMenuItem(controlsMenu, wxID_SEPARATOR));
+
+        wxMenuItem * resetViewMenuItem = new wxMenuItem(controlsMenu, ID_RESET_VIEW_MENUITEM, _("Reset View\tHOME"), wxEmptyString, wxITEM_NORMAL);
+        controlsMenu->Append(resetViewMenuItem);
+        Connect(ID_RESET_VIEW_MENUITEM, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&MainFrame::OnResetViewMenuItemSelected);
+
+        mainMenuBar->Append(controlsMenu, _("Controls"));
+
+
+        // Tools
+
+        mToolsMenu = new wxMenu();
+
+        wxMenuItem * toolMoveMenuItem = new wxMenuItem(mToolsMenu, ID_TOOL_MOVE_MENUITEM, _("Move\tM"), wxEmptyString, wxITEM_RADIO);
+        mToolsMenu->Append(toolMoveMenuItem);
+        Connect(ID_TOOL_MOVE_MENUITEM, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&MainFrame::OnToolMoveMenuItemSelected);
+
+        mainMenuBar->Append(mToolsMenu, _("Tools"));
+
+
+        // Options
+
+        wxMenu * optionsMenu = new wxMenu();
+
+        wxMenuItem * openLogWindowMenuItem = new wxMenuItem(optionsMenu, ID_OPEN_LOG_WINDOW_MENUITEM, _("Open Log Window\tCtrl+L"), wxEmptyString, wxITEM_NORMAL);
+        optionsMenu->Append(openLogWindowMenuItem);
+        Connect(ID_OPEN_LOG_WINDOW_MENUITEM, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&MainFrame::OnOpenLogWindowMenuItemSelected);
+
+        mShowProbePanelMenuItem = new wxMenuItem(optionsMenu, ID_SHOW_PROBE_PANEL_MENUITEM, _("Show Probe Panel\tCtrl+P"), wxEmptyString, wxITEM_CHECK);
+        optionsMenu->Append(mShowProbePanelMenuItem);
+        mShowProbePanelMenuItem->Check(false);
+        Connect(ID_SHOW_PROBE_PANEL_MENUITEM, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&MainFrame::OnShowProbePanelMenuItemSelected);
+
+        optionsMenu->Append(new wxMenuItem(optionsMenu, wxID_SEPARATOR));
+
+        mFullScreenMenuItem = new wxMenuItem(optionsMenu, ID_FULL_SCREEN_MENUITEM, _("Full Screen\tF11"), wxEmptyString, wxITEM_NORMAL);
+        optionsMenu->Append(mFullScreenMenuItem);
+        Connect(ID_FULL_SCREEN_MENUITEM, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&MainFrame::OnFullScreenMenuItemSelected);
+        mFullScreenMenuItem->Enable(!StartInFullScreenMode);
+
+        mNormalScreenMenuItem = new wxMenuItem(optionsMenu, ID_NORMAL_SCREEN_MENUITEM, _("Normal Screen\tESC"), wxEmptyString, wxITEM_NORMAL);
+        optionsMenu->Append(mNormalScreenMenuItem);
+        Connect(ID_NORMAL_SCREEN_MENUITEM, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&MainFrame::OnNormalScreenMenuItemSelected);
+        mNormalScreenMenuItem->Enable(StartInFullScreenMode);
+
+        mainMenuBar->Append(optionsMenu, _("Options"));
+
+
+        // Help
+
+        wxMenu * helpMenu = new wxMenu();
+
+        wxMenuItem * aboutMenuItem = new wxMenuItem(helpMenu, ID_ABOUT_MENUITEM, _("About\tF2"), _("Show credits and other I'vedunnit stuff"), wxITEM_NORMAL);
+        helpMenu->Append(aboutMenuItem);
+        Connect(ID_ABOUT_MENUITEM, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&MainFrame::OnAboutMenuItemSelected);
+
+        mainMenuBar->Append(helpMenu, _("Help"));
+
+        SetMenuBar(mainMenuBar);
+    }
+
 
 
     //
@@ -305,7 +345,7 @@ MainFrame::MainFrame(wxApp * mainApp)
     {
         mToolController = std::make_unique<ToolController>(
             initialToolType,
-            this,
+            mMainGLCanvas.get(),
             mSimulationController);
     }
     catch (std::exception const & e)
@@ -330,6 +370,7 @@ MainFrame::MainFrame(wxApp * mainApp)
 
     if (StartInFullScreenMode)
         ShowFullScreen(true, wxFULLSCREEN_NOBORDER);
+
 
     //
     // Initialize timers
@@ -653,14 +694,14 @@ void MainFrame::OnShowProbePanelMenuItemSelected(wxCommandEvent & /*event*/)
 
     if (mShowProbePanelMenuItem->IsChecked())
     {
-        mMainPanelSizer->Show(mProbePanel.get());
+        mMainPanelVSizer->Show(mProbePanel.get());
     }
     else
     {
-        mMainPanelSizer->Hide(mProbePanel.get());
+        mMainPanelVSizer->Hide(mProbePanel.get());
     }
 
-    mMainPanelSizer->Layout();
+    mMainPanelVSizer->Layout();
 }
 
 void MainFrame::OnFullScreenMenuItemSelected(wxCommandEvent & /*event*/)
@@ -687,6 +728,16 @@ void MainFrame::OnAboutMenuItemSelected(wxCommandEvent & /*event*/)
     }
 
     mAboutDialog->Open();
+}
+
+void MainFrame::OnSimulationControlPlay(wxCommandEvent & /*event*/)
+{
+    LogMessage("TODO: OnSimulationControlPlay");
+}
+
+void MainFrame::OnSimulationControlFastPlay(wxCommandEvent & /*event*/)
+{
+    LogMessage("TODO: OnSimulationControlFastPlay");
 }
 
 void MainFrame::OnSimulationTimer(wxTimerEvent & /*event*/)

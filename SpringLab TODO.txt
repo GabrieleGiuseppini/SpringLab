@@ -95,7 +95,7 @@
 
 - Architecture:
 	- MainFrame: (via toolbar)
-		- Simulation control:
+		= Simulation control:
 			- Play: 1 simulation step per-second
 			- Fast-Forward: 1 simulation step as fast as possible
 			- Pause: step on-demand				

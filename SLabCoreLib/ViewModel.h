@@ -10,6 +10,8 @@
 #include "SLabOpenGLMappedBuffer.h"
 #include "Vectors.h"
 
+#include <algorithm>
+
 /*
  * This class encapsulates the management of view and projection parameters.
  */
@@ -28,8 +30,8 @@ public:
         int canvasHeight)
         : mZoom(zoom)
         , mCam(cameraWorldPosition)
-        , mCanvasWidth(canvasWidth)
-        , mCanvasHeight(canvasHeight)
+        , mCanvasWidth(std::max(canvasWidth, 1))
+        , mCanvasHeight(std::max(canvasHeight, 1))
     {
         //
         // Initialize ortho matrix

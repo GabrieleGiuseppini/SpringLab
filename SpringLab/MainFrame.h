@@ -6,6 +6,7 @@
 #pragma once
 
 #include "AboutDialog.h"
+#include "ControlToolbar.h"
 #include "LoggingDialog.h"
 #include "ProbePanel.h"
 #include "ToolController.h"
@@ -43,7 +44,8 @@ public:
 private:
 
     wxPanel * mMainPanel;
-    wxBoxSizer * mMainPanelSizer;
+    wxBoxSizer * mMainPanelVSizer;
+    wxBoxSizer * mMainPanelTopHSizer;
 
     //
     // Canvas
@@ -62,6 +64,11 @@ private:
     wxMenuItem * mNormalScreenMenuItem;
     std::unique_ptr<ProbePanel> mProbePanel;
 
+    //
+    // Toolbars
+    //
+
+    ControlToolbar * mControlToolbar;
 
     //
     // Dialogs
@@ -110,6 +117,10 @@ private:
     void OnFullScreenMenuItemSelected(wxCommandEvent & event);
     void OnNormalScreenMenuItemSelected(wxCommandEvent & event);
     void OnAboutMenuItemSelected(wxCommandEvent & event);
+
+    // Control toolbar
+    void OnSimulationControlPlay(wxCommandEvent & event);
+    void OnSimulationControlFastPlay(wxCommandEvent & event);
 
     // Timers
     void OnSimulationTimer(wxTimerEvent & event);

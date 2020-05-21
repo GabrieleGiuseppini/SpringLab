@@ -6,6 +6,8 @@
 set  (SPRING_LAB_SOURCES
 	AboutDialog.cpp
 	AboutDialog.h
+	ControlToolbar.cpp
+	ControlToolbar.h
 	LoggingDialog.cpp
 	LoggingDialog.h
 	MainApp.cpp
