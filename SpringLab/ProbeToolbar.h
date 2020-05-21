@@ -16,15 +16,15 @@
 #include <string>
 #include <unordered_map>
 
-class ProbePanel
+class ProbeToolbar final
     : public wxPanel
     , public ISimulationEventHandler
 {
 public:
 
-    ProbePanel(wxWindow* parent);
+    ProbeToolbar(wxWindow* parent);
 
-    virtual ~ProbePanel();
+    virtual ~ProbeToolbar();
 
     void UpdateSimulation();
 

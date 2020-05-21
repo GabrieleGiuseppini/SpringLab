@@ -5,6 +5,7 @@
 ***************************************************************************************/
 #pragma once
 
+#include <wx/choice.h>
 #include <wx/panel.h>
 #include <wx/tglbtn.h>
 
@@ -25,6 +26,8 @@ public:
     static long const ID_INITIAL_CONDITIONS_PIN;
     static long const ID_INITIAL_CONDITIONS_PARTICLE_FORCE;
 
+    static long const ID_SIMULATOR_TYPE;
+
 public:
 
     ControlToolbar(wxWindow* parent);
@@ -40,6 +43,7 @@ private:
     void OnSimulationControlButton(wxBitmapToggleButton * button);
     void OnSimulationControlStepButton();
     void OnInitialConditionsButton(wxBitmapToggleButton * button);
+    void OnSimulatorTypeChoiceChanged();
 
 private:
 
@@ -52,4 +56,6 @@ private:
     wxBitmapToggleButton * mInitialConditionsMoveButton;
     wxBitmapToggleButton * mInitialConditionsPinButton;
     wxBitmapToggleButton * mInitialConditionsParticleForceButton;
+
+    wxChoice * mSimulatorTypeChoice;
 };

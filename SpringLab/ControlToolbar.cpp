@@ -26,6 +26,8 @@ long const ControlToolbar::ID_INITIAL_CONDITIONS_MOVE = wxNewId();
 long const ControlToolbar::ID_INITIAL_CONDITIONS_PIN = wxNewId();
 long const ControlToolbar::ID_INITIAL_CONDITIONS_PARTICLE_FORCE = wxNewId();
 
+long const ControlToolbar::ID_SIMULATOR_TYPE = wxNewId();
+
 ControlToolbar::ControlToolbar(wxWindow* parent)
     : wxPanel(
         parent,
@@ -198,7 +200,25 @@ ControlToolbar::ControlToolbar(wxWindow* parent)
         vSizer->Add(gridSizer, 0, wxALIGN_CENTER | wxALL, 5);
     }
 
-    // TODO: simulator type
+    vSizer->AddSpacer(10);
+
+    // Simulator type
+    {
+        mSimulatorTypeChoice = new wxChoice(
+            this,
+            ID_SIMULATOR_TYPE,
+            wxDefaultPosition, wxDefaultSize);
+
+        // TODO: populate
+        mSimulatorTypeChoice->Append("Classic");
+        mSimulatorTypeChoice->Append("Super-Fantastic DX7 G-10");
+
+        mSimulatorTypeChoice->Bind(wxEVT_CHOICE, [this](wxCommandEvent & /*event*/) { OnSimulatorTypeChoiceChanged(); });
+
+        mSimulatorTypeChoice->SetToolTip("Change the simulator for the mass-spring network");
+
+        vSizer->Add(mSimulatorTypeChoice, 0, wxALIGN_CENTER | wxALL, 5);
+    }
 
     this->SetSizer(vSizer);
 }
@@ -341,4 +361,12 @@ void ControlToolbar::OnInitialConditionsButton(wxBitmapToggleButton * button)
             button->SetValue(true);
         }
     }
+}
+
+void ControlToolbar::OnSimulatorTypeChoiceChanged()
+{
+    // Fire event
+    wxCommandEvent evt(wxEVT_BUTTON, ID_SIMULATOR_TYPE);
+    evt.SetString(mSimulatorTypeChoice->GetString(mSimulatorTypeChoice->GetSelection()));
+    ProcessEvent(evt);
 }

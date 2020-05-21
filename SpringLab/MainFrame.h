@@ -8,7 +8,7 @@
 #include "AboutDialog.h"
 #include "ControlToolbar.h"
 #include "LoggingDialog.h"
-#include "ProbePanel.h"
+#include "ProbeToolbar.h"
 #include "ToolController.h"
 
 #include <SLabCoreLib/SimulationController.h>
@@ -58,17 +58,15 @@ private:
     // Controls that we're interacting with
     //
 
-    wxMenu * mToolsMenu;
-    wxMenuItem * mShowProbePanelMenuItem;
     wxMenuItem * mFullScreenMenuItem;
     wxMenuItem * mNormalScreenMenuItem;
-    std::unique_ptr<ProbePanel> mProbePanel;
 
     //
     // Toolbars
     //
 
     ControlToolbar * mControlToolbar;
+    ProbeToolbar * mProbeToolbar;
 
     //
     // Dialogs
@@ -111,9 +109,7 @@ private:
     void OnZoomInMenuItemSelected(wxCommandEvent & event);
     void OnZoomOutMenuItemSelected(wxCommandEvent & event);
     void OnResetViewMenuItemSelected(wxCommandEvent & event);
-    void OnToolMoveMenuItemSelected(wxCommandEvent & event);
     void OnOpenLogWindowMenuItemSelected(wxCommandEvent & event);
-    void OnShowProbePanelMenuItemSelected(wxCommandEvent & event);
     void OnFullScreenMenuItemSelected(wxCommandEvent & event);
     void OnNormalScreenMenuItemSelected(wxCommandEvent & event);
     void OnAboutMenuItemSelected(wxCommandEvent & event);
@@ -127,6 +123,7 @@ private:
     void OnInitialConditionsMove(wxCommandEvent & event);
     void OnInitialConditionsPin(wxCommandEvent & event);
     void OnInitialConditionsParticleForce(wxCommandEvent & event);
+    void OnSimulatorTypeChanged(wxCommandEvent & event);
 
     // Timers
     void OnSimulationTimer(wxTimerEvent & event);

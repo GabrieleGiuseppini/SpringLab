@@ -113,10 +113,10 @@
 			- Particle Force:
 				- Sets in Points::mIndividualForceBuffer
 			- UI:
-				- Gravity: sticky button, independent
-				- Move, Pin, Particle Forces: sticky buttons, mutex
+				+ Gravity: sticky button, independent
+				+ Move, Pin, Particle Forces: sticky buttons, mutex
 				- When Particle Forces engaged: at click/particle selection, open window for direction & magnitude
-				- Remove Tools menu
+				+ Remove Tools menu
 			- Pinned points render: also uploaded as part of Points, always
 				- Shader: black
 			- Particle Forces: uploaded as vectors by SimulationController at Render()
@@ -131,6 +131,7 @@
 		- SimulatorCommon
 			- ISimulator
 			- SimulatorCommonParameters.h
+			- SimulatorRegistry (static)
 		- SimulatorClassic
 			- SimulatorClassic
 			- SimulatorClassicParameters.h

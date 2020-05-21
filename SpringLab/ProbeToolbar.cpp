@@ -3,7 +3,7 @@
 * Created:              2020-05-15
 * Copyright:            Gabriele Giuseppini  (https://github.com/GabrieleGiuseppini)
 ***************************************************************************************/
-#include "ProbePanel.h"
+#include "ProbeToolbar.h"
 
 #include <wx/stattext.h>
 
@@ -12,7 +12,7 @@
 static constexpr int TopPadding = 2;
 static constexpr int ProbePadding = 10;
 
-ProbePanel::ProbePanel(wxWindow* parent)
+ProbeToolbar::ProbeToolbar(wxWindow* parent)
     : wxPanel(
         parent,
         wxID_ANY,
@@ -41,11 +41,11 @@ ProbePanel::ProbePanel(wxWindow* parent)
     SetSizerAndFit(mProbesSizer);
 }
 
-ProbePanel::~ProbePanel()
+ProbeToolbar::~ProbeToolbar()
 {
 }
 
-void ProbePanel::UpdateSimulation()
+void ProbeToolbar::UpdateSimulation()
 {
     //
     // Update all probes
@@ -60,7 +60,7 @@ void ProbePanel::UpdateSimulation()
     }
 }
 
-std::unique_ptr<ScalarTimeSeriesProbeControl> ProbePanel::AddScalarTimeSeriesProbe(
+std::unique_ptr<ScalarTimeSeriesProbeControl> ProbeToolbar::AddScalarTimeSeriesProbe(
     std::string const & name,
     int sampleCount)
 {
@@ -81,7 +81,7 @@ std::unique_ptr<ScalarTimeSeriesProbeControl> ProbePanel::AddScalarTimeSeriesPro
 
 ///////////////////////////////////////////////////////////////////////////////////////
 
-void ProbePanel::OnSimulationReset()
+void ProbeToolbar::OnSimulationReset()
 {
     for (auto const & p : mCustomProbes)
     {
@@ -89,7 +89,7 @@ void ProbePanel::OnSimulationReset()
     }
 }
 
-void ProbePanel::OnCustomProbe(
+void ProbeToolbar::OnCustomProbe(
     std::string const & name,
     float value)
 {

@@ -47,10 +47,7 @@ long const ID_ZOOM_IN_MENUITEM = wxNewId();
 long const ID_ZOOM_OUT_MENUITEM = wxNewId();
 long const ID_RESET_VIEW_MENUITEM = wxNewId();
 
-long const ID_TOOL_MOVE_MENUITEM = wxNewId();
-
 long const ID_OPEN_LOG_WINDOW_MENUITEM = wxNewId();
-long const ID_SHOW_PROBE_PANEL_MENUITEM = wxNewId();
 long const ID_FULL_SCREEN_MENUITEM = wxNewId();
 long const ID_NORMAL_SCREEN_MENUITEM = wxNewId();
 
@@ -144,6 +141,7 @@ MainFrame::MainFrame(wxApp * mainApp)
         mControlToolbar->Connect(ControlToolbar::ID_INITIAL_CONDITIONS_MOVE, wxEVT_BUTTON, (wxObjectEventFunction)&MainFrame::OnInitialConditionsMove);
         mControlToolbar->Connect(ControlToolbar::ID_INITIAL_CONDITIONS_PIN, wxEVT_BUTTON, (wxObjectEventFunction)&MainFrame::OnInitialConditionsPin);
         mControlToolbar->Connect(ControlToolbar::ID_INITIAL_CONDITIONS_PARTICLE_FORCE, wxEVT_BUTTON, (wxObjectEventFunction)&MainFrame::OnInitialConditionsParticleForce);
+        mControlToolbar->Connect(ControlToolbar::ID_SIMULATOR_TYPE, wxEVT_BUTTON, (wxObjectEventFunction)&MainFrame::OnSimulatorTypeChanged);
         mMainPanelTopHSizer->Add(
             mControlToolbar,
             0,                  // Use own horizontal size
@@ -166,16 +164,13 @@ MainFrame::MainFrame(wxApp * mainApp)
 
     // Bottom
     {
-        // Probe panel
-        mProbePanel = std::make_unique<ProbePanel>(mMainPanel);
+        // Probe toolbar
+        mProbeToolbar = new ProbeToolbar(mMainPanel);
 
         mMainPanelVSizer->Add(
-            mProbePanel.get(),
+            mProbeToolbar,
             0,                  // Own height
             wxEXPAND);          // Expand horizontally
-
-        // Start hidden
-        mMainPanelVSizer->Hide(mProbePanel.get());
     }
 
 
@@ -258,17 +253,6 @@ MainFrame::MainFrame(wxApp * mainApp)
         mainMenuBar->Append(controlsMenu, _("Controls"));
 
 
-        // Tools
-
-        mToolsMenu = new wxMenu();
-
-        wxMenuItem * toolMoveMenuItem = new wxMenuItem(mToolsMenu, ID_TOOL_MOVE_MENUITEM, _("Move\tM"), wxEmptyString, wxITEM_RADIO);
-        mToolsMenu->Append(toolMoveMenuItem);
-        Connect(ID_TOOL_MOVE_MENUITEM, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&MainFrame::OnToolMoveMenuItemSelected);
-
-        mainMenuBar->Append(mToolsMenu, _("Tools"));
-
-
         // Options
 
         wxMenu * optionsMenu = new wxMenu();
@@ -276,11 +260,6 @@ MainFrame::MainFrame(wxApp * mainApp)
         wxMenuItem * openLogWindowMenuItem = new wxMenuItem(optionsMenu, ID_OPEN_LOG_WINDOW_MENUITEM, _("Open Log Window\tCtrl+L"), wxEmptyString, wxITEM_NORMAL);
         optionsMenu->Append(openLogWindowMenuItem);
         Connect(ID_OPEN_LOG_WINDOW_MENUITEM, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&MainFrame::OnOpenLogWindowMenuItemSelected);
-
-        mShowProbePanelMenuItem = new wxMenuItem(optionsMenu, ID_SHOW_PROBE_PANEL_MENUITEM, _("Show Probe Panel\tCtrl+P"), wxEmptyString, wxITEM_CHECK);
-        optionsMenu->Append(mShowProbePanelMenuItem);
-        mShowProbePanelMenuItem->Check(false);
-        Connect(ID_SHOW_PROBE_PANEL_MENUITEM, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&MainFrame::OnShowProbePanelMenuItemSelected);
 
         optionsMenu->Append(new wxMenuItem(optionsMenu, wxID_SEPARATOR));
 
@@ -343,14 +322,10 @@ MainFrame::MainFrame(wxApp * mainApp)
     // Create Tool Controller
     //
 
-    // Set initial tool
-    ToolType initialToolType = ToolType::Move;
-    mToolsMenu->Check(ID_TOOL_MOVE_MENUITEM, true);
-
     try
     {
         mToolController = std::make_unique<ToolController>(
-            initialToolType,
+            ToolType::Move,
             mMainGLCanvas.get(),
             mSimulationController);
     }
@@ -365,7 +340,7 @@ MainFrame::MainFrame(wxApp * mainApp)
     // Register event handlers
     //
 
-    mSimulationController->RegisterEventHandler(mProbePanel.get());
+    mSimulationController->RegisterEventHandler(mProbeToolbar);
 
 
     //
@@ -683,14 +658,6 @@ void MainFrame::OnZoomOutMenuItemSelected(wxCommandEvent & /*event*/)
 
 ////////////////////////////////////////////////////////////////////////////
 
-void MainFrame::OnToolMoveMenuItemSelected(wxCommandEvent & /*event*/)
-{
-    assert(!!mToolController);
-    mToolController->SetTool(ToolType::Move);
-}
-
-////////////////////////////////////////////////////////////////////////////
-
 void MainFrame::OnOpenLogWindowMenuItemSelected(wxCommandEvent & /*event*/)
 {
     if (!mLoggingDialog)
@@ -699,22 +666,6 @@ void MainFrame::OnOpenLogWindowMenuItemSelected(wxCommandEvent & /*event*/)
     }
 
     mLoggingDialog->Open();
-}
-
-void MainFrame::OnShowProbePanelMenuItemSelected(wxCommandEvent & /*event*/)
-{
-    assert(!!mProbePanel);
-
-    if (mShowProbePanelMenuItem->IsChecked())
-    {
-        mMainPanelVSizer->Show(mProbePanel.get());
-    }
-    else
-    {
-        mMainPanelVSizer->Hide(mProbePanel.get());
-    }
-
-    mMainPanelVSizer->Layout();
 }
 
 void MainFrame::OnFullScreenMenuItemSelected(wxCommandEvent & /*event*/)
@@ -770,7 +721,8 @@ void MainFrame::OnInitialConditionsGravity(wxCommandEvent & event)
 
 void MainFrame::OnInitialConditionsMove(wxCommandEvent & /*event*/)
 {
-    LogMessage("TODO: OnInitialConditionsMove");
+    assert(!!mToolController);
+    mToolController->SetTool(ToolType::Move);
 }
 
 void MainFrame::OnInitialConditionsPin(wxCommandEvent & /*event*/)
@@ -781,6 +733,11 @@ void MainFrame::OnInitialConditionsPin(wxCommandEvent & /*event*/)
 void MainFrame::OnInitialConditionsParticleForce(wxCommandEvent & /*event*/)
 {
     LogMessage("TODO: OnInitialConditionsParticleForce");
+}
+
+void MainFrame::OnSimulatorTypeChanged(wxCommandEvent & event)
+{
+    LogMessage("TODO: OnSimulatorTypeChanged: ", event.GetString().ToStdString());
 }
 
 void MainFrame::OnSimulationTimer(wxTimerEvent & /*event*/)

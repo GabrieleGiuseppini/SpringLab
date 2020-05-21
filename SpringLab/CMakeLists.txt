@@ -13,8 +13,8 @@ set  (SPRING_LAB_SOURCES
 	MainApp.cpp
 	MainFrame.cpp
 	MainFrame.h
-	ProbePanel.cpp
-	ProbePanel.h
+	ProbeToolbar.cpp
+	ProbeToolbar.h
 	ScalarTimeSeriesProbeControl.cpp
 	ScalarTimeSeriesProbeControl.h
 	StandardSystemPaths.cpp
