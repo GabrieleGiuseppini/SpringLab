@@ -133,15 +133,15 @@ MainFrame::MainFrame(wxApp * mainApp)
 
         // Control toolbar
         mControlToolbar = new ControlToolbar(mMainPanel);
-        mControlToolbar->Connect(ControlToolbar::ID_SIMULATION_CONTROL_PLAY, wxEVT_BUTTON, (wxObjectEventFunction)&MainFrame::OnSimulationControlPlay);
-        mControlToolbar->Connect(ControlToolbar::ID_SIMULATION_CONTROL_FAST_PLAY, wxEVT_BUTTON, (wxObjectEventFunction)&MainFrame::OnSimulationControlFastPlay);
-        mControlToolbar->Connect(ControlToolbar::ID_SIMULATION_CONTROL_PAUSE, wxEVT_BUTTON, (wxObjectEventFunction)&MainFrame::OnSimulationControlPause);
-        mControlToolbar->Connect(ControlToolbar::ID_SIMULATION_CONTROL_STEP, wxEVT_BUTTON, (wxObjectEventFunction)&MainFrame::OnSimulationControlStep);
-        mControlToolbar->Connect(ControlToolbar::ID_INITIAL_CONDITIONS_GRAVITY, wxEVT_BUTTON, (wxObjectEventFunction)&MainFrame::OnInitialConditionsGravity);
-        mControlToolbar->Connect(ControlToolbar::ID_INITIAL_CONDITIONS_MOVE, wxEVT_BUTTON, (wxObjectEventFunction)&MainFrame::OnInitialConditionsMove);
-        mControlToolbar->Connect(ControlToolbar::ID_INITIAL_CONDITIONS_PIN, wxEVT_BUTTON, (wxObjectEventFunction)&MainFrame::OnInitialConditionsPin);
-        mControlToolbar->Connect(ControlToolbar::ID_INITIAL_CONDITIONS_PARTICLE_FORCE, wxEVT_BUTTON, (wxObjectEventFunction)&MainFrame::OnInitialConditionsParticleForce);
-        mControlToolbar->Connect(ControlToolbar::ID_SIMULATOR_TYPE, wxEVT_BUTTON, (wxObjectEventFunction)&MainFrame::OnSimulatorTypeChanged);
+        mControlToolbar->Connect(ControlToolbar::ID_SIMULATION_CONTROL_PLAY, ControlToolbar::wxEVT_TOOLBAR_ACTION, (wxObjectEventFunction)&MainFrame::OnSimulationControlPlay);
+        mControlToolbar->Connect(ControlToolbar::ID_SIMULATION_CONTROL_FAST_PLAY, ControlToolbar::wxEVT_TOOLBAR_ACTION, (wxObjectEventFunction)&MainFrame::OnSimulationControlFastPlay);
+        mControlToolbar->Connect(ControlToolbar::ID_SIMULATION_CONTROL_PAUSE, ControlToolbar::wxEVT_TOOLBAR_ACTION, (wxObjectEventFunction)&MainFrame::OnSimulationControlPause);
+        mControlToolbar->Connect(ControlToolbar::ID_SIMULATION_CONTROL_STEP, ControlToolbar::wxEVT_TOOLBAR_ACTION, (wxObjectEventFunction)&MainFrame::OnSimulationControlStep);
+        mControlToolbar->Connect(ControlToolbar::ID_INITIAL_CONDITIONS_GRAVITY, ControlToolbar::wxEVT_TOOLBAR_ACTION, (wxObjectEventFunction)&MainFrame::OnInitialConditionsGravity);
+        mControlToolbar->Connect(ControlToolbar::ID_INITIAL_CONDITIONS_MOVE, ControlToolbar::wxEVT_TOOLBAR_ACTION, (wxObjectEventFunction)&MainFrame::OnInitialConditionsMove);
+        mControlToolbar->Connect(ControlToolbar::ID_INITIAL_CONDITIONS_PIN, ControlToolbar::wxEVT_TOOLBAR_ACTION, (wxObjectEventFunction)&MainFrame::OnInitialConditionsPin);
+        mControlToolbar->Connect(ControlToolbar::ID_INITIAL_CONDITIONS_PARTICLE_FORCE, ControlToolbar::wxEVT_TOOLBAR_ACTION, (wxObjectEventFunction)&MainFrame::OnInitialConditionsParticleForce);
+        mControlToolbar->Connect(ControlToolbar::ID_SIMULATOR_TYPE, ControlToolbar::wxEVT_TOOLBAR_ACTION, (wxObjectEventFunction)&MainFrame::OnSimulatorTypeChanged);
         mMainPanelTopHSizer->Add(
             mControlToolbar,
             0,                  // Use own horizontal size

@@ -67,18 +67,38 @@ set  (SOURCES
 	ViewModel.h
 )
 
+set  (SIMULATOR_COMMON_SOURCES
+	Simulator/Common/ISimulator.h
+	Simulator/Common/SimulatorCommonParameters.h
+	Simulator/Common/SimulatorRegistry.cpp
+	Simulator/Common/SimulatorRegistry.h
+)
+
+set  (SIMULATOR_CLASSIC_SOURCES
+	Simulator/Classic/ClassicSimulator.h
+	Simulator/Classic/ClassicSimulatorParameters.h
+)
+
 set  (GLAD_SOURCES
 	glad/glad.c
 	glad/glad.h
 	glad/g_glad.h
-	glad/khrplatform.h)
+	glad/khrplatform.h
+)
 
 source_group(" " FILES ${SOURCES})
 source_group("glad" FILES ${GLAD_SOURCES})
+source_group("Simulator/Common" FILES ${SIMULATOR_COMMON_SOURCES})
+source_group("Simulator/Classic" FILES ${SIMULATOR_CLASSIC_SOURCES})
 
-add_library (SLabCoreLib ${SOURCES} ${GLAD_SOURCES})
+add_library (SLabCoreLib 
+	${SOURCES} 
+	${GLAD_SOURCES} 
+	${SIMULATOR_COMMON_SOURCES}
+	${SIMULATOR_CLASSIC_SOURCES})
 
 target_include_directories(SLabCoreLib PRIVATE ${IL_INCLUDE_DIR})
+target_include_directories(SLabCoreLib PRIVATE .)
 target_include_directories(SLabCoreLib PUBLIC ${PICOJSON_INCLUDE_DIRS})
 target_include_directories(SLabCoreLib INTERFACE ..)
 

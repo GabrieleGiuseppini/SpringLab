@@ -126,23 +126,23 @@
 				- Changes simulator and resets
 					- SimulationController holds only one simulator, the current one
 
-- ISpringSimulator architecture:
-	- Files:
-		- SimulatorCommon
-			- ISimulator
-			- SimulatorCommonParameters.h
-			- SimulatorRegistry (static)
-		- SimulatorClassic
-			- SimulatorClassic
-			- SimulatorClassicParameters.h
+= ISpringSimulator architecture:
+	+ Files:
+		+ Simulator/Common
+			+ ISimulator
+			+ SimulatorCommonParameters.h
+			+ SimulatorRegistry (static)
+		+ Simulator/Classic
+			+ SimulatorClassic
+			+ SimulatorClassicParameters.h
 	- SimulationParameters:
 		- SimulatorCommonParameters member
 			- In SimulatorCommonParameters.h
 		- SimulatorClassicParameters member
 			- From own include
 
-	// TODOHERE
-	- ISpringSimulator
+	- <SimulatorXXX: ISimulator>
+		- TODOHERE
 		- cctor(Points
 
 	

@@ -9,12 +9,15 @@
 
 #include <SLabCoreLib/Log.h>
 #include <SLabCoreLib/ResourceLocator.h>
+#include <SLabCoreLib/Simulator/Common/SimulatorRegistry.h>
 
 #include <wx/bitmap.h>
 #include <wx/gbsizer.h>
 #include <wx/sizer.h>
 
 #include <cassert>
+
+wxEventType const ControlToolbar::wxEVT_TOOLBAR_ACTION = wxNewEventType();
 
 long const ControlToolbar::ID_SIMULATION_CONTROL_PLAY = wxNewId();
 long const ControlToolbar::ID_SIMULATION_CONTROL_FAST_PLAY = wxNewId();
@@ -209,9 +212,13 @@ ControlToolbar::ControlToolbar(wxWindow* parent)
             ID_SIMULATOR_TYPE,
             wxDefaultPosition, wxDefaultSize);
 
-        // TODO: populate
-        mSimulatorTypeChoice->Append("Classic");
-        mSimulatorTypeChoice->Append("Super-Fantastic DX7 G-10");
+        // Populate
+        for (auto const & simulatorTypeName : SimulatorRegistry::GetSimulatorTypeNames())
+        {
+            mSimulatorTypeChoice->Append(simulatorTypeName);
+        }
+
+        mSimulatorTypeChoice->Select(0); // Select first
 
         mSimulatorTypeChoice->Bind(wxEVT_CHOICE, [this](wxCommandEvent & /*event*/) { OnSimulatorTypeChoiceChanged(); });
 
@@ -266,7 +273,7 @@ void ControlToolbar::OnSimulationControlButton(wxBitmapToggleButton * button)
             mSimulationControlStepButton->Enable(false);
 
             // Fire event
-            wxCommandEvent evt(wxEVT_BUTTON, ID_SIMULATION_CONTROL_PLAY);
+            wxCommandEvent evt(wxEVT_TOOLBAR_ACTION, ID_SIMULATION_CONTROL_PLAY);
             ProcessEvent(evt);
         }
         else
@@ -287,7 +294,7 @@ void ControlToolbar::OnSimulationControlButton(wxBitmapToggleButton * button)
             mSimulationControlStepButton->Enable(false);
 
             // Fire event
-            wxCommandEvent evt(wxEVT_BUTTON, ID_SIMULATION_CONTROL_FAST_PLAY);
+            wxCommandEvent evt(wxEVT_TOOLBAR_ACTION, ID_SIMULATION_CONTROL_FAST_PLAY);
             ProcessEvent(evt);
         }
         else
@@ -310,7 +317,7 @@ void ControlToolbar::OnSimulationControlButton(wxBitmapToggleButton * button)
             mSimulationControlStepButton->Enable(true);
 
             // Fire event
-            wxCommandEvent evt(wxEVT_BUTTON, ID_SIMULATION_CONTROL_PAUSE);
+            wxCommandEvent evt(wxEVT_TOOLBAR_ACTION, ID_SIMULATION_CONTROL_PAUSE);
             ProcessEvent(evt);
         }
         else
@@ -324,7 +331,7 @@ void ControlToolbar::OnSimulationControlButton(wxBitmapToggleButton * button)
 void ControlToolbar::OnSimulationControlStepButton()
 {
     // Fire event
-    wxCommandEvent evt(wxEVT_BUTTON, ID_SIMULATION_CONTROL_STEP);
+    wxCommandEvent evt(wxEVT_TOOLBAR_ACTION, ID_SIMULATION_CONTROL_STEP);
     ProcessEvent(evt);
 }
 
@@ -333,7 +340,7 @@ void ControlToolbar::OnInitialConditionsButton(wxBitmapToggleButton * button)
     if (button->GetId() == ID_INITIAL_CONDITIONS_GRAVITY)
     {
         // Fire event
-        wxCommandEvent evt(wxEVT_BUTTON, ID_INITIAL_CONDITIONS_GRAVITY);
+        wxCommandEvent evt(wxEVT_TOOLBAR_ACTION, ID_INITIAL_CONDITIONS_GRAVITY);
         evt.SetInt(button->GetValue() ? 1 : 0);
         ProcessEvent(evt);
     }
@@ -352,7 +359,7 @@ void ControlToolbar::OnInitialConditionsButton(wxBitmapToggleButton * button)
                 mInitialConditionsParticleForceButton->SetValue(false);
 
             // Fire event
-            wxCommandEvent evt(wxEVT_BUTTON, button->GetId());
+            wxCommandEvent evt(wxEVT_TOOLBAR_ACTION, button->GetId());
             ProcessEvent(evt);
         }
         else
@@ -366,7 +373,7 @@ void ControlToolbar::OnInitialConditionsButton(wxBitmapToggleButton * button)
 void ControlToolbar::OnSimulatorTypeChoiceChanged()
 {
     // Fire event
-    wxCommandEvent evt(wxEVT_BUTTON, ID_SIMULATOR_TYPE);
+    wxCommandEvent evt(wxEVT_TOOLBAR_ACTION, ID_SIMULATOR_TYPE);
     evt.SetString(mSimulatorTypeChoice->GetString(mSimulatorTypeChoice->GetSelection()));
     ProcessEvent(evt);
 }

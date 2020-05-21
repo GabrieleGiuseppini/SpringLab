@@ -16,6 +16,8 @@ class ControlToolbar final : public wxPanel
 {
 public:
 
+    static wxEventType const wxEVT_TOOLBAR_ACTION;
+
     static long const ID_SIMULATION_CONTROL_PLAY;
     static long const ID_SIMULATION_CONTROL_FAST_PLAY;
     static long const ID_SIMULATION_CONTROL_PAUSE;
