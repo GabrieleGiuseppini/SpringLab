@@ -48,6 +48,7 @@ SimulationController::SimulationController(
     , mCurrentSimulationTime(0.0f)
     , mTotalSimulationSteps(0)
     , mSimulationParameters()
+    , mAreSimulationParametersDirty(false)
     , mObject()
     , mCurrentObjectName()
     , mCurrentObjectDefinitionFilepath()
@@ -99,13 +100,24 @@ void SimulationController::Reset()
 
 void SimulationController::UpdateSimulation()
 {
+    assert(!!mSimulator);
+
+    ////////////////////////////////////////////////////////
+    // Update parameters
+    ////////////////////////////////////////////////////////
+
+    if (mAreSimulationParametersDirty)
+    {
+        mSimulator->OnSimulationParametersChanged(mSimulationParameters);
+
+        mAreSimulationParametersDirty = false;
+    }
+
     ////////////////////////////////////////////////////////
     // Update
     ////////////////////////////////////////////////////////
 
     auto const updateStartTimestamp = std::chrono::steady_clock::now();
-
-    assert(!!mSimulator);
 
     // Update simulation
     mSimulator->Update(
@@ -174,24 +186,6 @@ RgbImageData SimulationController::TakeScreenshot()
 }
 
 /////////////////////////////////////////////////////////////////////////////////
-// Simulation Parameters
-/////////////////////////////////////////////////////////////////////////////////
-
-void SimulationController::SetSpringStiffnessAdjustment(float value)
-{
-    mSimulationParameters.SpringStiffnessAdjustment = value;
-
-    // TODO: communicate to simulator/s
-}
-
-void SimulationController::SetSpringDampingAdjustment(float value)
-{
-    mSimulationParameters.SpringDampingAdjustment = value;
-
-    // TODO: communicate to simulator/s
-}
-
-/////////////////////////////////////////////////////////////////////////////////
 // Helpers
 /////////////////////////////////////////////////////////////////////////////////
 
@@ -235,8 +229,10 @@ void SimulationController::Reset(
     // Reset simulation
     //
 
-    mSimulator = SimulatorRegistry::MakeSimulator(mCurrentSimulatorTypeName);
+    // Make new simulator
+    mSimulator = SimulatorRegistry::MakeSimulator(mCurrentSimulatorTypeName, *mObject, mSimulationParameters);
 
+    // Reset simulation state
     mCurrentSimulationTime = 0.0f;
     mTotalSimulationSteps = 0;
 

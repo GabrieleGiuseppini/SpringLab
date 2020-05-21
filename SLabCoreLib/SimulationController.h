@@ -142,15 +142,15 @@ public:
     // Simmulation parameters
     //
 
-    float GetSpringStiffnessAdjustment() const { return mSimulationParameters.SpringStiffnessAdjustment; }
-    void SetSpringStiffnessAdjustment(float value);
-    float GetMinSpringStiffnessAdjustment() const { return SimulationParameters::MinSpringStiffnessAdjustment; }
-    float GetMaxSpringStiffnessAdjustment() const { return SimulationParameters::MaxSpringStiffnessAdjustment; }
+    float GetClassicSimulatorSpringReductionFraction() const { return mSimulationParameters.ClassicSimulator.SpringReductionFraction; }
+    void SetClassicSimulatorSpringReductionFraction(float value) { mSimulationParameters.ClassicSimulator.SpringReductionFraction = value; mAreSimulationParametersDirty = true; }
+    float GetClassicSimulatorMinSpringReductionFraction() const { return ClassicSimulatorParameters::MinSpringReductionFraction; }
+    float GetClassicSimulatorMaxSpringReductionFraction() const { return ClassicSimulatorParameters::MaxSpringReductionFraction; }
 
-    float GetSpringDampingAdjustment() const { return mSimulationParameters.SpringDampingAdjustment; }
-    void SetSpringDampingAdjustment(float value);
-    float GetMinSpringDampingAdjustment() const { return SimulationParameters::MinSpringDampingAdjustment; }
-    float GetMaxSpringDampingAdjustment() const { return SimulationParameters::MaxSpringDampingAdjustment; }
+    float GetClassicSimulatorSpringDampingCoefficient() const { return mSimulationParameters.ClassicSimulator.SpringDampingCoefficient; }
+    void SetClassicSimulatorSpringDampingCoefficient(float value) { mSimulationParameters.ClassicSimulator.SpringDampingCoefficient = value; mAreSimulationParametersDirty = true; }
+    float GetClassicSimulatorMinSpringDampingCoefficient() const { return ClassicSimulatorParameters::MinSpringDampingCoefficient; }
+    float GetClassicSimulatorMaxSpringDampingCoefficient() const { return ClassicSimulatorParameters::MaxSpringDampingCoefficient; }
 
 private:
 
@@ -182,6 +182,7 @@ private:
     size_t mTotalSimulationSteps;
 
     SimulationParameters mSimulationParameters;
+    bool mAreSimulationParametersDirty;
 
     std::unique_ptr<Object> mObject;
     std::string mCurrentObjectName;

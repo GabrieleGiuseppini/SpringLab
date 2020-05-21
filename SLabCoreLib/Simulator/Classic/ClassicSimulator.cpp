@@ -5,6 +5,16 @@
 ***************************************************************************************/
 #include "ClassicSimulator.h"
 
+ClassicSimulator::ClassicSimulator(
+    Object const & object,
+    SimulationParameters const & simulationParameters)
+{
+}
+
+void ClassicSimulator::OnSimulationParametersChanged(SimulationParameters const & simulationParameters)
+{
+}
+
 void ClassicSimulator::Update(
     Object & object,
     float currentSimulationTime,

@@ -24,9 +24,15 @@ public:
 
 public:
 
+    ClassicSimulator(
+        Object const & object,
+        SimulationParameters const & simulationParameters);
+
     //////////////////////////////////////////////////////////
     // ISimulator
     //////////////////////////////////////////////////////////
+
+    void OnSimulationParametersChanged(SimulationParameters const & simulationParameters) override;
 
     void Update(
         Object & object,

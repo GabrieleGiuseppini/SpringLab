@@ -30,11 +30,14 @@ public:
         return mInstance.mSimulatorTypeNames;
     }
 
-    static std::unique_ptr<ISimulator> MakeSimulator(std::string const & simulatorName)
+    static std::unique_ptr<ISimulator> MakeSimulator(
+        std::string const & simulatorName,
+        Object const & object,
+        SimulationParameters const & simulationParameters)
     {
         assert(mInstance.mSimulatorFactories.count(simulatorName) == 1);
 
-        return mInstance.mSimulatorFactories[simulatorName]();
+        return mInstance.mSimulatorFactories[simulatorName](object, simulationParameters);
     }
 
 private:
@@ -46,8 +49,10 @@ private:
 
 private:
 
+    using factory_function = std::function<std::unique_ptr<ISimulator>(Object const & object, SimulationParameters const & simulationParameters)> ;
+
     static SimulatorRegistry mInstance;
 
     std::vector<std::string> mSimulatorTypeNames;
-    std::unordered_map<std::string, std::function<std::unique_ptr<ISimulator>()>> mSimulatorFactories;
+    std::unordered_map<std::string, factory_function> mSimulatorFactories;
 };

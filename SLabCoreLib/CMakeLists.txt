@@ -69,7 +69,8 @@ set  (SOURCES
 
 set  (SIMULATOR_COMMON_SOURCES
 	Simulator/Common/ISimulator.h
-	Simulator/Common/SimulatorCommonParameters.h
+	Simulator/Common/CommonSimulatorParameters.cpp
+	Simulator/Common/CommonSimulatorParameters.h
 	Simulator/Common/SimulatorRegistry.cpp
 	Simulator/Common/SimulatorRegistry.h
 )
@@ -78,6 +79,7 @@ set  (SIMULATOR_CLASSIC_SOURCES
 	Simulator/Classic/ClassicSimulator.cpp
 	Simulator/Classic/ClassicSimulator.h
 	Simulator/Classic/ClassicSimulatorParameters.h
+	Simulator/Classic/ClassicSimulatorParameters.cpp
 )
 
 set  (GLAD_SOURCES

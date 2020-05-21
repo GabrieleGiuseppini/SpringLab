@@ -6,8 +6,5 @@
 #include "SimulationParameters.h"
 
 SimulationParameters::SimulationParameters()
-    // Dynamics
-    : SpringStiffnessAdjustment(1.0f)
-    , SpringDampingAdjustment(1.0f)
 {
 }

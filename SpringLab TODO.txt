@@ -93,42 +93,32 @@
 
 ================================================================
 
-- Architecture:
-	= MainFrame: (via toolbar)
-		= Simulation control:
-			+ Play: 1 simulation step per-second
-			+ Fast-Forward: 1 simulation step as fast as possible
-			+ Pause: step on-demand				
-			= UI:
-				+ All sticky buttons, mutex
-				+ Pause: space
-				+ Step on-demand: via Enter
-					+ Only do if currently selected
-			- TODO: Find way to pass current simulation state to toolbar, also for others
-		- Initial conditions:
-			- Gravity (boolean)
-				- Goes to SimulationParameters, as boolean
-			- Move:
-				- As now
-			- Pin:
-				- Sets in Points::mIsPinnedBuffer
-			- Particle Force:
-				- Sets in Points::mIndividualForceBuffer (TODO "Individual" -> "")
-			- UI:
-				+ Gravity: sticky button, independent
-				+ Move, Pin, Particle Forces: sticky buttons, mutex
-				- When Particle Forces engaged: at click/particle selection, open window for direction & magnitude
-				+ Remove Tools menu
-			- Pinned points render: also uploaded as part of Points, always
-				- Shader: black
-			- Particle Forces: uploaded as vectors by SimulationController at Render()
-				- Enabled/Disabled by menu item => SimulationController::mDoRenderParticleForces
-		+ Simulator type change:
-			+ SimulationController::SetSimulator(enum from SLabTypes)
-				+ Changes simulator and resets
-					+ SimulationController holds only one simulator, the current one
++ UI Toolbars:
+	+ Simulation control:
+		+ Play: 1 simulation step per-second
+		+ Fast-Forward: 1 simulation step as fast as possible
+		+ Pause: step on-demand				
+		+ UI:
+			+ All sticky buttons, mutex
+			+ Pause: space
+			+ Step on-demand: via Enter
+				+ Only do if currently selected
+		
+	- Initial conditions:
+		+ Gravity (boolean)
+		+ Move
+		+ Pin
+		+ Particle Force
+		+ UI:
+			+ Gravity: sticky button, independent
+			+ Move, Pin, Particle Forces: sticky buttons, mutex
+			+ Remove Tools menu
+	+ Simulator type change:
+		+ SimulationController::SetSimulator(enum from SLabTypes)
+			+ Changes simulator and resets
+				+ SimulationController holds only one simulator, the current one
 
-= ISpringSimulator architecture:
++ ISimulator architecture:
 	+ Files:
 		+ Simulator/Common
 			+ ISimulator
@@ -137,41 +127,58 @@
 		+ Simulator/Classic
 			+ SimulatorClassic
 			+ SimulatorClassicParameters.h
-	- SimulationParameters:
-		- SimulatorCommonParameters member
-			- In SimulatorCommonParameters.h
-		- SimulatorClassicParameters member
-			- From own include
+	+ SimulationParameters:
+		+ SimulatorCommonParameters member
+			+ In SimulatorCommonParameters.h
+		+ SimulatorClassicParameters member
+			+ From own include
+	+ <SimulatorXXX: ISimulator>
+		+ cctor(Object, SimulationParameters)
+		+ OnSimulationParametersChanged(SimulationParameters)	
+	+ Setting paramers:
+		+ Controller::Set(common parameter @ SimulationParameters)
+		+ Controller::Set(specific parameter @ SimulationParameters::SimulatorXParameters)
+		+ Both: cause invocation - later - of ISimulator->OnSimulationParametersChanged(SimulationParameters)
+			+ Controlled via controller's mAreParametersDirty, @ beginning of simulation step
+				+ Reset after use
 
-	- <SimulatorXXX: ISimulator>
-		- TODOHERE
-		- cctor(Object
+- Do "ClassicSpringSimulator"
+	- TODOHERE
 
-	
-	- Setting paramers:
-		- Controller::Set(common parameter @ SimulationParameters)
-		- Controller::Set(specific parameter @ SimulationParameters::SimulatorXParameters)
-			- ISpringSimulator->OnSimulationParametersChanged(SimulationParameters)
-				- Controlled via controller's mAreParametersDirty, @ beginning of simulation step
-					- Reset after use
+- Initial conditions:
+	- Gravity:
+		- Goes to SimulationParameters, as boolean
+	+ Move:
+		+ As now
+	- Pin:
+		- Sets in Points::mIsPinnedBuffer (float)
+		- Render: also uploaded as part of Points, always
+			- Shader: black
+
+	- Particle Force:
+		- UI:
+			- When Particle Force engaged: at click/particle selection, open window for {direction & magnitude}, {remove}
+		- Sets in Points::mAssignedForceBuffer (TODO ?)
+		- Render: uploaded as vectors by SimulationController at Render()
+			- Enabled/Disabled by menu item => SimulationController::mDoRenderParticleForces
+
 
 - UI:
-	= MainToolBar (left):
-		= SimulatorType drop-down
-			- Move up
-		+ Simulation control buttons
-		+ Initial conditions buttons
-		- OpenObject, Reset buttons
+	
+	= ControlToolBar (left):
+		- Controls:
+			= SimulatorType drop-down
+				- Move up & add "Simulator:" label above
+			+ Simulation control buttons
+			+ Initial conditions buttons
+			- OpenObject, Reset buttons
+		- Pass initial state (simulation control state, doGravity, tool)  to toolbar
 	= ProbeToolBar (bottom):
 		+ Migrate EventPanel here
 		- Also displays basic stats: via TBD
 	- Application Icons
 
 	- Load Object handling
-
-- Do "ClassicSpringSimulator"
-
-- 
 
 -------------------------------------------------------
 

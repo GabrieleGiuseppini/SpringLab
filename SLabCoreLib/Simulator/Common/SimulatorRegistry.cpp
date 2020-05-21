@@ -26,8 +26,8 @@ void SimulatorRegistry::RegisterSimulatorType()
     mSimulatorTypeNames.push_back(simulatorName);
     mSimulatorFactories.emplace(
         simulatorName,
-        []()
+        [](Object const & object, SimulationParameters const & simulationParameters)
         {
-            return std::make_unique<TSimulatorType>();
+            return std::make_unique<TSimulatorType>(object, simulationParameters);
         });
 }

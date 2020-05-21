@@ -15,6 +15,8 @@ public:
     virtual ~ISimulator()
     {}
 
+    virtual void OnSimulationParametersChanged(SimulationParameters const & simulationParameters) = 0;
+
     virtual void Update(
         Object & object,
         float currentSimulationTime,
