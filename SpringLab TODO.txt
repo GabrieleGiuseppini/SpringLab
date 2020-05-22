@@ -142,26 +142,28 @@
 			+ Controlled via controller's mAreParametersDirty, @ beginning of simulation step
 				+ Reset after use
 
-- Do "ClassicSpringSimulator"
-	- TODOHERE
++ Do "ClassicSimulator"
+	+ Do
 
 - Initial conditions:
 	- Gravity:
-		- Goes to SimulationParameters, as boolean
+		- Goes to SimulationParameters, as vec2f AssignedGravity,
+		  via SimulationController::EnableGravity(bool)
+			+ Comment on convenience
 	+ Move:
 		+ As now
 	- Pin:
-		- Sets in Points::mIsPinnedBuffer (float)
+		- Tool
+		- Sets via Points::SetFrozenCoefficient(...)
 		- Render: also uploaded as part of Points, always
 			- Shader: black
 
 	- Particle Force:
 		- UI:
 			- When Particle Force engaged: at click/particle selection, open window for {direction & magnitude}, {remove}
-		- Sets in Points::mAssignedForceBuffer (TODO ?)
+		- Sets via Points::SetAssignedForce(...)
 		- Render: uploaded as vectors by SimulationController at Render()
 			- Enabled/Disabled by menu item => SimulationController::mDoRenderParticleForces
-
 
 - UI:
 	
@@ -179,6 +181,9 @@
 	- Application Icons
 
 	- Load Object handling
+
+- SettingsDialog
+	- One static box per common + each simulator
 
 -------------------------------------------------------
 

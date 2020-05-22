@@ -6,5 +6,7 @@
 #include "CommonSimulatorParameters.h"
 
 CommonSimulatorParameters::CommonSimulatorParameters()
+    : AssignedGravity(vec2f::zero())
+    , GlobalDamping(0.99983998f)
 {
 }

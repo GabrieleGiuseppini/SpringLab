@@ -15,8 +15,18 @@ public:
     virtual ~ISimulator()
     {}
 
-    virtual void OnSimulationParametersChanged(SimulationParameters const & simulationParameters) = 0;
+    /*
+     * Invoked when either a parameter changes, or when an attribute of the
+     * object changes - excluding position and velocity changes.
+     */
+    virtual void OnStateChanged(
+        Object const & object,
+        SimulationParameters const & simulationParameters) = 0;
 
+    /*
+     * Performs a single update step of the simulation.
+     * The outcome is a new set of positions and velocities of the particles.
+     */
     virtual void Update(
         Object & object,
         float currentSimulationTime,

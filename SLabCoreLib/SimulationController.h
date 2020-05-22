@@ -143,12 +143,12 @@ public:
     //
 
     float GetClassicSimulatorSpringReductionFraction() const { return mSimulationParameters.ClassicSimulator.SpringReductionFraction; }
-    void SetClassicSimulatorSpringReductionFraction(float value) { mSimulationParameters.ClassicSimulator.SpringReductionFraction = value; mAreSimulationParametersDirty = true; }
+    void SetClassicSimulatorSpringReductionFraction(float value) { mSimulationParameters.ClassicSimulator.SpringReductionFraction = value; mIsSimulationStateDirty = true; }
     float GetClassicSimulatorMinSpringReductionFraction() const { return ClassicSimulatorParameters::MinSpringReductionFraction; }
     float GetClassicSimulatorMaxSpringReductionFraction() const { return ClassicSimulatorParameters::MaxSpringReductionFraction; }
 
     float GetClassicSimulatorSpringDampingCoefficient() const { return mSimulationParameters.ClassicSimulator.SpringDampingCoefficient; }
-    void SetClassicSimulatorSpringDampingCoefficient(float value) { mSimulationParameters.ClassicSimulator.SpringDampingCoefficient = value; mAreSimulationParametersDirty = true; }
+    void SetClassicSimulatorSpringDampingCoefficient(float value) { mSimulationParameters.ClassicSimulator.SpringDampingCoefficient = value; mIsSimulationStateDirty = true; }
     float GetClassicSimulatorMinSpringDampingCoefficient() const { return ClassicSimulatorParameters::MinSpringDampingCoefficient; }
     float GetClassicSimulatorMaxSpringDampingCoefficient() const { return ClassicSimulatorParameters::MaxSpringDampingCoefficient; }
 
@@ -182,11 +182,12 @@ private:
     size_t mTotalSimulationSteps;
 
     SimulationParameters mSimulationParameters;
-    bool mAreSimulationParametersDirty;
 
     std::unique_ptr<Object> mObject;
     std::string mCurrentObjectName;
     std::filesystem::path mCurrentObjectDefinitionFilepath;
+
+    bool mIsSimulationStateDirty;
 
     //
     // Stats

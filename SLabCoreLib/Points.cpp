@@ -14,12 +14,13 @@ void Points::Add(
 {
     ElementIndex const pointIndex = static_cast<ElementIndex>(mStructuralMaterialBuffer.GetCurrentPopulatedSize());
 
-    mStructuralMaterialBuffer.emplace_back(&structuralMaterial);
-
     mPositionBuffer.emplace_back(position);
     mVelocityBuffer.emplace_back(vec2f::zero());
-    mMassBuffer.emplace_back(structuralMaterial.GetMass());
 
+    mAssignedForceBuffer.emplace_back(vec2f::zero());
+    mStructuralMaterialBuffer.emplace_back(&structuralMaterial);
+    mMassBuffer.emplace_back(structuralMaterial.GetMass());
+    mFrozenCoefficientBuffer.emplace_back(1.0f);
     mConnectedSpringsBuffer.emplace_back();
 
     mRenderColorBuffer.emplace_back(vec4f(color, 1.0f));

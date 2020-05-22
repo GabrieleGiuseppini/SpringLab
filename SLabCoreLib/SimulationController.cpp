@@ -48,10 +48,10 @@ SimulationController::SimulationController(
     , mCurrentSimulationTime(0.0f)
     , mTotalSimulationSteps(0)
     , mSimulationParameters()
-    , mAreSimulationParametersDirty(false)
     , mObject()
     , mCurrentObjectName()
     , mCurrentObjectDefinitionFilepath()
+    , mIsSimulationStateDirty(false)
     // Stats
     , mOriginTimestamp(SLabWallClock::time_point::max())
 {
@@ -101,16 +101,17 @@ void SimulationController::Reset()
 void SimulationController::UpdateSimulation()
 {
     assert(!!mSimulator);
+    assert(!!mObject);
 
     ////////////////////////////////////////////////////////
     // Update parameters
     ////////////////////////////////////////////////////////
 
-    if (mAreSimulationParametersDirty)
+    if (mIsSimulationStateDirty)
     {
-        mSimulator->OnSimulationParametersChanged(mSimulationParameters);
+        mSimulator->OnStateChanged(*mObject, mSimulationParameters);
 
-        mAreSimulationParametersDirty = false;
+        mIsSimulationStateDirty = false;
     }
 
     ////////////////////////////////////////////////////////
@@ -235,6 +236,7 @@ void SimulationController::Reset(
     // Reset simulation state
     mCurrentSimulationTime = 0.0f;
     mTotalSimulationSteps = 0;
+    mIsSimulationStateDirty = false;
 
     //
     // Reset stats

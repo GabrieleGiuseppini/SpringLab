@@ -7,6 +7,7 @@
 
 #include "Simulator/Common/ISimulator.h"
 
+#include <memory>
 #include <string>
 
 /*
@@ -32,7 +33,9 @@ public:
     // ISimulator
     //////////////////////////////////////////////////////////
 
-    void OnSimulationParametersChanged(SimulationParameters const & simulationParameters) override;
+    void OnStateChanged(
+        Object const & object,
+        SimulationParameters const & simulationParameters) override;
 
     void Update(
         Object & object,
@@ -41,4 +44,31 @@ public:
 
 private:
 
+    void CreateState(
+        Object const & object,
+        SimulationParameters const & simulationParameters);
+
+    void ApplySpringsForces(Object const & object);
+
+    void IntegrateAndResetSpringForces(
+        Object & object,
+        SimulationParameters const & simulationParameters);
+
+private:
+
+    //
+    // Point buffers
+    //
+
+    Buffer<vec2f> mPointSpringForceBuffer;
+    Buffer<vec2f> mPointExternalForceBuffer;
+    Buffer<float> mPointIntegrationFactorBuffer; // dt^2/Mass or zero when the point is frozen
+
+
+    //
+    // Spring buffers
+    //
+
+    Buffer<float> mSpringStiffnessCoefficientBuffer;
+    Buffer<float> mSpringDampingCoefficientBuffer;
 };

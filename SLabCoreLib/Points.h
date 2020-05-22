@@ -55,13 +55,14 @@ public:
         //////////////////////////////////
         // Buffers
         //////////////////////////////////
-        // Materials
-        , mStructuralMaterialBuffer(mBufferElementCount, pointCount, nullptr)
-        // Physics
+        // Observable Physics
         , mPositionBuffer(mBufferElementCount, pointCount, vec2f::zero())
         , mVelocityBuffer(mBufferElementCount, pointCount, vec2f::zero())
+        // System State
+        , mAssignedForceBuffer(mBufferElementCount, pointCount, vec2f::zero())
+        , mStructuralMaterialBuffer(mBufferElementCount, pointCount, nullptr)
         , mMassBuffer(mBufferElementCount, pointCount, 0.0f)
-        // Structure
+        , mFrozenCoefficientBuffer(mBufferElementCount, pointCount, 0.0f)
         , mConnectedSpringsBuffer(mBufferElementCount, pointCount, ConnectedSpringsVector())
         // Render
         , mRenderColorBuffer(mBufferElementCount, pointCount, vec4f::zero())
@@ -99,17 +100,7 @@ public:
 public:
 
     //
-    // Materials
-    //
-
-    StructuralMaterial const & GetStructuralMaterial(ElementIndex pointElementIndex) const
-    {
-        assert(nullptr != mStructuralMaterialBuffer[pointElementIndex]);
-        return *(mStructuralMaterialBuffer[pointElementIndex]);
-    }
-
-    //
-    // Physics
+    // Observable Physics
     //
 
     vec2f const & GetPosition(ElementIndex pointElementIndex) const noexcept
@@ -117,12 +108,12 @@ public:
         return mPositionBuffer[pointElementIndex];
     }
 
-    vec2f & GetPosition(ElementIndex pointElementIndex) noexcept
+    vec2f const * GetPositionBuffer() const noexcept
     {
-        return mPositionBuffer[pointElementIndex];
+        return mPositionBuffer.data();
     }
 
-    vec2f * GetPositionBuffer()
+    vec2f * GetPositionBuffer() noexcept
     {
         return mPositionBuffer.data();
     }
@@ -137,9 +128,9 @@ public:
 
     void SetPosition(
         ElementIndex pointElementIndex,
-        vec2f const & position) noexcept
+        vec2f const & value) noexcept
     {
-        mPositionBuffer[pointElementIndex] = position;
+        mPositionBuffer[pointElementIndex] = value;
     }
 
     vec2f const & GetVelocity(ElementIndex pointElementIndex) const noexcept
@@ -147,12 +138,12 @@ public:
         return mVelocityBuffer[pointElementIndex];
     }
 
-    vec2f & GetVelocity(ElementIndex pointElementIndex) noexcept
+    vec2f const * GetVelocityBuffer() const noexcept
     {
-        return mVelocityBuffer[pointElementIndex];
+        return mVelocityBuffer.data();
     }
 
-    vec2f * GetVelocityBuffer()
+    vec2f * GetVelocityBuffer() noexcept
     {
         return mVelocityBuffer.data();
     }
@@ -167,19 +158,54 @@ public:
 
     void SetVelocity(
         ElementIndex pointElementIndex,
-        vec2f const & velocity) noexcept
+        vec2f const & value) noexcept
     {
-        mVelocityBuffer[pointElementIndex] = velocity;
+        mVelocityBuffer[pointElementIndex] = value;
     }
 
-    float GetMass(ElementIndex pointElementIndex) noexcept
+    //
+    // System State
+    //
+
+    vec2f const & GetAssignedForce(ElementIndex pointElementIndex) const noexcept
+    {
+        return mAssignedForceBuffer[pointElementIndex];
+    }
+
+    vec2f * GetAssignedForceBuffer() noexcept
+    {
+        return mAssignedForceBuffer.data();
+    }
+
+    void SetAssignedForce(
+        ElementIndex pointElementIndex,
+        vec2f const & value) noexcept
+    {
+        mAssignedForceBuffer[pointElementIndex] = value;
+    }
+
+    StructuralMaterial const & GetStructuralMaterial(ElementIndex pointElementIndex) const
+    {
+        assert(nullptr != mStructuralMaterialBuffer[pointElementIndex]);
+        return *(mStructuralMaterialBuffer[pointElementIndex]);
+    }
+
+    float GetMass(ElementIndex pointElementIndex) const noexcept
     {
         return mMassBuffer[pointElementIndex];
     }
 
-    //
-    // Structure
-    //
+    bool GetFrozenCoefficient(ElementIndex pointElementIndex) const
+    {
+        return mFrozenCoefficientBuffer[pointElementIndex];
+    }
+
+    void SetFrozenCoefficient(
+        ElementIndex pointElementIndex,
+        float value)
+    {
+        mFrozenCoefficientBuffer[pointElementIndex] = value;
+    }
 
     auto const & GetConnectedSprings(ElementIndex pointElementIndex) const
     {
@@ -266,12 +292,12 @@ public:
     // Temporary buffer
     //
 
-    std::shared_ptr<Buffer<float>> AllocateWorkBufferFloat()
+    std::shared_ptr<Buffer<float>> AllocateWorkBufferFloat() const
     {
         return mFloatBufferAllocator.Allocate();
     }
 
-    std::shared_ptr<Buffer<vec2f>> AllocateWorkBufferVec2f()
+    std::shared_ptr<Buffer<vec2f>> AllocateWorkBufferVec2f() const
     {
         return mVec2fBufferAllocator.Allocate();
     }
@@ -283,18 +309,20 @@ private:
     //////////////////////////////////////////////////////////
 
     //
-    // Materials
-    //
-
-    Buffer<StructuralMaterial const *> mStructuralMaterialBuffer;
-
-    //
-    // Physics
+    // Observable Physics
     //
 
     Buffer<vec2f> mPositionBuffer;
     Buffer<vec2f> mVelocityBuffer;
-    Buffer<float> mMassBuffer; // Augmented + Water
+
+    //
+    // System State
+    //
+
+    Buffer<vec2f> mAssignedForceBuffer;
+    Buffer<StructuralMaterial const *> mStructuralMaterialBuffer;
+    Buffer<float> mMassBuffer;
+    Buffer<float> mFrozenCoefficientBuffer; // 1.0: not frozen; 0.0f: frozen
 
     //
     // Structure
@@ -317,6 +345,6 @@ private:
     //////////////////////////////////////////////////////////
 
     // Allocators for work buffers
-    BufferAllocator<float> mFloatBufferAllocator;
-    BufferAllocator<vec2f> mVec2fBufferAllocator;
+    BufferAllocator<float> mutable mFloatBufferAllocator;
+    BufferAllocator<vec2f> mutable mVec2fBufferAllocator;
 };
