@@ -147,7 +147,8 @@ public:
         vec2f const * pointPositions,
         vec4f const * pointColors,
         float const * pointNormRadii,
-        float const * pointHighlights);
+        float const * pointHighlights,
+        float const * pointFrozenCoefficients);
 
     void UploadSpringsStart(size_t springCount);
 
@@ -204,16 +205,19 @@ private:
         vec2f VertexSpacePosition;
         vec4f Color;
         float Highlight;
+        float FrozenCoefficient;
 
         PointVertex(
             vec2f const & position,
             vec2f const & vertexSpacePosition,
             vec4f const & color,
-            float highlight)
+            float highlight,
+            float frozenCoefficient)
             : Position(position)
             , VertexSpacePosition(vertexSpacePosition)
             , Color(color)
             , Highlight(highlight)
+            , FrozenCoefficient(frozenCoefficient)
         {}
     };
 

@@ -146,17 +146,17 @@
 	+ Do
 
 = Initial conditions:
-	= Gravity:
-		= Goes to SimulationParameters, as vec2f AssignedGravity,
+	+ Gravity:
+		+ Goes to SimulationParameters, as vec2f AssignedGravity,
 		  via SimulationController::EnableGravity(bool)
 			+ Comment on convenience
 	+ Move:
 		+ As now
-	= Pin:
+	+ Pin:
 		+ Tool
 		+ Sets via Points::SetFrozenCoefficient(...)
-		- Render: also uploaded as part of Points, always
-			- Shader: black
+		+ Render: also uploaded as part of Points, always
+			+ Shader: black
 
 	- Particle Force:
 		- UI:
@@ -164,6 +164,10 @@
 		- Sets via Points::SetAssignedForce(...)
 		- Render: uploaded as vectors by SimulationController at Render()
 			- Enabled/Disabled by menu item => SimulationController::mDoRenderParticleForces
+
+- MT RenderContext: exceptions
+
+- Nuke BufferAllocator & AllocWorkBuffer/Copy methods?
 
 - UI:
 	

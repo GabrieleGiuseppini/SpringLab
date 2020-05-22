@@ -69,7 +69,8 @@ RenderContext::RenderContext(
             glEnableVertexAttribArray(static_cast<GLuint>(ShaderManager::VertexAttributeType::PointAttributeGroup2));
             glVertexAttribPointer(static_cast<GLuint>(ShaderManager::VertexAttributeType::PointAttributeGroup2), 4, GL_FLOAT, GL_FALSE, sizeof(PointVertex), (void *)(4 * sizeof(float)));
             glEnableVertexAttribArray(static_cast<GLuint>(ShaderManager::VertexAttributeType::PointAttributeGroup3));
-            glVertexAttribPointer(static_cast<GLuint>(ShaderManager::VertexAttributeType::PointAttributeGroup3), 1, GL_FLOAT, GL_FALSE, sizeof(PointVertex), (void *)(8 * sizeof(float)));
+            glVertexAttribPointer(static_cast<GLuint>(ShaderManager::VertexAttributeType::PointAttributeGroup3), 2, GL_FLOAT, GL_FALSE, sizeof(PointVertex), (void *)(8 * sizeof(float)));
+            static_assert(sizeof(PointVertex) == 10 * sizeof(float));
 
             glBindVertexArray(0);
 
@@ -195,7 +196,8 @@ void RenderContext::UploadPoints(
     vec2f const * pointPositions,
     vec4f const * pointColors,
     float const * pointNormRadii,
-    float const * pointHighlights)
+    float const * pointHighlights,
+    float const * pointFrozenCoefficients)
 {
     // Synchronously
     mRenderThread.RunSynchronously(
@@ -231,6 +233,7 @@ void RenderContext::UploadPoints(
                 float const halfRadius = pointNormRadii[p] * WorldRadius / 2.0f;
                 vec4f const & pointColor = pointColors[p];
                 float const pointHighlight = pointHighlights[p];
+                float const pointFrozenCoefficient = pointFrozenCoefficients[p];
 
                 float const xLeft = pointPosition.x - halfRadius;
                 float const xRight = pointPosition.x + halfRadius;
@@ -242,42 +245,48 @@ void RenderContext::UploadPoints(
                     vec2f(xLeft, yBottom),
                     vec2f(-1.0f, -1.0f),
                     pointColor,
-                    pointHighlight);
+                    pointHighlight,
+                    pointFrozenCoefficient);
 
                 // Left, top
                 mPointVertexBuffer.emplace_back(
                     vec2f(xLeft, yTop),
                     vec2f(-1.0f, 1.0f),
                     pointColor,
-                    pointHighlight);
+                    pointHighlight,
+                    pointFrozenCoefficient);
 
                 // Right, bottom
                 mPointVertexBuffer.emplace_back(
                     vec2f(xRight, yBottom),
                     vec2f(1.0f, -1.0f),
                     pointColor,
-                    pointHighlight);
+                    pointHighlight,
+                    pointFrozenCoefficient);
 
                 // Left, top
                 mPointVertexBuffer.emplace_back(
                     vec2f(xLeft, yTop),
                     vec2f(-1.0f, 1.0f),
                     pointColor,
-                    pointHighlight);
+                    pointHighlight,
+                    pointFrozenCoefficient);
 
                 // Right, bottom
                 mPointVertexBuffer.emplace_back(
                     vec2f(xRight, yBottom),
                     vec2f(1.0f, -1.0f),
                     pointColor,
-                    pointHighlight);
+                    pointHighlight,
+                    pointFrozenCoefficient);
 
                 // Right, top
                 mPointVertexBuffer.emplace_back(
                     vec2f(xRight, yTop),
                     vec2f(1.0f, 1.0f),
                     pointColor,
-                    pointHighlight);
+                    pointHighlight,
+                    pointFrozenCoefficient);
             }
 
 

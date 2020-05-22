@@ -200,6 +200,11 @@ public:
         return mFrozenCoefficientBuffer[pointElementIndex];
     }
 
+    float const * GetFrozenCoefficientBuffer() const
+    {
+        return mFrozenCoefficientBuffer.data();
+    }
+
     void SetFrozenCoefficient(
         ElementIndex pointElementIndex,
         float value)

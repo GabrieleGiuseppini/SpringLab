@@ -156,7 +156,8 @@ void SimulationController::Render()
             mObject->GetPoints().GetPositionBuffer(),
             mObject->GetPoints().GetRenderColorBuffer(),
             mObject->GetPoints().GetRenderNormRadiusBuffer(),
-            mObject->GetPoints().GetRenderHighlightBuffer());
+            mObject->GetPoints().GetRenderHighlightBuffer(),
+            mObject->GetPoints().GetFrozenCoefficientBuffer());
 
         mRenderContext->UploadSpringsStart(mObject->GetSprings().GetElementCount());
 
