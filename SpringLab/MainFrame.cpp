@@ -671,7 +671,8 @@ void MainFrame::OnSimulationControlStep(wxCommandEvent & /*event*/)
 
 void MainFrame::OnInitialConditionsGravity(wxCommandEvent & event)
 {
-    LogMessage("TODO: OnInitialConditionsGravity: ", event.GetInt());
+    assert(!!mSimulationController);
+    mSimulationController->EnableGravity(event.GetInt() != 0);
 }
 
 void MainFrame::OnInitialConditionsMove(wxCommandEvent & /*event*/)
@@ -682,7 +683,8 @@ void MainFrame::OnInitialConditionsMove(wxCommandEvent & /*event*/)
 
 void MainFrame::OnInitialConditionsPin(wxCommandEvent & /*event*/)
 {
-    LogMessage("TODO: OnInitialConditionsPin");
+    assert(!!mToolController);
+    mToolController->SetTool(ToolType::Pin);
 }
 
 void MainFrame::OnInitialConditionsParticleForce(wxCommandEvent & /*event*/)
@@ -693,7 +695,6 @@ void MainFrame::OnInitialConditionsParticleForce(wxCommandEvent & /*event*/)
 void MainFrame::OnSimulatorTypeChanged(wxCommandEvent & event)
 {
     assert(!!mSimulationController);
-
     mSimulationController->SetSimulator(event.GetString().ToStdString());
 }
 

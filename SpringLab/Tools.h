@@ -18,7 +18,8 @@
 
 enum class ToolType
 {
-    Move = 0
+    Move = 0,
+    Pin = 1
 };
 
 struct InputState
@@ -113,7 +114,7 @@ public:
 
     virtual void Update(InputState const & inputState) override
     {
-        bool wasEngaged = !!mCurrentEngagementState;
+        bool const wasEngaged = !!mCurrentEngagementState;
 
         if (inputState.IsLeftMouseDown)
         {
@@ -126,7 +127,7 @@ public:
 
                 vec2f const mousePosition = inputState.MousePosition;
 
-                auto elementId = mSimulationController->GetNearestPointAt(mousePosition);
+                auto const elementId = mSimulationController->GetNearestPointAt(mousePosition);
                 if (elementId.has_value())
                 {
                     //
@@ -241,4 +242,66 @@ private:
     // The cursors
     wxCursor const mUpCursor;
     wxCursor const mDownCursor;
+};
+
+class PinTool final : public Tool
+{
+public:
+
+    PinTool(
+        wxWindow * cursorWindow,
+        std::shared_ptr<SimulationController> simulationController);
+
+public:
+
+    virtual void Initialize(InputState const & /*inputState*/) override
+    {
+        mCurrentlyEngagedElement.reset();
+
+        // Set cursor
+        SetCurrentCursor();
+    }
+
+    virtual void Deinitialize(InputState const & /*inputState*/) override
+    {
+    }
+
+    virtual void SetCurrentCursor() override
+    {
+        mCursorWindow->SetCursor(mCursor);
+    }
+
+    virtual void Update(InputState const & inputState) override
+    {
+        if (inputState.IsLeftMouseDown)
+        {
+            vec2f const mousePosition = inputState.MousePosition;
+            auto const elementId = mSimulationController->GetNearestPointAt(mousePosition);
+            if (elementId.has_value())
+            {
+                // Check if different than previous
+                if (!mCurrentlyEngagedElement || *mCurrentlyEngagedElement != *elementId)
+                {
+                    //
+                    // New engagement !
+                    //
+
+                    mSimulationController->TogglePointFreeze(*elementId);
+                    mCurrentlyEngagedElement = *elementId;
+                }
+            }
+        }
+        else
+        {
+            mCurrentlyEngagedElement.reset();
+        }
+    }
+
+private:
+
+    // Our state
+    std::optional<ElementIndex> mCurrentlyEngagedElement; // When set, indicates it's engaged
+
+    // The cursor
+    wxCursor const mCursor;
 };

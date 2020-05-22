@@ -80,6 +80,8 @@ public:
 
     void MovePointTo(ElementIndex pointElementIndex, vec2f const & screenCoordinates);
 
+    void TogglePointFreeze(ElementIndex pointElementIndex);
+
     void QueryNearestPointAt(vec2f const & screenCoordinates) const;
 
     //
@@ -141,6 +143,9 @@ public:
     //
     // Simmulation parameters
     //
+
+    bool IsGravityEnabled() const { return mSimulationParameters.Common.AssignedGravity != vec2f::zero(); }
+    void EnableGravity(bool isEnabled);
 
     float GetClassicSimulatorSpringReductionFraction() const { return mSimulationParameters.ClassicSimulator.SpringReductionFraction; }
     void SetClassicSimulatorSpringReductionFraction(float value) { mSimulationParameters.ClassicSimulator.SpringReductionFraction = value; mIsSimulationStateDirty = true; }

@@ -71,6 +71,26 @@ void SimulationController::MovePointTo(ElementIndex pointElementIndex, vec2f con
     vec2f const worldCoordinates = ScreenToWorld(screenCoordinates);
 
     mObject->GetPoints().SetPosition(pointElementIndex, worldCoordinates);
+    mObject->GetPoints().SetVelocity(pointElementIndex, vec2f::zero());
+}
+
+void SimulationController::TogglePointFreeze(ElementIndex pointElementIndex)
+{
+    assert(!!mObject);
+
+    bool const isNewFrozen = mObject->GetPoints().GetFrozenCoefficient(pointElementIndex) != 0.0f;
+
+    if (isNewFrozen)
+    {
+        mObject->GetPoints().SetFrozenCoefficient(pointElementIndex, 0.0f);
+        mObject->GetPoints().SetVelocity(pointElementIndex, vec2f::zero());
+    }
+    else
+    {
+        mObject->GetPoints().SetFrozenCoefficient(pointElementIndex, 1.0f);
+    }
+
+    mIsSimulationStateDirty = true;
 }
 
 void SimulationController::QueryNearestPointAt(vec2f const & screenCoordinates) const

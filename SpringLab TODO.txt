@@ -145,16 +145,16 @@
 + Do "ClassicSimulator"
 	+ Do
 
-- Initial conditions:
-	- Gravity:
-		- Goes to SimulationParameters, as vec2f AssignedGravity,
+= Initial conditions:
+	= Gravity:
+		= Goes to SimulationParameters, as vec2f AssignedGravity,
 		  via SimulationController::EnableGravity(bool)
 			+ Comment on convenience
 	+ Move:
 		+ As now
-	- Pin:
-		- Tool
-		- Sets via Points::SetFrozenCoefficient(...)
+	= Pin:
+		+ Tool
+		+ Sets via Points::SetFrozenCoefficient(...)
 		- Render: also uploaded as part of Points, always
 			- Shader: black
 

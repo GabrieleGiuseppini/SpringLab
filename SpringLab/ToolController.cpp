@@ -29,6 +29,11 @@ ToolController::ToolController(
             mCursorWindow,
             mSimulationController));
 
+    mAllTools.emplace_back(
+        std::make_unique<PinTool>(
+            mCursorWindow,
+            mSimulationController));
+
     // Prepare own cursor(s)
     mPanCursor = WxHelpers::MakeCursor("pan_cursor", 15, 15);
 
