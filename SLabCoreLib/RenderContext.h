@@ -272,5 +272,5 @@ private:
     TaskThread mRenderThread;
 
     // The asynhronous rendering task that is currently running
-    std::optional<TaskThread::TaskCompletionIndicator> mPreviousRenderTaskCompletionIndicator;
+    std::shared_ptr<TaskThread::TaskCompletionIndicator> mPreviousRenderTaskCompletionIndicator;
 };

@@ -10,6 +10,8 @@
 #include <functional>
 #include <memory>
 #include <mutex>
+#include <stdexcept>
+#include <string>
 #include <thread>
 
 /*
@@ -40,6 +42,8 @@ public:
         //
         // Invoked by main thread to wait until the task is completed.
         //
+        // Throws an exception if the task threw an exception.
+        //
 
         void Wait()
         {
@@ -50,24 +54,41 @@ public:
                 lock,
                 [this]
                 {
-                    return *mIsTaskCompleted;
+                    return mIsTaskCompleted;
                 });
+
+            // Check if an exception was thrown
+            if (!mExceptionMessage.empty())
+            {
+                throw std::runtime_error(mExceptionMessage);
+            }
         }
 
     private:
 
         TaskCompletionIndicator(
-            std::shared_ptr<bool> isTaskCompleted,
             std::mutex & threadLock,
             std::condition_variable & threadSignal)
-            : mIsTaskCompleted(std::move(isTaskCompleted))
+            : mIsTaskCompleted(false)
+            , mExceptionMessage()
             , mThreadLock(threadLock)
             , mThreadSignal(threadSignal)
         {}
 
+        void MarkCompleted()
+        {
+            mIsTaskCompleted = true;
+        }
+
+        void RegisterException(std::string const & exceptionMessage)
+        {
+            mExceptionMessage = exceptionMessage;
+        }
+
     private:
 
-        std::shared_ptr<bool> mIsTaskCompleted;
+        bool mIsTaskCompleted; // Flag set by task thread to signal completion of the task
+        std::string mExceptionMessage; // Set by task thread upon exception
 
         std::mutex & mThreadLock;
         std::condition_variable & mThreadSignal;
@@ -91,16 +112,18 @@ public:
     // on the task thread.
     //
 
-    TaskCompletionIndicator QueueTask(Task && task)
+    std::shared_ptr<TaskCompletionIndicator> QueueTask(Task && task)
     {
         std::unique_lock<std::mutex> lock(mThreadLock);
 
-        auto & queuedTask = mTaskQueue.emplace_back(std::move(task));
+        std::shared_ptr<TaskCompletionIndicator> taskCompletionIndicator = std::shared_ptr<TaskCompletionIndicator>(
+            new TaskCompletionIndicator(
+                mThreadLock,
+                mThreadSignal));
 
-        TaskCompletionIndicator taskCompletionIndicator(
-            queuedTask.isTaskCompleted,
-            mThreadLock,
-            mThreadSignal);
+        mTaskQueue.emplace_back(
+            std::move(task),
+            taskCompletionIndicator);
 
         mThreadSignal.notify_one();
 
@@ -115,7 +138,7 @@ public:
     void RunSynchronously(Task && task)
     {
         auto result = QueueTask(std::move(task));
-        result.Wait();
+        result->Wait();
     }
 
 private:
@@ -126,18 +149,20 @@ private:
 
     struct QueuedTask
     {
-        Task task;
-        std::shared_ptr<bool> isTaskCompleted;
+        Task TaskToRun;
+        std::shared_ptr<TaskCompletionIndicator> CompletionIndicator;
 
         QueuedTask()
-            : task()
-            , isTaskCompleted()
+            : TaskToRun()
+            , CompletionIndicator()
         {
         }
 
-        QueuedTask(Task && _task)
-            : task(std::move(_task))
-            , isTaskCompleted(std::make_shared<bool>(false))
+        QueuedTask(
+            Task && taskToRun,
+            std::shared_ptr<TaskCompletionIndicator> completionIndicator)
+            : TaskToRun(std::move(taskToRun))
+            , CompletionIndicator(std::move(completionIndicator))
         {}
     };
 

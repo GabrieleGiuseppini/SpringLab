@@ -165,7 +165,7 @@ RgbImageData RenderContext::TakeScreenshot()
 void RenderContext::RenderStart()
 {
     // Wait for current render to complete, if any
-    if (!!mPreviousRenderTaskCompletionIndicator.has_value())
+    if (!!mPreviousRenderTaskCompletionIndicator)
     {
         mPreviousRenderTaskCompletionIndicator->Wait();
         mPreviousRenderTaskCompletionIndicator.reset();
@@ -391,57 +391,56 @@ void RenderContext::UploadSpringsEnd()
             }
         });
 
-    result.Wait();
+    result->Wait();
 }
 
 void RenderContext::RenderEnd()
 {
-    assert(!mPreviousRenderTaskCompletionIndicator.has_value());
+    assert(!mPreviousRenderTaskCompletionIndicator);
 
-    // Run asynhronously; we'll wait for this at the next RenderStart()
-    mPreviousRenderTaskCompletionIndicator.emplace(
-        mRenderThread.QueueTask(
-            [this]()
+    // Run asynchronously; we'll wait for this at the next RenderStart()
+    mPreviousRenderTaskCompletionIndicator = mRenderThread.QueueTask(
+        [this]()
+        {
+            ////////////////////////////////////////////////////////////////
+            // Render springs
+            ////////////////////////////////////////////////////////////////
+
+            if (!mSpringVertexBuffer.empty())
             {
-                ////////////////////////////////////////////////////////////////
-                // Render springs
-                ////////////////////////////////////////////////////////////////
+                glBindVertexArray(*mSpringVAO);
 
-                if (!mSpringVertexBuffer.empty())
-                {
-                    glBindVertexArray(*mSpringVAO);
+                mShaderManager->ActivateProgram<ShaderManager::ProgramType::Springs>();
 
-                    mShaderManager->ActivateProgram<ShaderManager::ProgramType::Springs>();
-
-                    assert((mSpringVertexBuffer.size() % 6) == 0);
-                    glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(mSpringVertexBuffer.size()));
-
-                    glBindVertexArray(0);
-                }
-
-                ////////////////////////////////////////////////////////////////
-                // Render points
-                ////////////////////////////////////////////////////////////////
-
-                glBindVertexArray(*mPointVAO);
-
-                mShaderManager->ActivateProgram<ShaderManager::ProgramType::Points>();
-
-                assert((mPointVertexCount % 6) == 0);
-                glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(mPointVertexCount));
+                assert((mSpringVertexBuffer.size() % 6) == 0);
+                glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(mSpringVertexBuffer.size()));
 
                 glBindVertexArray(0);
+            }
 
-                ////////////////////////////////////////////////////////////////
-                // Terminate
-                ////////////////////////////////////////////////////////////////
+            ////////////////////////////////////////////////////////////////
+            // Render points
+            ////////////////////////////////////////////////////////////////
 
-                // Flush all pending commands (but not the GPU buffer)
-                SLabOpenGL::Flush();
+            glBindVertexArray(*mPointVAO);
 
-                // Swap buffers
-                mSwapRenderBuffersFunction();
-            }));
+            mShaderManager->ActivateProgram<ShaderManager::ProgramType::Points>();
+
+            assert((mPointVertexCount % 6) == 0);
+            glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(mPointVertexCount));
+
+            glBindVertexArray(0);
+
+            ////////////////////////////////////////////////////////////////
+            // Terminate
+            ////////////////////////////////////////////////////////////////
+
+            // Flush all pending commands (but not the GPU buffer)
+            SLabOpenGL::Flush();
+
+            // Swap buffers
+            mSwapRenderBuffersFunction();
+        });
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////

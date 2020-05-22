@@ -56,7 +56,7 @@ void TaskThread::ThreadLoop()
         // Extract task
         //
 
-        QueuedTask taskToRun;
+        QueuedTask queuedTask;
 
         {
             std::unique_lock<std::mutex> lock(mThreadLock);
@@ -82,7 +82,7 @@ void TaskThread::ThreadLoop()
 
                 assert(!mTaskQueue.empty());
 
-                taskToRun = std::move(mTaskQueue.front());
+                queuedTask = std::move(mTaskQueue.front());
                 mTaskQueue.pop_front();
             }
         }
@@ -91,8 +91,19 @@ void TaskThread::ThreadLoop()
         // Run task
         //
 
-        assert(!!taskToRun.task);
-        taskToRun.task();
+        assert(!!queuedTask.TaskToRun);
+
+        try
+        {
+            queuedTask.TaskToRun();
+        }
+        catch (std::runtime_error const & exc)
+        {
+            // Store in task completion indicator
+            // (safe to do without locks, as it will only be read by
+            // main thread after it is signaled)
+            queuedTask.CompletionIndicator->RegisterException(exc.what());
+        }
 
         //
         // Signal task completion
@@ -101,7 +112,7 @@ void TaskThread::ThreadLoop()
         {
             std::unique_lock const lock{ mThreadLock };
 
-            *(taskToRun.isTaskCompleted) = true;
+            queuedTask.CompletionIndicator->MarkCompleted();
             mThreadSignal.notify_one();
         }
     }

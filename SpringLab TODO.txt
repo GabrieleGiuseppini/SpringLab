@@ -165,7 +165,12 @@
 		- Render: uploaded as vectors by SimulationController at Render()
 			- Enabled/Disabled by menu item => SimulationController::mDoRenderParticleForces
 
-- MT RenderContext: exceptions
++ MT RenderContext: exceptions
+	+ The thing that's ahred_ptr is the TaskCompletion
+	+ TaskCompletion stores exc message
+	+ Wait throws
+	+ Test w/shader error
+	+ Test w/OpenGL version
 
 - Nuke BufferAllocator & AllocWorkBuffer/Copy methods?
 
