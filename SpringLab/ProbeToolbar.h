@@ -5,7 +5,7 @@
 ***************************************************************************************/
 #pragma once
 
-#include "ScalarTimeSeriesProbeControl.h"
+#include "UIControls/ScalarTimeSeriesProbeControl.h"
 
 #include <SLabCoreLib/ISimulationEventHandler.h>
 

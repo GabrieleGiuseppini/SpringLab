@@ -169,12 +169,13 @@
 
 - Nuke BufferAllocator & AllocWorkBuffer/Copy methods?
 
-- UI:
-	
+= UI:		
 	= ControlToolBar (left):
-		- Controls:
-			= SimulatorType drop-down
-				- Move up & add "Simulator:" label above
+		+ Keyboard shortcuts
+			+ Tooltips
+		= Controls:
+			+ SimulatorType drop-down
+				+ Move up & add "Simulator:" label above
 			+ Simulation control buttons
 			+ Initial conditions buttons
 			- OpenObject, Reset buttons
@@ -184,7 +185,7 @@
 		- Also displays basic stats: via TBD
 	- Application Icons
 
-	- Load Object handling
+	- Load Object
 
 - SettingsDialog
 	- One static box per common + each simulator

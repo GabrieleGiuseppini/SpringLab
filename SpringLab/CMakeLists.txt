@@ -15,8 +15,6 @@ set  (SPRING_LAB_SOURCES
 	MainFrame.h
 	ProbeToolbar.cpp
 	ProbeToolbar.h
-	ScalarTimeSeriesProbeControl.cpp
-	ScalarTimeSeriesProbeControl.h
 	StandardSystemPaths.cpp
 	StandardSystemPaths.h
 	ToolController.cpp
@@ -27,7 +25,21 @@ set  (SPRING_LAB_SOURCES
 	WxHelpers.h
 )
 
+set  (UI_CONTROLS_SOURCES
+	UIControls/ExponentialSliderCore.cpp
+	UIControls/ExponentialSliderCore.h
+	UIControls/FixedTickSliderCore.cpp
+	UIControls/FixedTickSliderCore.h
+	UIControls/ISliderCore.h
+	UIControls/LinearSliderCore.cpp
+	UIControls/LinearSliderCore.h
+	UIControls/ScalarTimeSeriesProbeControl.cpp
+	UIControls/ScalarTimeSeriesProbeControl.h
+	UIControls/SliderControl.h
+)
+
 source_group(" " FILES ${SPRING_LAB_SOURCES})
+source_group("UIControls" FILES ${UI_CONTROLS_SOURCES})
 
 set(RESOURCE_FILES "")
 if (MSVC)
@@ -43,7 +55,7 @@ endif (MSVC)
 
 source_group("Resources" FILES ${RESOURCE_FILES})
 
-add_executable (SpringLab ${SPRING_LAB_SOURCES} ${RESOURCE_FILES})
+add_executable (SpringLab ${SPRING_LAB_SOURCES} ${UI_CONTROLS_SOURCES} ${RESOURCE_FILES})
 
 target_include_directories(SpringLab PRIVATE .)
 target_include_directories(SpringLab PRIVATE ${wxWidgets_INCLUDE_DIRS})

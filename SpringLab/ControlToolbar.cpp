@@ -43,6 +43,38 @@ ControlToolbar::ControlToolbar(wxWindow* parent)
 
     wxBoxSizer * vSizer = new wxBoxSizer(wxVERTICAL);
 
+    // Simulator type
+    {
+        {
+            wxStaticText * label = new wxStaticText(this, wxID_ANY, "Simulator:");
+
+            vSizer->Add(label, 0, wxALIGN_LEFT | wxLEFT | wxTOP, 5);
+        }
+
+        {
+            mSimulatorTypeChoice = new wxChoice(
+                this,
+                ID_SIMULATOR_TYPE,
+                wxDefaultPosition, wxDefaultSize);
+
+            // Populate
+            for (auto const & simulatorTypeName : SimulatorRegistry::GetSimulatorTypeNames())
+            {
+                mSimulatorTypeChoice->Append(simulatorTypeName);
+            }
+
+            mSimulatorTypeChoice->Select(0); // Select first
+
+            mSimulatorTypeChoice->Bind(wxEVT_CHOICE, [this](wxCommandEvent & /*event*/) { OnSimulatorTypeChoiceChanged(); });
+
+            mSimulatorTypeChoice->SetToolTip("Change the algorithm for the simulation of the mass-spring network");
+
+            vSizer->Add(mSimulatorTypeChoice, 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
+        }
+    }
+
+    vSizer->AddSpacer(10);
+
     // Simulation control
     {
         wxGridSizer * gridSizer = new wxGridSizer(2, 2, 2);
@@ -161,7 +193,7 @@ ControlToolbar::ControlToolbar(wxWindow* parent)
 
             mInitialConditionsMoveButton->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent & /*event*/) { OnInitialConditionsButton(mInitialConditionsMoveButton); });
 
-            mInitialConditionsMoveButton->SetToolTip("Move particles");
+            mInitialConditionsMoveButton->SetToolTip("Move particles (M)");
 
             gridSizer->Add(mInitialConditionsMoveButton);
         }
@@ -178,7 +210,7 @@ ControlToolbar::ControlToolbar(wxWindow* parent)
 
             mInitialConditionsPinButton->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent & /*event*/) { OnInitialConditionsButton(mInitialConditionsPinButton); });
 
-            mInitialConditionsPinButton->SetToolTip("Pin particles to their current positions");
+            mInitialConditionsPinButton->SetToolTip("Pin particles to their current positions (P)");
 
             gridSizer->Add(mInitialConditionsPinButton);
         }
@@ -205,28 +237,6 @@ ControlToolbar::ControlToolbar(wxWindow* parent)
 
     vSizer->AddSpacer(10);
 
-    // Simulator type
-    {
-        mSimulatorTypeChoice = new wxChoice(
-            this,
-            ID_SIMULATOR_TYPE,
-            wxDefaultPosition, wxDefaultSize);
-
-        // Populate
-        for (auto const & simulatorTypeName : SimulatorRegistry::GetSimulatorTypeNames())
-        {
-            mSimulatorTypeChoice->Append(simulatorTypeName);
-        }
-
-        mSimulatorTypeChoice->Select(0); // Select first
-
-        mSimulatorTypeChoice->Bind(wxEVT_CHOICE, [this](wxCommandEvent & /*event*/) { OnSimulatorTypeChoiceChanged(); });
-
-        mSimulatorTypeChoice->SetToolTip("Change the simulator for the mass-spring network");
-
-        vSizer->Add(mSimulatorTypeChoice, 0, wxALIGN_CENTER | wxALL, 5);
-    }
-
     this->SetSizer(vSizer);
 }
 
@@ -243,6 +253,7 @@ bool ControlToolbar::ProcessKeyDown(
         // Pause
         if (!mSimulationControlPauseButton->GetValue())
         {
+            mSimulationControlPauseButton->SetFocus();
             mSimulationControlPauseButton->SetValue(true);
             OnSimulationControlButton(mSimulationControlPauseButton);
             return true;
@@ -253,8 +264,29 @@ bool ControlToolbar::ProcessKeyDown(
         // Step
         if (mSimulationControlPauseButton->GetValue())
         {
-            wxCommandEvent evt(wxEVT_BUTTON, ID_SIMULATION_CONTROL_STEP);
-            mSimulationControlStepButton->Command(evt);
+            OnSimulationControlStepButton();
+            return true;
+        }
+    }
+    else if (keyCode == 'M')
+    {
+        // Move
+        if (!mInitialConditionsMoveButton->GetValue())
+        {
+            mInitialConditionsMoveButton->SetFocus();
+            mInitialConditionsMoveButton->SetValue(true);
+            OnInitialConditionsButton(mInitialConditionsMoveButton);
+            return true;
+        }
+    }
+    else if (keyCode == 'P')
+    {
+        // Pin
+        if (!mInitialConditionsPinButton->GetValue())
+        {
+            mInitialConditionsPinButton->SetFocus();
+            mInitialConditionsPinButton->SetValue(true);
+            OnInitialConditionsButton(mInitialConditionsPinButton);
             return true;
         }
     }

@@ -417,7 +417,7 @@ void MainFrame::OnKeyDown(wxKeyEvent & event)
     }
     else if (mControlToolbar->ProcessKeyDown(event.GetKeyCode(), event.GetModifiers()))
     {
-
+        // Processed
     }
     else
     {
