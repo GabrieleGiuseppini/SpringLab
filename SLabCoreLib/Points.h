@@ -7,7 +7,6 @@
 
 #include "AABB.h"
 #include "Buffer.h"
-#include "BufferAllocator.h"
 #include "ElementContainer.h"
 #include "ElementIndexRangeIterator.h"
 #include "FixedSizeVector.h"
@@ -69,11 +68,6 @@ public:
         , mFactoryRenderColorBuffer(mBufferElementCount, pointCount, vec4f::zero())
         , mRenderNormRadiusBuffer(mBufferElementCount, pointCount, 0.0f)
         , mRenderHighlightBuffer(mBufferElementCount, pointCount, 0.0f)
-        //////////////////////////////////
-        // Misc
-        //////////////////////////////////
-        , mFloatBufferAllocator(mBufferElementCount)
-        , mVec2fBufferAllocator(mBufferElementCount)
     {
     }
 
@@ -118,14 +112,6 @@ public:
         return mPositionBuffer.data();
     }
 
-    std::shared_ptr<Buffer<vec2f>> MakePositionBufferCopy()
-    {
-        auto positionBufferCopy = mVec2fBufferAllocator.Allocate();
-        positionBufferCopy->copy_from(mPositionBuffer);
-
-        return positionBufferCopy;
-    }
-
     void SetPosition(
         ElementIndex pointElementIndex,
         vec2f const & value) noexcept
@@ -146,14 +132,6 @@ public:
     vec2f * GetVelocityBuffer() noexcept
     {
         return mVelocityBuffer.data();
-    }
-
-    std::shared_ptr<Buffer<vec2f>> MakeVelocityBufferCopy()
-    {
-        auto velocityBufferCopy = mVec2fBufferAllocator.Allocate();
-        velocityBufferCopy->copy_from(mVelocityBuffer);
-
-        return velocityBufferCopy;
     }
 
     void SetVelocity(
@@ -293,20 +271,6 @@ public:
         return mRenderHighlightBuffer.data();
     }
 
-    //
-    // Temporary buffer
-    //
-
-    std::shared_ptr<Buffer<float>> AllocateWorkBufferFloat() const
-    {
-        return mFloatBufferAllocator.Allocate();
-    }
-
-    std::shared_ptr<Buffer<vec2f>> AllocateWorkBufferVec2f() const
-    {
-        return mVec2fBufferAllocator.Allocate();
-    }
-
 private:
 
     //////////////////////////////////////////////////////////
@@ -343,13 +307,4 @@ private:
     Buffer<vec4f> mFactoryRenderColorBuffer;
     Buffer<float> mRenderNormRadiusBuffer;
     Buffer<float> mRenderHighlightBuffer;
-
-
-    //////////////////////////////////////////////////////////
-    // Misc
-    //////////////////////////////////////////////////////////
-
-    // Allocators for work buffers
-    BufferAllocator<float> mutable mFloatBufferAllocator;
-    BufferAllocator<vec2f> mutable mVec2fBufferAllocator;
 };

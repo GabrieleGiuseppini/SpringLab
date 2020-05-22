@@ -6,7 +6,6 @@
 #pragma once
 
 #include "Buffer.h"
-#include "BufferAllocator.h"
 #include "Colors.h"
 #include "ElementContainer.h"
 #include "FixedSizeVector.h"
@@ -51,10 +50,6 @@ public:
         , mFactoryRenderColorBuffer(mBufferElementCount, mElementCount, vec4f::zero())
         , mRenderNormThicknessBuffer(mBufferElementCount, mElementCount, 0.0f)
         , mRenderHighlightBuffer(mBufferElementCount, mElementCount, 0.0f)
-        //////////////////////////////////
-        // Misc
-        //////////////////////////////////
-        , mFloatBufferAllocator(mBufferElementCount)
     {
     }
 
@@ -180,15 +175,6 @@ public:
         return mRenderHighlightBuffer.data();
     }
 
-    //
-    // Temporary buffer
-    //
-
-    std::shared_ptr<Buffer<float>> AllocateWorkBufferFloat()
-    {
-        return mFloatBufferAllocator.Allocate();
-    }
-
 private:
 
     //////////////////////////////////////////////////////////
@@ -216,11 +202,4 @@ private:
     Buffer<vec4f> mFactoryRenderColorBuffer;
     Buffer<float> mRenderNormThicknessBuffer;
     Buffer<float> mRenderHighlightBuffer;
-
-    //////////////////////////////////////////////////////////
-    // Misc
-    //////////////////////////////////////////////////////////
-
-    // Allocators for work buffers
-    BufferAllocator<float> mFloatBufferAllocator;
 };

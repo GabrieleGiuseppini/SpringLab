@@ -172,7 +172,13 @@
 	+ Test w/shader error
 	+ Test w/OpenGL version
 
-- Nuke BufferAllocator & AllocWorkBuffer/Copy methods?
++ Nuke BufferAllocator & AllocWorkBuffer/Copy methods
+
+- SettingsDialog
+	- On toolbar, together with Reset and Open
+		- "Actions"
+		- Leave in menu, and add "Settings..."
+	- One static box per common + each simulator
 
 = UI:		
 	= ControlToolBar (left):
@@ -191,9 +197,6 @@
 	- Application Icons
 
 	- Load Object
-
-- SettingsDialog
-	- One static box per common + each simulator
 
 -------------------------------------------------------
 

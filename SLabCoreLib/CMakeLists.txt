@@ -6,7 +6,6 @@
 set  (SOURCES
 	AABB.h
 	Buffer.h
-	BufferAllocator.h
 	CircularList.h
 	Colors.cpp
 	Colors.h
