@@ -9,6 +9,8 @@
 #include "ControlToolbar.h"
 #include "LoggingDialog.h"
 #include "ProbeToolbar.h"
+#include "SettingsDialog.h"
+#include "SettingsManager.h"
 #include "ToolController.h"
 
 #include <SLabCoreLib/SimulationController.h>
@@ -47,6 +49,8 @@ private:
     wxBoxSizer * mMainPanelVSizer;
     wxBoxSizer * mMainPanelTopHSizer;
 
+    bool mIsMouseCapturedByGLCanvas;
+
     //
     // Canvas
     //
@@ -58,6 +62,7 @@ private:
     // Controls that we're interacting with
     //
 
+    wxMenuItem * mReloadLastModifiedSettingsMenuItem;
     wxMenuItem * mFullScreenMenuItem;
     wxMenuItem * mNormalScreenMenuItem;
 
@@ -72,6 +77,7 @@ private:
     // Dialogs
     //
 
+    std::unique_ptr<SettingsDialog> mSettingsDialog;
     std::unique_ptr<AboutDialog> mAboutDialog;
     std::unique_ptr<LoggingDialog> mLoggingDialog;
 
@@ -88,6 +94,7 @@ private:
     //
 
     // App
+    void OnMainFrameClose(wxCloseEvent & event);
     void OnQuit(wxCommandEvent & event);
     void OnKeyDown(wxKeyEvent & event);
 
@@ -109,6 +116,8 @@ private:
     void OnZoomInMenuItemSelected(wxCommandEvent & event);
     void OnZoomOutMenuItemSelected(wxCommandEvent & event);
     void OnResetViewMenuItemSelected(wxCommandEvent & event);
+    void OnOpenSettingsWindowMenuItemSelected(wxCommandEvent & event);
+    void OnReloadLastModifiedSettingsMenuItem(wxCommandEvent & event);
     void OnOpenLogWindowMenuItemSelected(wxCommandEvent & event);
     void OnFullScreenMenuItemSelected(wxCommandEvent & event);
     void OnNormalScreenMenuItemSelected(wxCommandEvent & event);
@@ -143,6 +152,7 @@ private:
     //
 
     std::shared_ptr<SimulationController> mSimulationController;
+    std::shared_ptr<SettingsManager> mSettingsManager;
     std::unique_ptr<ToolController> mToolController;
 
     //

@@ -30,6 +30,10 @@ public:
 
     static long const ID_SIMULATOR_TYPE;
 
+    static long const ID_ACTION_RESET;
+    static long const ID_ACTION_LOAD_OBJECT;
+    static long const ID_ACTION_SETTINGS;
+
 public:
 
     ControlToolbar(wxWindow* parent);
@@ -45,6 +49,9 @@ private:
     void OnSimulationControlButton(wxBitmapToggleButton * button);
     void OnSimulationControlStepButton();
     void OnInitialConditionsButton(wxBitmapToggleButton * button);
+    void OnActionResetButton();
+    void OnActionLoadObjectButton();
+    void OnActionSettingsButton();
     void OnSimulatorTypeChoiceChanged();
 
 private:

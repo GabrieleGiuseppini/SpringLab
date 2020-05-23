@@ -52,6 +52,8 @@ SimulationController::SimulationController(
     , mCurrentObjectName()
     , mCurrentObjectDefinitionFilepath()
     , mIsSimulationStateDirty(false)
+    // Parameters
+    , mDoRenderAssignedParticleForces(false)
     // Stats
     , mOriginTimestamp(SLabWallClock::time_point::max())
 {
@@ -129,14 +131,14 @@ void SimulationController::UpdateSimulation()
     auto const updateEndTimestamp = std::chrono::steady_clock::now();
 
     // Update simulation time
-    mCurrentSimulationTime += mSimulationParameters.SimulationStepTimeDuration<float>;
+    mCurrentSimulationTime += mSimulationParameters.Common.SimulationTimeStepDuration;
 
     ////////////////////////////////////////////////////////
     // Book-Keeping
     ////////////////////////////////////////////////////////
 
     // Update stats
-    mCurrentSimulationTime += SimulationParameters::SimulationStepTimeDuration<float>;
+    mCurrentSimulationTime += mSimulationParameters.Common.SimulationTimeStepDuration;
     ++mTotalSimulationSteps;
 
     // publish stats
@@ -191,9 +193,9 @@ RgbImageData SimulationController::TakeScreenshot()
 // Simulation parameters
 /////////////////////////////////////////////////////////////////////////////////
 
-void SimulationController::EnableGravity(bool isEnabled)
+void SimulationController::SetCommonDoApplyGravity(bool value)
 {
-    if (isEnabled)
+    if (value)
     {
         mSimulationParameters.Common.AssignedGravity = SimulationParameters::Gravity;
     }

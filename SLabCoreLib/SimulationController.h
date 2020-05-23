@@ -144,8 +144,26 @@ public:
     // Simmulation parameters
     //
 
-    bool IsGravityEnabled() const { return mSimulationParameters.Common.AssignedGravity != vec2f::zero(); }
-    void EnableGravity(bool isEnabled);
+    float GetCommonSimulationTimeStepDuration() const { return mSimulationParameters.Common.SimulationTimeStepDuration; }
+    void SetCommonSimulationTimeStepDuration(float value) { mSimulationParameters.Common.SimulationTimeStepDuration = value; mIsSimulationStateDirty = true; }
+
+    float GetCommonMassAdjustment() const { return mSimulationParameters.Common.MassAdjustment; }
+    void SetCommonMassAdjustment(float value) { mSimulationParameters.Common.MassAdjustment = value; mIsSimulationStateDirty = true; }
+    float GetCommonMinMassAdjustment() const { return CommonSimulatorParameters::MinMassAdjustment; }
+    float GetCommonMaxMassAdjustment() const { return CommonSimulatorParameters::MaxMassAdjustment; }
+
+    float GetCommonGravityAdjustment() const { return mSimulationParameters.Common.GravityAdjustment; }
+    void SetCommonGravityAdjustment(float value) { mSimulationParameters.Common.GravityAdjustment = value; mIsSimulationStateDirty = true; }
+    float GetCommonMinGravityAdjustment() const { return CommonSimulatorParameters::MinGravityAdjustment; }
+    float GetCommonMaxGravityAdjustment() const { return CommonSimulatorParameters::MaxGravityAdjustment; }
+
+    bool GetCommonDoApplyGravity() const { return mSimulationParameters.Common.AssignedGravity != vec2f::zero(); }
+    void SetCommonDoApplyGravity(bool value);
+
+    float GetCommonGlobalDamping() const { return mSimulationParameters.Common.GlobalDamping; }
+    void SetCommonGlobalDamping(float value) { mSimulationParameters.Common.GlobalDamping = value; mIsSimulationStateDirty = true; }
+    float GetCommonMinGlobalDamping() const { return CommonSimulatorParameters::MinGlobalDamping; }
+    float GetCommonMaxGlobalDamping() const { return CommonSimulatorParameters::MaxGlobalDamping; }
 
     float GetClassicSimulatorSpringReductionFraction() const { return mSimulationParameters.ClassicSimulator.SpringReductionFraction; }
     void SetClassicSimulatorSpringReductionFraction(float value) { mSimulationParameters.ClassicSimulator.SpringReductionFraction = value; mIsSimulationStateDirty = true; }
@@ -156,6 +174,13 @@ public:
     void SetClassicSimulatorSpringDampingCoefficient(float value) { mSimulationParameters.ClassicSimulator.SpringDampingCoefficient = value; mIsSimulationStateDirty = true; }
     float GetClassicSimulatorMinSpringDampingCoefficient() const { return ClassicSimulatorParameters::MinSpringDampingCoefficient; }
     float GetClassicSimulatorMaxSpringDampingCoefficient() const { return ClassicSimulatorParameters::MaxSpringDampingCoefficient; }
+
+    //
+    // Own parameters
+    //
+
+    bool GetDoRenderAssignedParticleForces() const { return mDoRenderAssignedParticleForces; }
+    void SetDoRenderAssignedParticleForces(bool value) { mDoRenderAssignedParticleForces = value; }
 
 private:
 
@@ -193,6 +218,12 @@ private:
     std::filesystem::path mCurrentObjectDefinitionFilepath;
 
     bool mIsSimulationStateDirty;
+
+    //
+    // Own parameters
+    //
+
+    bool mDoRenderAssignedParticleForces;
 
     //
     // Stats

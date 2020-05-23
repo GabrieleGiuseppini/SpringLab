@@ -22,7 +22,9 @@ public:
         return *mSingleInstance;
     }
 
-    std::filesystem::path GetUserPicturesGameFolderPath() const;
+    std::filesystem::path GetUserPicturesSimulatorFolderPath() const;
+
+    std::filesystem::path GetUserSimulatorSettingsRootFolderPath() const;
 
 private:
 

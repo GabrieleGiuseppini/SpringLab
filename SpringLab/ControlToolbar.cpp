@@ -31,6 +31,10 @@ long const ControlToolbar::ID_INITIAL_CONDITIONS_PARTICLE_FORCE = wxNewId();
 
 long const ControlToolbar::ID_SIMULATOR_TYPE = wxNewId();
 
+long const ControlToolbar::ID_ACTION_RESET = wxNewId();
+long const ControlToolbar::ID_ACTION_LOAD_OBJECT = wxNewId();
+long const ControlToolbar::ID_ACTION_SETTINGS = wxNewId();
+
 ControlToolbar::ControlToolbar(wxWindow* parent)
     : wxPanel(
         parent,
@@ -237,6 +241,87 @@ ControlToolbar::ControlToolbar(wxWindow* parent)
 
     vSizer->AddSpacer(10);
 
+    // Action
+    {
+        wxGridSizer * gridSizer = new wxGridSizer(2, 2, 2);
+
+        // Reset
+        {
+            auto button = new wxButton(
+                this,
+                ID_ACTION_RESET,
+                wxEmptyString, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
+
+            button->SetBitmap(
+                wxBitmap(
+                    (ResourceLocator::GetResourcesFolderPath() / "reset_icon.png").string(),
+                    wxBITMAP_TYPE_PNG));
+
+            button->Bind(
+                wxEVT_BUTTON,
+                [this](wxCommandEvent & /*event*/)
+                {
+                    OnActionResetButton();
+                });
+
+            button->SetToolTip("Reset the simulation");
+
+            gridSizer->Add(button);
+        }
+
+        // Load
+        {
+            auto button = new wxButton(
+                this,
+                ID_ACTION_LOAD_OBJECT,
+                wxEmptyString, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
+
+            button->SetBitmap(
+                wxBitmap(
+                    (ResourceLocator::GetResourcesFolderPath() / "open_icon.png").string(),
+                    wxBITMAP_TYPE_PNG));
+
+            button->Bind(
+                wxEVT_BUTTON,
+                [this](wxCommandEvent & /*event*/)
+                {
+                    OnActionLoadObjectButton();
+                });
+
+            button->SetToolTip("Load a new object");
+
+            gridSizer->Add(button);
+        }
+
+        // Settings
+        {
+            auto button = new wxButton(
+                this,
+                ID_ACTION_SETTINGS,
+                wxEmptyString, wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
+
+            button->SetBitmap(
+                wxBitmap(
+                    (ResourceLocator::GetResourcesFolderPath() / "settings_icon.png").string(),
+                    wxBITMAP_TYPE_PNG));
+
+            button->Bind(
+                wxEVT_BUTTON,
+                [this](wxCommandEvent & /*event*/)
+                {
+                    OnActionSettingsButton();
+                });
+
+            button->SetToolTip("Adjust the simulation's settings");
+
+            gridSizer->Add(button);
+        }
+
+        vSizer->Add(gridSizer, 0, wxALIGN_CENTER | wxALL, 5);
+    }
+
+    vSizer->AddSpacer(10);
+
     this->SetSizer(vSizer);
 }
 
@@ -246,7 +331,7 @@ ControlToolbar::~ControlToolbar()
 
 bool ControlToolbar::ProcessKeyDown(
     int keyCode,
-    int /*keyModifiers*/)
+    int keyModifiers)
 {
     if (keyCode == WXK_SPACE)
     {
@@ -289,6 +374,24 @@ bool ControlToolbar::ProcessKeyDown(
             OnInitialConditionsButton(mInitialConditionsPinButton);
             return true;
         }
+    }
+    else if (keyCode == 'R' && keyModifiers == wxMOD_CONTROL)
+    {
+        // Reset
+        OnActionResetButton();
+        return true;
+    }
+    else if (keyCode == 'O' && keyModifiers == wxMOD_CONTROL)
+    {
+        // Load
+        OnActionLoadObjectButton();
+        return true;
+    }
+    else if (keyCode == 'S' && keyModifiers == wxMOD_CONTROL)
+    {
+        // Settings
+        OnActionSettingsButton();
+        return true;
     }
 
     return false;
@@ -403,6 +506,24 @@ void ControlToolbar::OnInitialConditionsButton(wxBitmapToggleButton * button)
             button->SetValue(true);
         }
     }
+}
+
+void ControlToolbar::OnActionResetButton()
+{
+    wxCommandEvent evt(wxEVT_TOOLBAR_ACTION, ID_ACTION_RESET);
+    ProcessEvent(evt);
+}
+
+void ControlToolbar::OnActionLoadObjectButton()
+{
+    wxCommandEvent evt(wxEVT_TOOLBAR_ACTION, ID_ACTION_LOAD_OBJECT);
+    ProcessEvent(evt);
+}
+
+void ControlToolbar::OnActionSettingsButton()
+{
+    wxCommandEvent evt(wxEVT_TOOLBAR_ACTION, ID_ACTION_SETTINGS);
+    ProcessEvent(evt);
 }
 
 void ControlToolbar::OnSimulatorTypeChoiceChanged()

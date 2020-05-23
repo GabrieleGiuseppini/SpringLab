@@ -15,6 +15,10 @@ set  (SPRING_LAB_SOURCES
 	MainFrame.h
 	ProbeToolbar.cpp
 	ProbeToolbar.h
+	SettingsDialog.cpp
+	SettingsDialog.h
+	SettingsManager.cpp
+	SettingsManager.h
 	StandardSystemPaths.cpp
 	StandardSystemPaths.h
 	ToolController.cpp
@@ -30,11 +34,14 @@ set  (UI_CONTROLS_SOURCES
 	UIControls/ExponentialSliderCore.h
 	UIControls/FixedTickSliderCore.cpp
 	UIControls/FixedTickSliderCore.h
+	UIControls/IntegralLinearSliderCore.h
 	UIControls/ISliderCore.h
 	UIControls/LinearSliderCore.cpp
 	UIControls/LinearSliderCore.h
 	UIControls/ScalarTimeSeriesProbeControl.cpp
 	UIControls/ScalarTimeSeriesProbeControl.h
+	UIControls/SimulationTimeStepSliderCore.cpp
+	UIControls/SimulationTimeStepSliderCore.h
 	UIControls/SliderControl.h
 )
 

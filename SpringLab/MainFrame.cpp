@@ -47,6 +47,8 @@ long const ID_ZOOM_IN_MENUITEM = wxNewId();
 long const ID_ZOOM_OUT_MENUITEM = wxNewId();
 long const ID_RESET_VIEW_MENUITEM = wxNewId();
 
+long const ID_OPEN_SETTINGS_WINDOW_MENUITEM = wxNewId();
+long const ID_RELOAD_LAST_MODIFIED_SETTINGS_MENUITEM = wxNewId();
 long const ID_OPEN_LOG_WINDOW_MENUITEM = wxNewId();
 long const ID_FULL_SCREEN_MENUITEM = wxNewId();
 long const ID_NORMAL_SCREEN_MENUITEM = wxNewId();
@@ -56,8 +58,11 @@ long const ID_ABOUT_MENUITEM = wxNewId();
 long const ID_SIMULATION_TIMER = wxNewId();
 
 MainFrame::MainFrame(wxApp * mainApp)
-    : mMainApp(mainApp)
+    : mIsMouseCapturedByGLCanvas(false)
+    , mMainApp(mainApp)
     , mSimulationController()
+    , mSettingsManager()
+    , mToolController()
     , mSimulationControlState(static_cast<SimulationControlStateType>(0))
     , mSimulationControlImpulse(false)
     , mLastSimulationStepTimestamp(std::chrono::steady_clock::time_point::min())
@@ -74,6 +79,8 @@ MainFrame::MainFrame(wxApp * mainApp)
     SetIcon(wxICON(BBB_SLAB_ICON));
     SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
     Centre();
+
+    Bind(wxEVT_CLOSE_WINDOW, &MainFrame::OnMainFrameClose, this);
 
     mMainPanel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxWANTS_CHARS);
     mMainPanel->Bind(wxEVT_CHAR_HOOK, &MainFrame::OnKeyDown, this);
@@ -145,6 +152,10 @@ MainFrame::MainFrame(wxApp * mainApp)
         mControlToolbar->Connect(ControlToolbar::ID_INITIAL_CONDITIONS_PIN, ControlToolbar::wxEVT_TOOLBAR_ACTION, (wxObjectEventFunction)&MainFrame::OnInitialConditionsPin, 0, this);
         mControlToolbar->Connect(ControlToolbar::ID_INITIAL_CONDITIONS_PARTICLE_FORCE, ControlToolbar::wxEVT_TOOLBAR_ACTION, (wxObjectEventFunction)&MainFrame::OnInitialConditionsParticleForce, 0, this);
         mControlToolbar->Connect(ControlToolbar::ID_SIMULATOR_TYPE, ControlToolbar::wxEVT_TOOLBAR_ACTION, (wxObjectEventFunction)&MainFrame::OnSimulatorTypeChanged, 0, this);
+        mControlToolbar->Connect(ControlToolbar::ID_ACTION_RESET, ControlToolbar::wxEVT_TOOLBAR_ACTION, (wxObjectEventFunction)&MainFrame::OnResetMenuItemSelected, 0, this);
+        mControlToolbar->Connect(ControlToolbar::ID_ACTION_LOAD_OBJECT, ControlToolbar::wxEVT_TOOLBAR_ACTION, (wxObjectEventFunction)&MainFrame::OnLoadObjectMenuItemSelected, 0, this);
+        mControlToolbar->Connect(ControlToolbar::ID_ACTION_SETTINGS, ControlToolbar::wxEVT_TOOLBAR_ACTION, (wxObjectEventFunction)&MainFrame::OnOpenSettingsWindowMenuItemSelected, 0, this);
+
         mMainPanelTopHSizer->Add(
             mControlToolbar,
             0,                  // Use own horizontal size
@@ -260,6 +271,16 @@ MainFrame::MainFrame(wxApp * mainApp)
 
         wxMenu * optionsMenu = new wxMenu();
 
+        wxMenuItem * openSettingsWindowMenuItem = new wxMenuItem(optionsMenu, ID_OPEN_SETTINGS_WINDOW_MENUITEM, _("Simulation Settings...\tCtrl+S"), wxEmptyString, wxITEM_NORMAL);
+        optionsMenu->Append(openSettingsWindowMenuItem);
+        Connect(ID_OPEN_SETTINGS_WINDOW_MENUITEM, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&MainFrame::OnOpenSettingsWindowMenuItemSelected);
+
+        mReloadLastModifiedSettingsMenuItem = new wxMenuItem(optionsMenu, ID_RELOAD_LAST_MODIFIED_SETTINGS_MENUITEM, _("Reload Last-Modified Simulation Settings\tCtrl+D"), wxEmptyString, wxITEM_NORMAL);
+        optionsMenu->Append(mReloadLastModifiedSettingsMenuItem);
+        Connect(ID_RELOAD_LAST_MODIFIED_SETTINGS_MENUITEM, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&MainFrame::OnReloadLastModifiedSettingsMenuItem);
+
+        optionsMenu->Append(new wxMenuItem(optionsMenu, wxID_SEPARATOR));
+
         wxMenuItem * openLogWindowMenuItem = new wxMenuItem(optionsMenu, ID_OPEN_LOG_WINDOW_MENUITEM, _("Open Log Window\tCtrl+L"), wxEmptyString, wxITEM_NORMAL);
         optionsMenu->Append(openLogWindowMenuItem);
         Connect(ID_OPEN_LOG_WINDOW_MENUITEM, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&MainFrame::OnOpenLogWindowMenuItemSelected);
@@ -322,6 +343,17 @@ MainFrame::MainFrame(wxApp * mainApp)
     }
 
     //
+    // Create Settings Manager
+    //
+
+    mSettingsManager = std::make_shared<SettingsManager>(
+        mSimulationController,
+        StandardSystemPaths::GetInstance().GetUserSimulatorSettingsRootFolderPath());
+
+    // Enable "Reload Last Modified Settings" menu if we have last-modified settings
+    mReloadLastModifiedSettingsMenuItem->Enable(mSettingsManager->HasLastModifiedSettingsPersisted());
+
+    //
     // Create Tool Controller
     //
 
@@ -372,6 +404,14 @@ MainFrame::~MainFrame()
 //
 // App event handlers
 //
+
+void MainFrame::OnMainFrameClose(wxCloseEvent & /*event*/)
+{
+    if (!!mSettingsManager)
+        mSettingsManager->SaveLastModifiedSettings();
+
+    Destroy();
+}
 
 void MainFrame::OnQuit(wxCommandEvent & /*event*/)
 {
@@ -460,10 +500,24 @@ void MainFrame::OnMainGLCanvasLeftDown(wxMouseEvent & /*event*/)
 {
     assert(!!mToolController);
     mToolController->OnLeftMouseDown();
+
+    // Hang on to the mouse for as long as the button is pressed
+    if (!mIsMouseCapturedByGLCanvas)
+    {
+        mMainGLCanvas->CaptureMouse();
+        mIsMouseCapturedByGLCanvas = true;
+    }
 }
 
 void MainFrame::OnMainGLCanvasLeftUp(wxMouseEvent & /*event*/)
 {
+    // We can now release the mouse
+    if (mIsMouseCapturedByGLCanvas)
+    {
+        mMainGLCanvas->ReleaseMouse();
+        mIsMouseCapturedByGLCanvas = false;
+    }
+
     assert(!!mToolController);
     mToolController->OnLeftMouseUp();
 }
@@ -472,10 +526,24 @@ void MainFrame::OnMainGLCanvasRightDown(wxMouseEvent & /*event*/)
 {
     assert(!!mToolController);
     mToolController->OnRightMouseDown();
+
+    // Hang on to the mouse for as long as the button is pressed
+    if (!mIsMouseCapturedByGLCanvas)
+    {
+        mMainGLCanvas->CaptureMouse();
+        mIsMouseCapturedByGLCanvas = true;
+    }
 }
 
 void MainFrame::OnMainGLCanvasRightUp(wxMouseEvent & /*event*/)
 {
+    // We can now release the mouse
+    if (mIsMouseCapturedByGLCanvas)
+    {
+        mMainGLCanvas->ReleaseMouse();
+        mIsMouseCapturedByGLCanvas = false;
+    }
+
     assert(!!mToolController);
     mToolController->OnRightMouseUp();
 }
@@ -526,7 +594,7 @@ void MainFrame::OnSaveScreenshotMenuItemSelected(wxCommandEvent & /*event*/)
     // Ensure pictures folder exists
     //
 
-    auto const folderPath = StandardSystemPaths::GetInstance().GetUserPicturesGameFolderPath();
+    auto const folderPath = StandardSystemPaths::GetInstance().GetUserPicturesSimulatorFolderPath();
 
     if (!std::filesystem::exists(folderPath))
     {
@@ -613,6 +681,36 @@ void MainFrame::OnZoomOutMenuItemSelected(wxCommandEvent & /*event*/)
 
 ////////////////////////////////////////////////////////////////////////////
 
+void MainFrame::OnOpenSettingsWindowMenuItemSelected(wxCommandEvent & /*event*/)
+{
+    if (!mSettingsDialog)
+    {
+        mSettingsDialog = std::make_unique<SettingsDialog>(
+            this,
+            mSettingsManager,
+            mSimulationController);
+    }
+
+    mSettingsDialog->Open();
+}
+
+void MainFrame::OnReloadLastModifiedSettingsMenuItem(wxCommandEvent & /*event*/)
+{
+    // Load last-modified settings
+    try
+    {
+        assert(!!mSettingsManager);
+        mSettingsManager->EnforceDefaultsAndLastModifiedSettings();
+    }
+    catch (std::exception const & exc)
+    {
+        OnError("Could not load last-modified settings: " + std::string(exc.what()), false);
+
+        // Disable menu item
+        mReloadLastModifiedSettingsMenuItem->Enable(false);
+    }
+}
+
 void MainFrame::OnOpenLogWindowMenuItemSelected(wxCommandEvent & /*event*/)
 {
     if (!mLoggingDialog)
@@ -672,7 +770,7 @@ void MainFrame::OnSimulationControlStep(wxCommandEvent & /*event*/)
 void MainFrame::OnInitialConditionsGravity(wxCommandEvent & event)
 {
     assert(!!mSimulationController);
-    mSimulationController->EnableGravity(event.GetInt() != 0);
+    mSimulationController->SetCommonDoApplyGravity(event.GetInt() != 0);
 }
 
 void MainFrame::OnInitialConditionsMove(wxCommandEvent & /*event*/)

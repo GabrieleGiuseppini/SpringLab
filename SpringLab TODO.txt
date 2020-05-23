@@ -163,7 +163,7 @@
 			- When Particle Force engaged: at click/particle selection, open window for {direction & magnitude}, {remove}
 		- Sets via Points::SetAssignedForce(...)
 		- Render: uploaded as vectors by SimulationController at Render()
-			- Enabled/Disabled by menu item => SimulationController::mDoRenderParticleForces
+			- Enabled/Disabled by menu item => SimulationController::mDoRenderAssignedParticleForces
 
 + MT RenderContext: exceptions
 	+ The thing that's ahred_ptr is the TaskCompletion
@@ -174,22 +174,33 @@
 
 + Nuke BufferAllocator & AllocWorkBuffer/Copy methods
 
-- SettingsDialog
-	- On toolbar, together with Reset and Open
-		- "Actions"
-		- Leave in menu, and add "Settings..."
-	- One static box per common + each simulator
-
++ SettingsDialog
+	+ Settings
+	+ SettingsManager
+		+ Create @ MainFrame
+		+ Takes SimulationController directly
+	+ CommonParams, SimulationController and SettingsManager:
+		+ Gravity
+		+ dt
+		+ MassAdjustment
+		+ GlobalDamping
+	+ Dialog
+		+ One static box per common + each simulator
+	+ Use params @ Simulator
+	+ Open via toolbar, together with Reset and Open
+		+ "Actions"
+		+ Leave in menu, and add "Settings..."
+	
 = UI:		
 	= ControlToolBar (left):
 		+ Keyboard shortcuts
 			+ Tooltips
-		= Controls:
+		+ Controls:
 			+ SimulatorType drop-down
 				+ Move up & add "Simulator:" label above
 			+ Simulation control buttons
 			+ Initial conditions buttons
-			- OpenObject, Reset buttons
+			+ OpenObject, Reset buttons
 		- Pass initial state (simulation control state, doGravity, tool)  to toolbar
 	= ProbeToolBar (bottom):
 		+ Migrate EventPanel here
@@ -199,7 +210,6 @@
 	- Load Object
 
 -------------------------------------------------------
-
 
 - Misc:
 	- Check assembly of SimulationController::Render() wrt accesses to mObject->GetSprings()

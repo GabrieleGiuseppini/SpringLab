@@ -17,13 +17,6 @@ struct SimulationParameters
 {
     SimulationParameters();
 
-    //
-    // The dt of each step
-    //
-
-    template <typename T>
-    static constexpr T SimulationStepTimeDuration = 0.02f;
-
 
     //
     // Physical Constants

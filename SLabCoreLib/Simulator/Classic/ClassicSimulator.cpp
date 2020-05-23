@@ -47,7 +47,7 @@ void ClassicSimulator::CreateState(
     Object const & object,
     SimulationParameters const & simulationParameters)
 {
-    float const dt = simulationParameters.SimulationStepTimeDuration<float>;
+    float const dt = simulationParameters.Common.SimulationTimeStepDuration;
 
     float const dtSquared = dt * dt;
 
@@ -63,11 +63,12 @@ void ClassicSimulator::CreateState(
 
         mPointExternalForceBuffer[pointIndex] =
             simulationParameters.Common.AssignedGravity
+            * simulationParameters.Common.MassAdjustment
             + points.GetAssignedForce(pointIndex);
 
         mPointIntegrationFactorBuffer[pointIndex] =
             dtSquared
-            / points.GetMass(pointIndex)
+            / (points.GetMass(pointIndex) * simulationParameters.Common.MassAdjustment)
             * points.GetFrozenCoefficient(pointIndex);
     }
 
@@ -83,9 +84,12 @@ void ClassicSimulator::CreateState(
         auto const endpointAIndex = springs.GetEndpointAIndex(springIndex);
         auto const endpointBIndex = springs.GetEndpointBIndex(springIndex);
 
+        float const endpointAMass = points.GetMass(endpointAIndex) * simulationParameters.Common.MassAdjustment;
+        float const endpointBMass = points.GetMass(endpointBIndex) * simulationParameters.Common.MassAdjustment;
+
         float const massFactor =
-            (points.GetMass(endpointAIndex) * points.GetMass(endpointBIndex))
-            / (points.GetMass(endpointAIndex) + points.GetMass(endpointBIndex));
+            (endpointAMass * endpointBMass)
+            / (endpointAMass + endpointBMass);
 
         // The "stiffness coefficient" is the factor which, once multiplied with the spring displacement,
         // yields the spring force, according to Hooke's law.
@@ -166,19 +170,11 @@ void ClassicSimulator::IntegrateAndResetSpringForces(
     Object & object,
     SimulationParameters const & simulationParameters)
 {
-    float const dt = simulationParameters.SimulationStepTimeDuration<float>;
+    float const dt = simulationParameters.Common.SimulationTimeStepDuration;
 
     // Pre-divide damp by dt to provide the scalar factor which, when multiplied with a displacement,
     // provides the final, damped velocity
     float const velocityFactor = simulationParameters.Common.GlobalDamping / dt;
-
-    //
-    // Take the four buffers that we need as restrict pointers, so that the compiler
-    // can better see it should parallelize this loop as much as possible
-    //
-    // This loop is compiled with single-precision packet SSE instructions on MSVC 17,
-    // integrating two points at each iteration
-    //
 
     vec2f * const restrict positionBuffer = object.GetPoints().GetPositionBuffer();
     vec2f * const restrict velocityBuffer = object.GetPoints().GetVelocityBuffer();

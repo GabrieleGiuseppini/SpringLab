@@ -13,6 +13,7 @@ set  (SOURCES
 	ElementIndexRangeIterator.h
 	EventDispatcher.h
 	FixedSizeVector.h
+	FileSystem.h
 	FloatingPoint.h
 	ImageData.h
 	ImageFileTools.cpp
@@ -31,6 +32,8 @@ set  (SOURCES
 	RenderContext.cpp
 	RenderContext.h
 	ResourceLocator.h
+	Settings.cpp
+	Settings.h
 	ShaderManager.cpp
 	ShaderManager.h
 	SimulationController.cpp
