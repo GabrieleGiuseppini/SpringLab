@@ -31,6 +31,7 @@ BaseSettingsManager<SLabSettings>::BaseSettingsManagerFactory SettingsManager::M
 
     ADD_SETTING(float, ClassicSimulatorSpringReductionFraction);
     ADD_SETTING(float, ClassicSimulatorSpringDampingCoefficient);
+    ADD_SETTING(float, ClassicSimulatorSpringForceInertia);
 
     ADD_SETTING(bool, DoRenderAssignedParticleForces);
 

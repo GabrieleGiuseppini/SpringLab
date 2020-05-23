@@ -8,5 +8,6 @@
 ClassicSimulatorParameters::ClassicSimulatorParameters()
     : SpringReductionFraction(0.4f)
     , SpringDampingCoefficient(0.03f)
+    , SpringForceInertia(1.0f)
 {
 }

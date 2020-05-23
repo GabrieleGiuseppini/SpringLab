@@ -172,10 +172,6 @@ void ClassicSimulator::IntegrateAndResetSpringForces(
 {
     float const dt = simulationParameters.Common.SimulationTimeStepDuration;
 
-    // Pre-divide damp by dt to provide the scalar factor which, when multiplied with a displacement,
-    // provides the final, damped velocity
-    float const velocityFactor = simulationParameters.Common.GlobalDamping / dt;
-
     vec2f * const restrict positionBuffer = object.GetPoints().GetPositionBuffer();
     vec2f * const restrict velocityBuffer = object.GetPoints().GetVelocityBuffer();
     vec2f * const restrict springForceBuffer = mPointSpringForceBuffer.data();
@@ -189,12 +185,17 @@ void ClassicSimulator::IntegrateAndResetSpringForces(
         // Verlet integration (fourth order, with velocity being first order)
         //
 
-        vec2f const deltaPos =
+        positionBuffer[i] +=
             velocityBuffer[i] * dt
             + (springForceBuffer[i] + externalForceBuffer[i]) * integrationFactorBuffer[i];
 
-        positionBuffer[i] += deltaPos;
-        velocityBuffer[i] = deltaPos * velocityFactor;
+        velocityBuffer[i] =
+            (
+                velocityBuffer[i]
+                + springForceBuffer[i] * integrationFactorBuffer[i] / dt * simulationParameters.ClassicSimulator.SpringForceInertia
+                + externalForceBuffer[i] * integrationFactorBuffer[i] / dt
+            )
+            * simulationParameters.Common.GlobalDamping;
 
         // Zero out spring force now that we've integrated it
         springForceBuffer[i] = vec2f::zero();

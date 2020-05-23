@@ -175,6 +175,11 @@ public:
     float GetClassicSimulatorMinSpringDampingCoefficient() const { return ClassicSimulatorParameters::MinSpringDampingCoefficient; }
     float GetClassicSimulatorMaxSpringDampingCoefficient() const { return ClassicSimulatorParameters::MaxSpringDampingCoefficient; }
 
+    float GetClassicSimulatorSpringForceInertia() const { return mSimulationParameters.ClassicSimulator.SpringForceInertia; }
+    void SetClassicSimulatorSpringForceInertia(float value) { mSimulationParameters.ClassicSimulator.SpringForceInertia = value; mIsSimulationStateDirty = true; }
+    float GetClassicSimulatorMinSpringForceInertia() const { return ClassicSimulatorParameters::MinSpringForceInertia; }
+    float GetClassicSimulatorMaxSpringForceInertia() const { return ClassicSimulatorParameters::MaxSpringForceInertia; }
+
     //
     // Own parameters
     //

@@ -22,4 +22,10 @@ struct ClassicSimulatorParameters
     float SpringDampingCoefficient;
     static float constexpr MinSpringDampingCoefficient = 0.0f;
     static float constexpr MaxSpringDampingCoefficient = 1.0f;
+
+    // How much spring forces contribute to the intertia of
+    // a particle
+    float SpringForceInertia;
+    static float constexpr MinSpringForceInertia = 0.0f;
+    static float constexpr MaxSpringForceInertia = 1.0f;
 };

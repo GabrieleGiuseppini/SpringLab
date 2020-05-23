@@ -58,6 +58,7 @@ private:
     // Classic
     SliderControl<float> * mClassicSimulatorSpringReductionFractionSlider;
     SliderControl<float> * mClassicSimulatorSpringDampingCoefficientSlider;
+    SliderControl<float> * mClassicSimulatorSpringForceInertiaSlider;
 
     // Rendering
     wxCheckBox * mDoRenderAssignedParticleForcesCheckBox;
