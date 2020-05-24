@@ -165,6 +165,15 @@
 		- Render: uploaded as vectors by SimulationController at Render()
 			- Enabled/Disabled by menu item => SimulationController::mDoRenderAssignedParticleForces
 
+	- Buoyancy Line
+
++ Decide whether to change spring reduction fraction into spring stiffness, and also damping
+	+ If so, recalc defaults to match FS
+	+ If so, nuke dt's
+	+ & rename both, & Tooltips
+
+- TODO: role of inertia
+	
 + MT RenderContext: exceptions
 	+ The thing that's ahred_ptr is the TaskCompletion
 	+ TaskCompletion stores exc message

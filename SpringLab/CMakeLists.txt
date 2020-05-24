@@ -40,8 +40,6 @@ set  (UI_CONTROLS_SOURCES
 	UIControls/LinearSliderCore.h
 	UIControls/ScalarTimeSeriesProbeControl.cpp
 	UIControls/ScalarTimeSeriesProbeControl.h
-	UIControls/SimulationTimeStepSliderCore.cpp
-	UIControls/SimulationTimeStepSliderCore.h
 	UIControls/SliderControl.h
 )
 

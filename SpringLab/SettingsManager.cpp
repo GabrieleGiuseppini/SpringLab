@@ -29,8 +29,8 @@ BaseSettingsManager<SLabSettings>::BaseSettingsManagerFactory SettingsManager::M
     ADD_SETTING(bool, CommonDoApplyGravity);
     ADD_SETTING(float, CommonGlobalDamping);
 
-    ADD_SETTING(float, ClassicSimulatorSpringReductionFraction);
-    ADD_SETTING(float, ClassicSimulatorSpringDampingCoefficient);
+    ADD_SETTING(float, ClassicSimulatorSpringStiffness);
+    ADD_SETTING(float, ClassicSimulatorSpringDamping);
     ADD_SETTING(float, ClassicSimulatorSpringForceInertia);
 
     ADD_SETTING(bool, DoRenderAssignedParticleForces);

@@ -56,8 +56,8 @@ private:
     SliderControl<float> * mCommonGlobalDampingSlider;
 
     // Classic
-    SliderControl<float> * mClassicSimulatorSpringReductionFractionSlider;
-    SliderControl<float> * mClassicSimulatorSpringDampingCoefficientSlider;
+    SliderControl<float> * mClassicSimulatorSpringStiffnessSlider;
+    SliderControl<float> * mClassicSimulatorSpringDampingSlider;
     SliderControl<float> * mClassicSimulatorSpringForceInertiaSlider;
 
     // Rendering

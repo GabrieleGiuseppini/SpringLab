@@ -9,19 +9,15 @@ struct ClassicSimulatorParameters
 {
     ClassicSimulatorParameters();
 
-    // Fraction of a spring displacement that is removed during a spring relaxation
-    // iteration. The remaining spring displacement is (1.0 - this fraction).
-    float SpringReductionFraction;
-    static float constexpr MinSpringReductionFraction = 0.0001f;
-    static float constexpr MaxSpringReductionFraction = 1.0f;
+    // Pure and simple stiffness coefficient for Hooke's law.
+    float SpringStiffness;
+    static float constexpr MinSpringStiffness = 0.0f;
+    static float constexpr MaxSpringStiffness = 5000.0f;
 
-    // The empirically-determined constant for the spring damping.
-    // The simulation is quite sensitive to this value:
-    // - 0.03 is almost fine (though bodies are sometimes soft)
-    // - 0.8 makes everything explode
-    float SpringDampingCoefficient;
-    static float constexpr MinSpringDampingCoefficient = 0.0f;
-    static float constexpr MaxSpringDampingCoefficient = 1.0f;
+    // Pure and simple damping coefficient.
+    float SpringDamping;
+    static float constexpr MinSpringDamping = 0.0f;
+    static float constexpr MaxSpringDamping = 200.0f;
 
     // How much spring forces contribute to the intertia of
     // a particle

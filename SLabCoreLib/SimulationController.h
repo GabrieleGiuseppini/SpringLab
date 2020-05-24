@@ -165,15 +165,15 @@ public:
     float GetCommonMinGlobalDamping() const { return CommonSimulatorParameters::MinGlobalDamping; }
     float GetCommonMaxGlobalDamping() const { return CommonSimulatorParameters::MaxGlobalDamping; }
 
-    float GetClassicSimulatorSpringReductionFraction() const { return mSimulationParameters.ClassicSimulator.SpringReductionFraction; }
-    void SetClassicSimulatorSpringReductionFraction(float value) { mSimulationParameters.ClassicSimulator.SpringReductionFraction = value; mIsSimulationStateDirty = true; }
-    float GetClassicSimulatorMinSpringReductionFraction() const { return ClassicSimulatorParameters::MinSpringReductionFraction; }
-    float GetClassicSimulatorMaxSpringReductionFraction() const { return ClassicSimulatorParameters::MaxSpringReductionFraction; }
+    float GetClassicSimulatorSpringStiffness() const { return mSimulationParameters.ClassicSimulator.SpringStiffness; }
+    void SetClassicSimulatorSpringStiffness(float value) { mSimulationParameters.ClassicSimulator.SpringStiffness = value; mIsSimulationStateDirty = true; }
+    float GetClassicSimulatorMinSpringStiffness() const { return ClassicSimulatorParameters::MinSpringStiffness; }
+    float GetClassicSimulatorMaxSpringStiffness() const { return ClassicSimulatorParameters::MaxSpringStiffness; }
 
-    float GetClassicSimulatorSpringDampingCoefficient() const { return mSimulationParameters.ClassicSimulator.SpringDampingCoefficient; }
-    void SetClassicSimulatorSpringDampingCoefficient(float value) { mSimulationParameters.ClassicSimulator.SpringDampingCoefficient = value; mIsSimulationStateDirty = true; }
-    float GetClassicSimulatorMinSpringDampingCoefficient() const { return ClassicSimulatorParameters::MinSpringDampingCoefficient; }
-    float GetClassicSimulatorMaxSpringDampingCoefficient() const { return ClassicSimulatorParameters::MaxSpringDampingCoefficient; }
+    float GetClassicSimulatorSpringDamping() const { return mSimulationParameters.ClassicSimulator.SpringDamping; }
+    void SetClassicSimulatorSpringDamping(float value) { mSimulationParameters.ClassicSimulator.SpringDamping = value; mIsSimulationStateDirty = true; }
+    float GetClassicSimulatorMinSpringDamping() const { return ClassicSimulatorParameters::MinSpringDamping; }
+    float GetClassicSimulatorMaxSpringDamping() const { return ClassicSimulatorParameters::MaxSpringDamping; }
 
     float GetClassicSimulatorSpringForceInertia() const { return mSimulationParameters.ClassicSimulator.SpringForceInertia; }
     void SetClassicSimulatorSpringForceInertia(float value) { mSimulationParameters.ClassicSimulator.SpringForceInertia = value; mIsSimulationStateDirty = true; }

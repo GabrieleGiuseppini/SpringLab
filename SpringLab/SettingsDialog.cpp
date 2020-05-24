@@ -11,7 +11,6 @@
 #include "UIControls/FixedTickSliderCore.h"
 #include "UIControls/IntegralLinearSliderCore.h"
 #include "UIControls/LinearSliderCore.h"
-#include "UIControls/SimulationTimeStepSliderCore.h"
 
 #include <SLabCoreLib/Log.h>
 
@@ -354,7 +353,10 @@ void SettingsDialog::PopulateCommonSimulatorPanel(wxPanel * panel)
                         this->mLiveSettings.SetValue(SLabSettings::CommonSimulationTimeStepDuration, value);
                         this->OnLiveSettingsChanged();
                     },
-                    std::make_unique<SimulationTimeStepSliderCore>());
+                    std::make_unique<ExponentialSliderCore>(
+                        0.000002f,
+                        0.02f,
+                        0.4f));
 
                 mechanicsSizer->Add(
                     mCommonSimulationTimeStepDurationSlider,
@@ -474,50 +476,50 @@ void SettingsDialog::PopulateClassicSimulatorPanel(wxPanel * panel)
         {
             wxGridBagSizer * mechanicsSizer = new wxGridBagSizer(0, 0);
 
-            // Spring Reduction Fraction
+            // Spring Stiffness
             {
-                mClassicSimulatorSpringReductionFractionSlider = new SliderControl<float>(
+                mClassicSimulatorSpringStiffnessSlider = new SliderControl<float>(
                     mechanicsBox,
                     SliderWidth,
                     SliderHeight,
-                    "Spring Reduction Fraction",
-                    "Adjusts the fraction of the spring displacement that a spring force attempts to cause a counter-displacement for.",
+                    "Spring Stiffness",
+                    "Adjusts the stiffness of the spring's Hookean force.",
 					[this](float value)
                     {
-                        this->mLiveSettings.SetValue(SLabSettings::ClassicSimulatorSpringReductionFraction, value);
+                        this->mLiveSettings.SetValue(SLabSettings::ClassicSimulatorSpringStiffness, value);
                         this->OnLiveSettingsChanged();
                     },
                     std::make_unique<LinearSliderCore>(
-                        mSimulationController->GetClassicSimulatorMinSpringReductionFraction(),
-                        mSimulationController->GetClassicSimulatorMaxSpringReductionFraction()));
+                        mSimulationController->GetClassicSimulatorMinSpringStiffness(),
+                        mSimulationController->GetClassicSimulatorMaxSpringStiffness()));
 
                 mechanicsSizer->Add(
-                    mClassicSimulatorSpringReductionFractionSlider,
+                    mClassicSimulatorSpringStiffnessSlider,
                     wxGBPosition(0, 0),
                     wxGBSpan(1, 1),
                     wxEXPAND | wxALL,
                     CellBorder);
             }
 
-            // Spring Damping Coefficient
+            // Spring Damping
             {
-                mClassicSimulatorSpringDampingCoefficientSlider = new SliderControl<float>(
+                mClassicSimulatorSpringDampingSlider = new SliderControl<float>(
                     mechanicsBox,
                     SliderWidth,
                     SliderHeight,
-                    "Spring Damping Coefficient",
+                    "Spring Damping",
                     "Adjusts the magnitude of the spring damping.",
                     [this](float value)
                     {
-                        this->mLiveSettings.SetValue(SLabSettings::ClassicSimulatorSpringDampingCoefficient, value);
+                        this->mLiveSettings.SetValue(SLabSettings::ClassicSimulatorSpringDamping, value);
                         this->OnLiveSettingsChanged();
                     },
                     std::make_unique<LinearSliderCore>(
-                        mSimulationController->GetClassicSimulatorMinSpringDampingCoefficient(),
-                        mSimulationController->GetClassicSimulatorMaxSpringDampingCoefficient()));
+                        mSimulationController->GetClassicSimulatorMinSpringDamping(),
+                        mSimulationController->GetClassicSimulatorMaxSpringDamping()));
 
                 mechanicsSizer->Add(
-                    mClassicSimulatorSpringDampingCoefficientSlider,
+                    mClassicSimulatorSpringDampingSlider,
                     wxGBPosition(0, 1),
                     wxGBSpan(1, 1),
                     wxEXPAND | wxALL,
@@ -624,8 +626,8 @@ void SettingsDialog::SyncControlsWithSettings(Settings<SLabSettings> const & set
     mCommonGlobalDampingSlider->SetValue(settings.GetValue<float>(SLabSettings::CommonGlobalDamping));
 
     // Classic
-    mClassicSimulatorSpringReductionFractionSlider->SetValue(settings.GetValue<float>(SLabSettings::ClassicSimulatorSpringReductionFraction));
-    mClassicSimulatorSpringDampingCoefficientSlider->SetValue(settings.GetValue<float>(SLabSettings::ClassicSimulatorSpringDampingCoefficient));
+    mClassicSimulatorSpringStiffnessSlider->SetValue(settings.GetValue<float>(SLabSettings::ClassicSimulatorSpringStiffness));
+    mClassicSimulatorSpringDampingSlider->SetValue(settings.GetValue<float>(SLabSettings::ClassicSimulatorSpringDamping));
     mClassicSimulatorSpringForceInertiaSlider->SetValue(settings.GetValue<float>(SLabSettings::ClassicSimulatorSpringForceInertia));
 
     // Render

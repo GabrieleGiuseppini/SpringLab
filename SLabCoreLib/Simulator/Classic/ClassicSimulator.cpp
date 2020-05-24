@@ -93,23 +93,17 @@ void ClassicSimulator::CreateState(
 
         // The "stiffness coefficient" is the factor which, once multiplied with the spring displacement,
         // yields the spring force, according to Hooke's law.
-        //
-        // We calculate the coefficient so that the two forces applied to each of the two masses produce a resulting
-        // change in position equal to a fraction SpringReductionFraction (further adjusted by material properties)
-        // of the spring displacement, in a single step.
         mSpringStiffnessCoefficientBuffer[springIndex] =
-            simulationParameters.ClassicSimulator.SpringReductionFraction
+            simulationParameters.ClassicSimulator.SpringStiffness
             * springs.GetMaterialStiffness(springIndex)
-            * massFactor
-            / dtSquared;
+            * massFactor;
 
         // Damping coefficient
         //
         // Magnitude of the drag force on the relative velocity component along the spring.
         mSpringDampingCoefficientBuffer[springIndex] =
-            simulationParameters.ClassicSimulator.SpringDampingCoefficient
-            * massFactor
-            / dt;
+            simulationParameters.ClassicSimulator.SpringDamping
+            * massFactor;
     }
 }
 
