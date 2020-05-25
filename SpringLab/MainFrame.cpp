@@ -407,6 +407,9 @@ MainFrame::~MainFrame()
 
 void MainFrame::OnMainFrameClose(wxCloseEvent & /*event*/)
 {
+    if (!!mSimulationTimer)
+        mSimulationTimer->Stop();
+
     if (!!mSettingsManager)
         mSettingsManager->SaveLastModifiedSettings();
 
@@ -572,7 +575,36 @@ void MainFrame::OnMainGLCanvasCaptureMouseLost(wxMouseCaptureLostEvent & /*event
 
 void MainFrame::OnLoadObjectMenuItemSelected(wxCommandEvent & /*event*/)
 {
-    // TODO
+    if (!mFileOpenDialog)
+    {
+        mFileOpenDialog = std::make_unique<wxFileDialog>(
+            this,
+            L"Select Object",
+            wxEmptyString,
+            wxEmptyString,
+            L"Object files (*.png)|*.png",
+            wxFD_OPEN | wxFD_FILE_MUST_EXIST,
+            wxDefaultPosition,
+            wxDefaultSize,
+            _T("File Open Dialog"));
+    }
+
+    assert(!!mFileOpenDialog);
+
+    if (mFileOpenDialog->ShowModal() == wxID_OK)
+    {
+        std::string const filepath = mFileOpenDialog->GetPath().ToStdString();
+
+        assert(!!mSimulationController);
+        try
+        {
+            mSimulationController->LoadObject(filepath);
+        }
+        catch (std::exception const & ex)
+        {
+            OnError(ex.what(), false);
+        }
+    }
 }
 
 void MainFrame::OnResetMenuItemSelected(wxCommandEvent & /*event*/)

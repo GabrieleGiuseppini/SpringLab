@@ -77,6 +77,7 @@ private:
     // Dialogs
     //
 
+    std::unique_ptr<wxFileDialog> mFileOpenDialog;
     std::unique_ptr<SettingsDialog> mSettingsDialog;
     std::unique_ptr<AboutDialog> mAboutDialog;
     std::unique_ptr<LoggingDialog> mLoggingDialog;

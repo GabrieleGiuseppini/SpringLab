@@ -1,3 +1,104 @@
++ Open dialog
++ Fix quit issue
+
+- Try average integration
+
+- Classic simulator: iterations block size (def=1)
+
+= Initial conditions:
+	+ Gravity:
+		+ Goes to SimulationParameters, as vec2f AssignedGravity,
+		  via SimulationController::EnableGravity(bool)
+			+ Comment on convenience
+	+ Move:
+		+ As now
+	+ Pin:
+		+ Tool
+		+ Sets via Points::SetFrozenCoefficient(...)
+		+ Render: also uploaded as part of Points, always
+			+ Shader: black
+
+	- Particle Force:
+		- UI:
+			- When Particle Force engaged: at click/particle selection, open window for {direction & magnitude}, {remove}
+		- Sets via Points::SetAssignedForce(...)
+		- Render: uploaded as vectors by SimulationController at Render()
+			- Enabled/Disabled by menu item => SimulationController::mDoRenderAssignedParticleForces
+
+	- Buoyancy Line
+		- "Matte" shader
+
++ Decide whether to change spring reduction fraction into spring stiffness, and also damping
+	+ If so, recalc defaults to match FS
+	+ If so, nuke dt's
+	+ & rename both, & Tooltips
+
+- TODO: role of inertia
+	
++ MT RenderContext: exceptions
+	+ The thing that's ahred_ptr is the TaskCompletion
+	+ TaskCompletion stores exc message
+	+ Wait throws
+	+ Test w/shader error
+	+ Test w/OpenGL version
+
++ Nuke BufferAllocator & AllocWorkBuffer/Copy methods
+
++ SettingsDialog
+	+ Settings
+	+ SettingsManager
+		+ Create @ MainFrame
+		+ Takes SimulationController directly
+	+ CommonParams, SimulationController and SettingsManager:
+		+ Gravity
+		+ dt
+		+ MassAdjustment
+		+ GlobalDamping
+	+ Dialog
+		+ One static box per common + each simulator
+	+ Use params @ Simulator
+	+ Open via toolbar, together with Reset and Open
+		+ "Actions"
+		+ Leave in menu, and add "Settings..."
+	
+= UI:		
+	= ControlToolBar (left):
+		+ Keyboard shortcuts
+			+ Tooltips
+		+ Controls:
+			+ SimulatorType drop-down
+				+ Move up & add "Simulator:" label above
+			+ Simulation control buttons
+			+ Initial conditions buttons
+			+ OpenObject, Reset buttons
+		- Pass initial state (simulation control state, doGravity, tool)  to toolbar
+	= ProbeToolBar (bottom):
+		+ Migrate EventPanel here
+		- Also displays basic stats: via TBD
+	- Application Icons
+
+	- Load Object
+
+-------------------------------------------------------
+
+- Misc:
+	- Check assembly of SimulationController::Render() wrt accesses to mObject->GetSprings()
+
+	- ProbePanel:
+		- ScalarTimeSeries
+		- Scalar
+			- Also @ EventHandler
+		- TODO: also used to display stats & simulator-specific outputs
+			- Simulation step #
+			- Simulation time
+			- Update elapsed: last, avg
+
+####################################################################################################
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+####################################################################################################
+
+DONE:
+
 + Get started with V 1.0:
 	+ Containers, buffers, special vectors
 	+ ResourceLocator
@@ -144,90 +245,3 @@
 
 + Do "ClassicSimulator"
 	+ Do
-
-= Initial conditions:
-	+ Gravity:
-		+ Goes to SimulationParameters, as vec2f AssignedGravity,
-		  via SimulationController::EnableGravity(bool)
-			+ Comment on convenience
-	+ Move:
-		+ As now
-	+ Pin:
-		+ Tool
-		+ Sets via Points::SetFrozenCoefficient(...)
-		+ Render: also uploaded as part of Points, always
-			+ Shader: black
-
-	- Particle Force:
-		- UI:
-			- When Particle Force engaged: at click/particle selection, open window for {direction & magnitude}, {remove}
-		- Sets via Points::SetAssignedForce(...)
-		- Render: uploaded as vectors by SimulationController at Render()
-			- Enabled/Disabled by menu item => SimulationController::mDoRenderAssignedParticleForces
-
-	- Buoyancy Line
-
-+ Decide whether to change spring reduction fraction into spring stiffness, and also damping
-	+ If so, recalc defaults to match FS
-	+ If so, nuke dt's
-	+ & rename both, & Tooltips
-
-- TODO: role of inertia
-	
-+ MT RenderContext: exceptions
-	+ The thing that's ahred_ptr is the TaskCompletion
-	+ TaskCompletion stores exc message
-	+ Wait throws
-	+ Test w/shader error
-	+ Test w/OpenGL version
-
-+ Nuke BufferAllocator & AllocWorkBuffer/Copy methods
-
-+ SettingsDialog
-	+ Settings
-	+ SettingsManager
-		+ Create @ MainFrame
-		+ Takes SimulationController directly
-	+ CommonParams, SimulationController and SettingsManager:
-		+ Gravity
-		+ dt
-		+ MassAdjustment
-		+ GlobalDamping
-	+ Dialog
-		+ One static box per common + each simulator
-	+ Use params @ Simulator
-	+ Open via toolbar, together with Reset and Open
-		+ "Actions"
-		+ Leave in menu, and add "Settings..."
-	
-= UI:		
-	= ControlToolBar (left):
-		+ Keyboard shortcuts
-			+ Tooltips
-		+ Controls:
-			+ SimulatorType drop-down
-				+ Move up & add "Simulator:" label above
-			+ Simulation control buttons
-			+ Initial conditions buttons
-			+ OpenObject, Reset buttons
-		- Pass initial state (simulation control state, doGravity, tool)  to toolbar
-	= ProbeToolBar (bottom):
-		+ Migrate EventPanel here
-		- Also displays basic stats: via TBD
-	- Application Icons
-
-	- Load Object
-
--------------------------------------------------------
-
-- Misc:
-	- Check assembly of SimulationController::Render() wrt accesses to mObject->GetSprings()
-
-	- ProbePanel:
-		- ScalarTimeSeries
-		- Scalar
-			- Also @ EventHandler
-		- TODO: also used to display stats & simulator-specific outputs
-			- Simulation step #
-			- Simulation time
-			- Update elapsed: last, avg
