@@ -14,11 +14,10 @@
 #include <numeric>
 #include <sstream>
 
-static constexpr int Height = 80;
-
 ScalarTimeSeriesProbeControl::ScalarTimeSeriesProbeControl(
     wxWindow * parent,
-    int width)
+    int width,
+    int height)
     : wxPanel(
         parent,
         wxID_ANY,
@@ -26,12 +25,13 @@ ScalarTimeSeriesProbeControl::ScalarTimeSeriesProbeControl(
         wxDefaultSize,
         wxBORDER_SIMPLE)
     , mWidth(width)
+    , mHeight(height)
     , mBufferedDCBitmap()
     , mTimeSeriesPen(wxColor("BLACK"), 2, wxPENSTYLE_SOLID)
     , mGridPen(wxColor(0xa0, 0xa0, 0xa0), 1, wxPENSTYLE_SOLID)
 {
-    SetMinSize(wxSize(width, Height));
-    SetMaxSize(wxSize(width, Height));
+    SetMinSize(wxSize(mWidth, mHeight));
+    SetMaxSize(wxSize(mWidth, mHeight));
 
 #ifdef __WXMSW__
     SetDoubleBuffered(true);
@@ -114,10 +114,10 @@ void ScalarTimeSeriesProbeControl::OnEraseBackground(wxPaintEvent & /*event*/)
 int ScalarTimeSeriesProbeControl::MapValueToY(float value) const
 {
     if (mMaxValue == mMinValue)
-        return Height / 2;
+        return mHeight / 2;
 
-    float y = static_cast<float>(Height - 4) * (value - mMinValue) / (mMaxValue - mMinValue);
-    return Height - 3 - static_cast<int>(round(y));
+    float y = static_cast<float>(mHeight - 4) * (value - mMinValue) / (mMaxValue - mMinValue);
+    return mHeight - 3 - static_cast<int>(round(y));
 }
 
 void ScalarTimeSeriesProbeControl::Render(wxDC & dc)
@@ -149,7 +149,7 @@ void ScalarTimeSeriesProbeControl::Render(wxDC & dc)
         }
 
         static const int xGridStepSize = mWidth / 6;
-        int yGridStepSize = std::min(mWidth, Height) / static_cast<int>(ceil(numberOfGridLines));
+        int yGridStepSize = std::min(mWidth, mHeight) / static_cast<int>(ceil(numberOfGridLines));
 
 
         //
@@ -158,14 +158,14 @@ void ScalarTimeSeriesProbeControl::Render(wxDC & dc)
 
         dc.SetPen(mGridPen);
 
-        for (int y = yGridStepSize; y < Height - 1; y += yGridStepSize)
+        for (int y = yGridStepSize; y < mHeight - 1; y += yGridStepSize)
         {
             dc.DrawLine(0, y, mWidth - 1, y);
         }
 
         for (int x = xGridStepSize; x < mWidth - 1; x += xGridStepSize)
         {
-            dc.DrawLine(x, 0, x, Height - 1);
+            dc.DrawLine(x, 0, x, mHeight - 1);
         }
 
 

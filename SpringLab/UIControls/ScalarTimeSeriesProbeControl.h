@@ -17,7 +17,8 @@ public:
 
     ScalarTimeSeriesProbeControl(
         wxWindow * parent,
-        int width);
+        int width,
+        int height);
 
     virtual ~ScalarTimeSeriesProbeControl();
 
@@ -40,6 +41,7 @@ private:
 private:
 
     int const mWidth;
+    int const mHeight;
 
     std::unique_ptr<wxBitmap> mBufferedDCBitmap;
     wxPen const mTimeSeriesPen;

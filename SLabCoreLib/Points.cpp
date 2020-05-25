@@ -31,7 +31,9 @@ void Points::Add(
 
 void Points::Query(ElementIndex pointElementIndex) const
 {
-    LogMessage("PointIndex: ", pointElementIndex, " (", mStructuralMaterialBuffer[pointElementIndex]->Name, ")");
+    LogMessage("PointIndex: ", pointElementIndex,
+        " (", mStructuralMaterialBuffer[pointElementIndex]->Name,
+        ") M=", mMassBuffer[pointElementIndex]);
     LogMessage("P=", mPositionBuffer[pointElementIndex].toString(), " V=", mVelocityBuffer[pointElementIndex].toString());
     LogMessage("Springs: ", mConnectedSpringsBuffer[pointElementIndex].size());
 }

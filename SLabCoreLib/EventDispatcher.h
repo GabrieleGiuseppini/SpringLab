@@ -28,6 +28,16 @@ public:
         }
     }
 
+    virtual void OnObjectProbe(
+        float totalKineticEnergy,
+        float totalPotentialEnergy) override
+    {
+        for (auto sink : mSinks)
+        {
+            sink->OnObjectProbe(totalKineticEnergy, totalPotentialEnergy);
+        }
+    }
+
     virtual void OnCustomProbe(
         std::string const & name,
         float value) override

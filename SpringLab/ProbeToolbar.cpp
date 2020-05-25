@@ -11,13 +11,14 @@
 
 static constexpr int TopPadding = 2;
 static constexpr int ProbePadding = 10;
+static constexpr int ProbeHeight = 80;
 
 ProbeToolbar::ProbeToolbar(wxWindow* parent)
     : wxPanel(
         parent,
         wxID_ANY,
         wxDefaultPosition,
-        wxDefaultSize,
+        wxSize(-1, -1),
         wxBORDER_SIMPLE | wxCLIP_CHILDREN)
 {
 #ifdef __WXMSW__
@@ -35,10 +36,19 @@ ProbeToolbar::ProbeToolbar(wxWindow* parent)
 
 
     //
+    // Create default probes
+    //
+
+    mKineticEnergyProbe = AddScalarTimeSeriesProbe("Kinetic Energy", 200);
+    mPotentialEnergyProbe = AddScalarTimeSeriesProbe("Potential Energy", 200);
+    mProbesSizer->Layout();
+
+
+    //
     // Finalize
     //
 
-    SetSizerAndFit(mProbesSizer);
+    SetSizer(mProbesSizer);
 }
 
 ProbeToolbar::~ProbeToolbar()
@@ -53,6 +63,9 @@ void ProbeToolbar::UpdateSimulation()
 
     if (IsActive())
     {
+        mKineticEnergyProbe->UpdateSimulation();
+        mPotentialEnergyProbe->UpdateSimulation();
+
         for (auto const & p : mCustomProbes)
         {
             p.second->UpdateSimulation();
@@ -68,7 +81,7 @@ std::unique_ptr<ScalarTimeSeriesProbeControl> ProbeToolbar::AddScalarTimeSeriesP
 
     sizer->AddSpacer(TopPadding);
 
-    auto probe = std::make_unique<ScalarTimeSeriesProbeControl>(this, sampleCount);
+    auto probe = std::make_unique<ScalarTimeSeriesProbeControl>(this, sampleCount, ProbeHeight);
     sizer->Add(probe.get(), 1, wxALIGN_CENTRE, 0);
 
     wxStaticText * label = new wxStaticText(this, wxID_ANY, name, wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE_HORIZONTAL);
@@ -83,10 +96,24 @@ std::unique_ptr<ScalarTimeSeriesProbeControl> ProbeToolbar::AddScalarTimeSeriesP
 
 void ProbeToolbar::OnSimulationReset()
 {
+    mKineticEnergyProbe->Reset();
+    mPotentialEnergyProbe->Reset();
+
     for (auto const & p : mCustomProbes)
     {
         p.second->Reset();
     }
+}
+
+void ProbeToolbar::OnObjectProbe(
+    float totalKineticEnergy,
+    float totalPotentialEnergy)
+{
+    assert(!!mKineticEnergyProbe);
+    mKineticEnergyProbe->RegisterSample(totalKineticEnergy);
+
+    assert(!!mPotentialEnergyProbe);
+    mPotentialEnergyProbe->RegisterSample(totalPotentialEnergy);
 }
 
 void ProbeToolbar::OnCustomProbe(

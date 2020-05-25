@@ -134,6 +134,12 @@ void SimulationController::UpdateSimulation()
     mCurrentSimulationTime += mSimulationParameters.Common.SimulationTimeStepDuration;
 
     ////////////////////////////////////////////////////////
+    // Observe
+    ////////////////////////////////////////////////////////
+
+    ObserveObject();
+
+    ////////////////////////////////////////////////////////
     // Book-Keeping
     ////////////////////////////////////////////////////////
 
@@ -259,11 +265,57 @@ void SimulationController::Reset(
     mTotalSimulationSteps = 0;
     mIsSimulationStateDirty = false;
 
+    // Publish reset
+    mEventDispatcher.OnSimulationReset();
+
     //
     // Reset stats
     //
 
     mOriginTimestamp = SLabWallClock::GetInstance().Now();
+}
+
+void SimulationController::ObserveObject()
+{
+    //
+    // Calculate:
+    // - Total kinetic energy
+    // - Total potential energy
+    //
+
+    float totalKineticEnergy = 0;
+    float totalPotentialEnergy = 0;
+
+    auto const & points = mObject->GetPoints();
+    for (auto p : points)
+    {
+        totalKineticEnergy +=
+            points.GetMass(p)
+            * points.GetVelocity(p).squareLength();
+    }
+
+    auto const & springs = mObject->GetSprings();
+    for (auto s : springs)
+    {
+        auto const endpointAIndex = springs.GetEndpointAIndex(s);
+        auto const endpointBIndex = springs.GetEndpointBIndex(s);
+
+        float const displacementLength = (points.GetPosition(endpointBIndex) - points.GetPosition(endpointAIndex)).length();
+
+        totalPotentialEnergy +=
+            mSimulationParameters.ClassicSimulator.SpringStiffness
+            * springs.GetMaterialStiffness(s)
+            * abs(displacementLength - springs.GetRestLength(s));
+    }
+
+    totalKineticEnergy *= 0.5f;
+    totalPotentialEnergy *= 0.5f;
+
+    //
+    // Publish observations
+    //
+
+    mEventDispatcher.OnObjectProbe(totalKineticEnergy, totalPotentialEnergy);
 }
 
 void SimulationController::PublishStats(std::chrono::steady_clock::duration /*updateElapsed*/)

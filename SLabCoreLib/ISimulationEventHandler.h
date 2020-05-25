@@ -23,6 +23,13 @@ struct ISimulationEventHandler
         // Default-implemented
     }
 
+    virtual void OnObjectProbe(
+        float /*totalKineticEnergy*/,
+        float /*totalPotentialEnergy*/)
+    {
+        // Default-implemented
+    }
+
     virtual void OnCustomProbe(
         std::string const & /*name*/,
         float /*value*/)

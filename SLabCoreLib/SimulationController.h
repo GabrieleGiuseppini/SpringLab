@@ -198,6 +198,8 @@ private:
         std::string objectName,
         std::filesystem::path objectDefinitionFilepath);
 
+    void ObserveObject();
+
     void PublishStats(std::chrono::steady_clock::duration updateElapsed);
 
 private:

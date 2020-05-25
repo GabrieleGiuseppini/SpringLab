@@ -36,6 +36,10 @@ public:
 
     virtual void OnSimulationReset() override;
 
+    virtual void OnObjectProbe(
+        float totalKineticEnergy,
+        float totalPotentialEnergy) override;
+
     virtual void OnCustomProbe(
         std::string const & name,
         float value) override;
@@ -59,5 +63,7 @@ private:
 
     wxBoxSizer * mProbesSizer;
 
+    std::unique_ptr<ScalarTimeSeriesProbeControl> mKineticEnergyProbe;
+    std::unique_ptr<ScalarTimeSeriesProbeControl> mPotentialEnergyProbe;
     std::unordered_map<std::string, std::unique_ptr<ScalarTimeSeriesProbeControl>> mCustomProbes;
 };

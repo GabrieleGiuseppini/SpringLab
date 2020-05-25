@@ -11,12 +11,12 @@ ClassicSimulator::ClassicSimulator(
     Object const & object,
     SimulationParameters const & simulationParameters)
     // Point buffers
-    : mPointSpringForceBuffer(object.GetPoints().GetBufferElementCount())
-    , mPointExternalForceBuffer(object.GetPoints().GetBufferElementCount())
-    , mPointIntegrationFactorBuffer(object.GetPoints().GetBufferElementCount())
+    : mPointSpringForceBuffer(object.GetPoints().GetBufferElementCount(), 0, vec2f::zero())
+    , mPointExternalForceBuffer(object.GetPoints().GetBufferElementCount(), 0, vec2f::zero())
+    , mPointIntegrationFactorBuffer(object.GetPoints().GetBufferElementCount(), 0, 0.0f)
     // Spring buffers
-    , mSpringStiffnessCoefficientBuffer(object.GetSprings().GetBufferElementCount())
-    , mSpringDampingCoefficientBuffer(object.GetSprings().GetBufferElementCount())
+    , mSpringStiffnessCoefficientBuffer(object.GetSprings().GetBufferElementCount(), 0, 0.0f)
+    , mSpringDampingCoefficientBuffer(object.GetSprings().GetBufferElementCount(), 0, 0.0f)
 {
     CreateState(object, simulationParameters);
 }
@@ -57,7 +57,7 @@ void ClassicSimulator::CreateState(
 
     Points const & points = object.GetPoints();
 
-    for (auto pointIndex : points.BufferElements())
+    for (auto pointIndex : points)
     {
         mPointSpringForceBuffer[pointIndex] = vec2f::zero();
 
