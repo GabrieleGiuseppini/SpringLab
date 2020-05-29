@@ -84,26 +84,23 @@ void ClassicSimulator::CreateState(
         auto const endpointAIndex = springs.GetEndpointAIndex(springIndex);
         auto const endpointBIndex = springs.GetEndpointBIndex(springIndex);
 
-        float const endpointAMass = points.GetMass(endpointAIndex) * simulationParameters.Common.MassAdjustment;
-        float const endpointBMass = points.GetMass(endpointBIndex) * simulationParameters.Common.MassAdjustment;
+        ////float const endpointAMass = points.GetMass(endpointAIndex) * simulationParameters.Common.MassAdjustment;
+        ////float const endpointBMass = points.GetMass(endpointBIndex) * simulationParameters.Common.MassAdjustment;
 
-        float const massFactor =
-            (endpointAMass * endpointBMass)
-            / (endpointAMass + endpointBMass);
+        ////float const massFactor =
+        ////    (endpointAMass * endpointBMass)
+        ////    / (endpointAMass + endpointBMass);
 
         // The "stiffness coefficient" is the factor which, once multiplied with the spring displacement,
         // yields the spring force, according to Hooke's law.
         mSpringStiffnessCoefficientBuffer[springIndex] =
             simulationParameters.ClassicSimulator.SpringStiffness
-            * springs.GetMaterialStiffness(springIndex)
-            * massFactor;
+            * springs.GetMaterialStiffness(springIndex);
 
         // Damping coefficient
         //
         // Magnitude of the drag force on the relative velocity component along the spring.
-        mSpringDampingCoefficientBuffer[springIndex] =
-            simulationParameters.ClassicSimulator.SpringDamping
-            * massFactor;
+        mSpringDampingCoefficientBuffer[springIndex] = simulationParameters.ClassicSimulator.SpringDamping;
     }
 }
 

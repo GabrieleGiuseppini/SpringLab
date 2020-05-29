@@ -12,12 +12,12 @@ struct ClassicSimulatorParameters
     // Pure and simple stiffness coefficient for Hooke's law.
     float SpringStiffness;
     static float constexpr MinSpringStiffness = 0.0f;
-    static float constexpr MaxSpringStiffness = 5000.0f;
+    static float constexpr MaxSpringStiffness = 500000.0f;
 
     // Pure and simple damping coefficient.
     float SpringDamping;
     static float constexpr MinSpringDamping = 0.0f;
-    static float constexpr MaxSpringDamping = 200.0f;
+    static float constexpr MaxSpringDamping = 10000.0f;
 
     // How much spring forces contribute to the intertia of
     // a particle

@@ -5,7 +5,7 @@
 ***************************************************************************************/
 #include "ImageFileTools.h"
 
-#include "SlabException.h"
+#include "SLabException.h"
 
 #include <IL/il.h>
 #include <IL/ilu.h>

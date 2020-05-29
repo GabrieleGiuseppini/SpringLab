@@ -5,7 +5,7 @@
  ***************************************************************************************/
 #include "AboutDialog.h"
 
-#include <SlabCoreLib/Version.h>
+#include <SLabCoreLib/Version.h>
 
 #include <wx/generic/statbmpg.h>
 #include <wx/hyperlink.h>

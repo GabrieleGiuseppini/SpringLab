@@ -6,8 +6,8 @@
 #pragma once
 
 #include "ResourceLocator.h"
-#include "SlabException.h"
-#include "SlabOpenGL.h"
+#include "SLabException.h"
+#include "SLabOpenGL.h"
 
 #include <cassert>
 #include <cstdint>

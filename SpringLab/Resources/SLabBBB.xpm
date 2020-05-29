@@ -1,5 +1,5 @@
 /* XPM */
-static char const * BBB_SHIP_ICON_xpm[] = {
+static char const * BBB_SLAB_ICON_xpm[] = {
 /* columns rows colors chars-per-pixel */
 "128 128 58 1 ",
 "  c #000000",
