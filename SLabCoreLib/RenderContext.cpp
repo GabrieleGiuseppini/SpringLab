@@ -171,7 +171,7 @@ void RenderContext::RenderStart()
         mPreviousRenderTaskCompletionIndicator.reset();
     }
 
-    // Synrhonously
+    // Synchronously
     mRenderThread.RunSynchronously(
         [this]()
         {

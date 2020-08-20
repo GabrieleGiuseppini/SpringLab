@@ -1,6 +1,8 @@
 + Open dialog
 + Fix quit issue
 
+- Fix #pragma pack
+
 - Fix spring coeff calc - really needs mass factor?
 
 - Try average integration
