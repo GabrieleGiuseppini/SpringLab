@@ -12,8 +12,6 @@ void Points::Add(
     vec3f const & color,
     StructuralMaterial const & structuralMaterial)
 {
-    ElementIndex const pointIndex = static_cast<ElementIndex>(mStructuralMaterialBuffer.GetCurrentPopulatedSize());
-
     mPositionBuffer.emplace_back(position);
     mVelocityBuffer.emplace_back(vec2f::zero());
 

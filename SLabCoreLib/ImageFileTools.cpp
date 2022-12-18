@@ -182,7 +182,6 @@ ImageData<TColor> ImageFileTools::InternalLoadImage(
     ImageSize imageSize(
         ilGetInteger(IL_IMAGE_WIDTH),
         ilGetInteger(IL_IMAGE_HEIGHT));
-    int const depth = ilGetInteger(IL_IMAGE_DEPTH);
     int const bpp = ilGetInteger(IL_IMAGE_BYTES_PER_PIXEL);
 
     assert(bpp == sizeof(TColor));

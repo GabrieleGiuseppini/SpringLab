@@ -81,8 +81,8 @@ void ClassicSimulator::CreateState(
 
     for (auto springIndex : springs)
     {
-        auto const endpointAIndex = springs.GetEndpointAIndex(springIndex);
-        auto const endpointBIndex = springs.GetEndpointBIndex(springIndex);
+        ////auto const endpointAIndex = springs.GetEndpointAIndex(springIndex);
+        ////auto const endpointBIndex = springs.GetEndpointBIndex(springIndex);
 
         ////float const endpointAMass = points.GetMass(endpointAIndex) * simulationParameters.Common.MassAdjustment;
         ////float const endpointBMass = points.GetMass(endpointBIndex) * simulationParameters.Common.MassAdjustment;

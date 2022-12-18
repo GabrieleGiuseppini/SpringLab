@@ -10,8 +10,6 @@ void Springs::Add(
     ElementIndex pointBIndex,
     Points const & points)
 {
-    ElementIndex const springIndex = static_cast<ElementIndex>(mEndpointsBuffer.GetCurrentPopulatedSize());
-
     mEndpointsBuffer.emplace_back(pointAIndex, pointBIndex);
 
     // Stiffness is average

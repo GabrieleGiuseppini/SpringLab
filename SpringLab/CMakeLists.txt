@@ -67,7 +67,13 @@ target_include_directories(SpringLab PRIVATE ${wxWidgets_INCLUDE_DIRS})
 target_compile_definitions(SpringLab PRIVATE "${wxWidgets_DEFINITIONS}")
 target_link_libraries (SpringLab
 	SLabCoreLib
-#	${OPENGL_LIBRARIES}
+	${ZLIB_LIBRARY}
+	${JPEG_LIBRARY}
+	${PNG_LIBRARY}
+	${IL_LIBRARIES}
+	${ILU_LIBRARIES}
+	${ILUT_LIBRARIES}
+	${OPENGL_LIBRARIES}
 	${wxWidgets_LIBRARIES}
 	${ADDITIONAL_LIBRARIES})
 
