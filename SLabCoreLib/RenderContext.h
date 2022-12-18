@@ -7,12 +7,9 @@
 
 #include "ImageData.h"
 #include "ShaderManager.h"
-#include "TaskThread.h"
 #include "Vectors.h"
 #include "ViewModel.h"
 
-#include <functional>
-#include <mutex>
 #include <optional>
 #include <vector>
 
@@ -22,9 +19,7 @@ public:
 
     RenderContext(
         int canvasWidth,
-        int canvasHeight,
-        std::function<void()> makeRenderContextCurrentFunction,
-        std::function<void()> swapRenderBuffersFunction);
+        int canvasHeight);
 
     ////////////////////////////////////////////////////////////////
     // View properties
@@ -37,8 +32,6 @@ public:
 
     void SetZoom(float zoom)
     {
-        std::lock_guard<std::mutex> const lock(mSettingsMutex);
-
         mViewModel.SetZoom(zoom);
         mIsViewModelDirty = true;
     }
@@ -50,8 +43,6 @@ public:
 
     void SetCameraWorldPosition(vec2f const & pos)
     {
-        std::lock_guard<std::mutex> const lock(mSettingsMutex);
-
         mViewModel.SetCameraWorldPosition(pos);
         mIsViewModelDirty = true;
     }
@@ -68,8 +59,6 @@ public:
 
     void SetCanvasSize(int width, int height)
     {
-        std::lock_guard<std::mutex> const lock(mSettingsMutex);
-
         mViewModel.SetCanvasSize(width, height);
         mIsViewModelDirty = true;
         mIsCanvasSizeDirty = true;
@@ -165,9 +154,6 @@ public:
 
 private:
 
-    std::function<void()> const mMakeRenderContextCurrentFunction;
-    std::function<void()> const mSwapRenderBuffersFunction;
-
     std::unique_ptr<ShaderManager> mShaderManager;
 
     ViewModel mViewModel;
@@ -179,11 +165,6 @@ private:
     ////////////////////////////////////////////////////////////////
 
     void ProcessSettingChanges();
-
-    // Lock guarding:
-    // - changes to setting and its dirty indicator
-    // - consumption of that setting
-    std::mutex mSettingsMutex;
 
     bool mIsCanvasSizeDirty;
     void OnCanvasSizeUpdated();
@@ -261,16 +242,4 @@ private:
 
     std::vector<SpringVertex> mSpringVertexBuffer;
     SLabOpenGLVBO mSpringVertexVBO;
-
-private:
-
-    ////////////////////////////////////////////////////////////////
-    // Thread
-    ////////////////////////////////////////////////////////////////
-
-    // The thread running all of our OpenGL calls
-    TaskThread mRenderThread;
-
-    // The asynhronous rendering task that is currently running
-    std::shared_ptr<TaskThread::TaskCompletionIndicator> mPreviousRenderTaskCompletionIndicator;
 };

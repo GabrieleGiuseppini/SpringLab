@@ -11,20 +11,16 @@
 #include "Simulator/Common/SimulatorRegistry.h"
 
 std::unique_ptr<SimulationController> SimulationController::Create(
-    int canvasWidth,
-    int canvasHeight,
-    std::function<void()> makeRenderContextCurrentFunction,
-    std::function<void()> swapRenderBuffersFunction)
+    int initialCanvasWidth,
+    int initialCanvasHeight)
 {
     // Load materials
     StructuralMaterialDatabase structuralMaterialDatabase = StructuralMaterialDatabase::Load();
 
     // Create render context
     std::unique_ptr<RenderContext> renderContext = std::make_unique<RenderContext>(
-        canvasWidth,
-        canvasHeight,
-        std::move(makeRenderContextCurrentFunction),
-        std::move(swapRenderBuffersFunction));
+        initialCanvasWidth,
+        initialCanvasHeight);
 
     //
     // Create controller
@@ -93,13 +89,6 @@ void SimulationController::LoadObject(std::filesystem::path const & objectDefini
         objectDefinitionFilepath);
 }
 
-void SimulationController::Reset()
-{
-    assert(!mCurrentObjectDefinitionFilepath.empty());
-
-    LoadObject(mCurrentObjectDefinitionFilepath);
-}
-
 void SimulationController::UpdateSimulation()
 {
     assert(!!mSimulator);
@@ -157,7 +146,7 @@ void SimulationController::Render()
 
     mRenderContext->RenderStart();
 
-    if (!!mObject)
+    if (mObject)
     {
         mRenderContext->UploadPoints(
             mObject->GetPoints().GetElementCount(),
@@ -183,6 +172,13 @@ void SimulationController::Render()
     }
 
     mRenderContext->RenderEnd();
+}
+
+void SimulationController::Reset()
+{
+    assert(!mCurrentObjectDefinitionFilepath.empty());
+
+    LoadObject(mCurrentObjectDefinitionFilepath);
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -302,8 +298,9 @@ void SimulationController::ObserveObject()
 
         float const displacementLength = (points.GetPosition(endpointBIndex) - points.GetPosition(endpointAIndex)).length();
 
+        // TODOHERE: 
         totalPotentialEnergy +=
-            mSimulationParameters.ClassicSimulator.SpringStiffness
+            mSimulationParameters.ClassicSimulator.SpringStiffnessCoefficient
             * springs.GetMaterialStiffness(s)
             * abs(displacementLength - springs.GetRestLength(s));
     }

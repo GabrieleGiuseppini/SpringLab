@@ -28,7 +28,7 @@
 #include <vector>
 
 /*
- * This class is responsible for managing the simulation, from its lifetime to the user
+ * This class is responsible for managing the simulation - both its lifetime and the user
  * interactions.
  */
 class SimulationController
@@ -36,10 +36,8 @@ class SimulationController
 public:
 
     static std::unique_ptr<SimulationController> Create(
-        int canvasWidth,
-        int canvasHeight,
-        std::function<void()> makeRenderContextCurrentFunction,
-        std::function<void()> swapRenderBuffersFunction);
+        int initialCanvasWidth,
+        int initialCanvasHeight);
 
 public:
 
@@ -55,11 +53,12 @@ public:
     void SetSimulator(std::string const & simulatorName);
 
     void LoadObject(std::filesystem::path const & objectDefinitionFilepath);
-    void Reset();
 
     void UpdateSimulation();
 
     void Render();
+
+    void Reset();
 
     float GetCurrentSimulationTime() const
     {
@@ -165,20 +164,15 @@ public:
     float GetCommonMinGlobalDamping() const { return CommonSimulatorParameters::MinGlobalDamping; }
     float GetCommonMaxGlobalDamping() const { return CommonSimulatorParameters::MaxGlobalDamping; }
 
-    float GetClassicSimulatorSpringStiffness() const { return mSimulationParameters.ClassicSimulator.SpringStiffness; }
-    void SetClassicSimulatorSpringStiffness(float value) { mSimulationParameters.ClassicSimulator.SpringStiffness = value; mIsSimulationStateDirty = true; }
-    float GetClassicSimulatorMinSpringStiffness() const { return ClassicSimulatorParameters::MinSpringStiffness; }
-    float GetClassicSimulatorMaxSpringStiffness() const { return ClassicSimulatorParameters::MaxSpringStiffness; }
+    float GetClassicSimulatorSpringStiffnessCoefficient() const { return mSimulationParameters.ClassicSimulator.SpringStiffnessCoefficient; }
+    void SetClassicSimulatorSpringStiffnessCoefficient(float value) { mSimulationParameters.ClassicSimulator.SpringStiffnessCoefficient = value; mIsSimulationStateDirty = true; }
+    float GetClassicSimulatorMinSpringStiffnessCoefficient() const { return ClassicSimulatorParameters::MinSpringStiffnessCoefficient; }
+    float GetClassicSimulatorMaxSpringStiffnessCoefficient() const { return ClassicSimulatorParameters::MaxSpringStiffnessCoefficient; }
 
-    float GetClassicSimulatorSpringDamping() const { return mSimulationParameters.ClassicSimulator.SpringDamping; }
-    void SetClassicSimulatorSpringDamping(float value) { mSimulationParameters.ClassicSimulator.SpringDamping = value; mIsSimulationStateDirty = true; }
-    float GetClassicSimulatorMinSpringDamping() const { return ClassicSimulatorParameters::MinSpringDamping; }
-    float GetClassicSimulatorMaxSpringDamping() const { return ClassicSimulatorParameters::MaxSpringDamping; }
-
-    float GetClassicSimulatorSpringForceInertia() const { return mSimulationParameters.ClassicSimulator.SpringForceInertia; }
-    void SetClassicSimulatorSpringForceInertia(float value) { mSimulationParameters.ClassicSimulator.SpringForceInertia = value; mIsSimulationStateDirty = true; }
-    float GetClassicSimulatorMinSpringForceInertia() const { return ClassicSimulatorParameters::MinSpringForceInertia; }
-    float GetClassicSimulatorMaxSpringForceInertia() const { return ClassicSimulatorParameters::MaxSpringForceInertia; }
+    float GetClassicSimulatorSpringDampingCoefficient() const { return mSimulationParameters.ClassicSimulator.SpringDampingCoefficient; }
+    void SetClassicSimulatorSpringDampingCoefficient(float value) { mSimulationParameters.ClassicSimulator.SpringDampingCoefficient = value; mIsSimulationStateDirty = true; }
+    float GetClassicSimulatorMinSpringDampingCoefficient() const { return ClassicSimulatorParameters::MinSpringDampingCoefficient; }
+    float GetClassicSimulatorMaxSpringDampingCoefficient() const { return ClassicSimulatorParameters::MaxSpringDampingCoefficient; }
 
     //
     // Own parameters

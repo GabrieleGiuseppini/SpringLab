@@ -6,8 +6,7 @@
 #include "ClassicSimulatorParameters.h"
 
 ClassicSimulatorParameters::ClassicSimulatorParameters()
-    : SpringStiffness(36700.0f)
-    , SpringDamping(55.05f)
-    , SpringForceInertia(1.0f)
+    : SpringStiffnessCoefficient(36700.0f)
+    , SpringDampingCoefficient(55.05f)
 {
 }

@@ -130,6 +130,9 @@ MainFrame::MainFrame(wxApp * mainApp)
     // Take context for this canvas
     mMainGLCanvasContext = std::make_unique<wxGLContext>(mMainGLCanvas.get());
 
+    // Activate context
+    mMainGLCanvasContext->SetCurrent(*mMainGLCanvas);
+
 
     //
     // Layout panel
@@ -323,17 +326,7 @@ MainFrame::MainFrame(wxApp * mainApp)
     {
         mSimulationController = SimulationController::Create(
             mMainGLCanvas->GetSize().x,
-            mMainGLCanvas->GetSize().y,
-            [this]()
-            {
-                // Activate context
-                mMainGLCanvasContext->SetCurrent(*mMainGLCanvas);
-            },
-            [this]()
-            {
-                assert(!!mMainGLCanvas);
-                mMainGLCanvas->SwapBuffers();
-            });
+            mMainGLCanvas->GetSize().y);
     }
     catch (std::exception const & e)
     {
@@ -475,9 +468,12 @@ void MainFrame::OnKeyDown(wxKeyEvent & event)
 
 void MainFrame::OnMainGLCanvasPaint(wxPaintEvent & event)
 {
-    if (!!mSimulationController)
+    if (mSimulationController)
     {
         mSimulationController->Render();
+
+        assert(mMainGLCanvas);
+        mMainGLCanvas->SwapBuffers();
     }
 
     event.Skip();

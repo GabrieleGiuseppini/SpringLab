@@ -7,112 +7,97 @@
 
 RenderContext::RenderContext(
     int canvasWidth,
-    int canvasHeight,
-    std::function<void()> makeRenderContextCurrentFunction,
-    std::function<void()> swapRenderBuffersFunction)
-    : mMakeRenderContextCurrentFunction(std::move(makeRenderContextCurrentFunction))
-    , mSwapRenderBuffersFunction(std::move(swapRenderBuffersFunction))
+    int canvasHeight)
+    : mShaderManager()
     , mViewModel(1.0f, vec2f::zero(), canvasWidth, canvasHeight)
     // Settings
-    , mSettingsMutex()
     , mIsCanvasSizeDirty(false)
     , mIsViewModelDirty(false)
-    // Thread
-    , mRenderThread()
-    , mPreviousRenderTaskCompletionIndicator()
 {
-    mRenderThread.RunSynchronously(
-        [this]()
-        {
-            GLuint tmpGLuint;
+    GLuint tmpGLuint;
 
-            //
-            // Initialize OpenGL
-            //
+    //
+    // Initialize OpenGL
+    //
 
-            // Make render context current
-            mMakeRenderContextCurrentFunction();
+    try
+    {
+        SLabOpenGL::InitOpenGL();
+    }
+    catch (std::exception const & e)
+    {
+        throw std::runtime_error("Error during OpenGL initialization: " + std::string(e.what()));
+    }
 
-            // Initialize OpenGL
-            try
-            {
-                SLabOpenGL::InitOpenGL();
-            }
-            catch (std::exception const & e)
-            {
-                throw std::runtime_error("Error during OpenGL initialization: " + std::string(e.what()));
-            }
+    ////////////////////////////////////////////////////////////////
+    // Initialize shaders, VAO's, and VBOs
+    ////////////////////////////////////////////////////////////////
 
-            ////////////////////////////////////////////////////////////////
-            // Initialize shaders, VAO's, and VBOs
-            ////////////////////////////////////////////////////////////////
+    mShaderManager = ShaderManager::CreateInstance();
 
-            mShaderManager = ShaderManager::CreateInstance();
+    //
+    // Points
+    //
 
-            //
-            // Points
-            //
+    mPointVertexCount = 0;
 
-            mPointVertexCount = 0;
+    glGenVertexArrays(1, &tmpGLuint);
+    mPointVAO = tmpGLuint;
 
-            glGenVertexArrays(1, &tmpGLuint);
-            mPointVAO = tmpGLuint;
+    glBindVertexArray(*mPointVAO);
 
-            glBindVertexArray(*mPointVAO);
+    glGenBuffers(1, &tmpGLuint);
+    mPointVertexVBO = tmpGLuint;
+    glBindBuffer(GL_ARRAY_BUFFER, *mPointVertexVBO);
 
-            glGenBuffers(1, &tmpGLuint);
-            mPointVertexVBO = tmpGLuint;
-            glBindBuffer(GL_ARRAY_BUFFER, *mPointVertexVBO);
+    glEnableVertexAttribArray(static_cast<GLuint>(ShaderManager::VertexAttributeType::PointAttributeGroup1));
+    glVertexAttribPointer(static_cast<GLuint>(ShaderManager::VertexAttributeType::PointAttributeGroup1), 4, GL_FLOAT, GL_FALSE, sizeof(PointVertex), (void *)0);
+    glEnableVertexAttribArray(static_cast<GLuint>(ShaderManager::VertexAttributeType::PointAttributeGroup2));
+    glVertexAttribPointer(static_cast<GLuint>(ShaderManager::VertexAttributeType::PointAttributeGroup2), 4, GL_FLOAT, GL_FALSE, sizeof(PointVertex), (void *)(4 * sizeof(float)));
+    glEnableVertexAttribArray(static_cast<GLuint>(ShaderManager::VertexAttributeType::PointAttributeGroup3));
+    glVertexAttribPointer(static_cast<GLuint>(ShaderManager::VertexAttributeType::PointAttributeGroup3), 2, GL_FLOAT, GL_FALSE, sizeof(PointVertex), (void *)(8 * sizeof(float)));
+    static_assert(sizeof(PointVertex) == 10 * sizeof(float));
 
-            glEnableVertexAttribArray(static_cast<GLuint>(ShaderManager::VertexAttributeType::PointAttributeGroup1));
-            glVertexAttribPointer(static_cast<GLuint>(ShaderManager::VertexAttributeType::PointAttributeGroup1), 4, GL_FLOAT, GL_FALSE, sizeof(PointVertex), (void *)0);
-            glEnableVertexAttribArray(static_cast<GLuint>(ShaderManager::VertexAttributeType::PointAttributeGroup2));
-            glVertexAttribPointer(static_cast<GLuint>(ShaderManager::VertexAttributeType::PointAttributeGroup2), 4, GL_FLOAT, GL_FALSE, sizeof(PointVertex), (void *)(4 * sizeof(float)));
-            glEnableVertexAttribArray(static_cast<GLuint>(ShaderManager::VertexAttributeType::PointAttributeGroup3));
-            glVertexAttribPointer(static_cast<GLuint>(ShaderManager::VertexAttributeType::PointAttributeGroup3), 2, GL_FLOAT, GL_FALSE, sizeof(PointVertex), (void *)(8 * sizeof(float)));
-            static_assert(sizeof(PointVertex) == 10 * sizeof(float));
+    glBindVertexArray(0);
 
-            glBindVertexArray(0);
+    //
+    // Springs
+    //
 
-            //
-            // Springs
-            //
+    glGenVertexArrays(1, &tmpGLuint);
+    mSpringVAO = tmpGLuint;
 
-            glGenVertexArrays(1, &tmpGLuint);
-            mSpringVAO = tmpGLuint;
+    glBindVertexArray(*mSpringVAO);
 
-            glBindVertexArray(*mSpringVAO);
+    glGenBuffers(1, &tmpGLuint);
+    mSpringVertexVBO = tmpGLuint;
+    glBindBuffer(GL_ARRAY_BUFFER, *mSpringVertexVBO);
 
-            glGenBuffers(1, &tmpGLuint);
-            mSpringVertexVBO = tmpGLuint;
-            glBindBuffer(GL_ARRAY_BUFFER, *mSpringVertexVBO);
+    glEnableVertexAttribArray(static_cast<GLuint>(ShaderManager::VertexAttributeType::SpringAttributeGroup1));
+    glVertexAttribPointer(static_cast<GLuint>(ShaderManager::VertexAttributeType::SpringAttributeGroup1), 4, GL_FLOAT, GL_FALSE, sizeof(SpringVertex), (void *)0);
+    glEnableVertexAttribArray(static_cast<GLuint>(ShaderManager::VertexAttributeType::SpringAttributeGroup2));
+    glVertexAttribPointer(static_cast<GLuint>(ShaderManager::VertexAttributeType::SpringAttributeGroup2), 4, GL_FLOAT, GL_FALSE, sizeof(SpringVertex), (void *)(4 * sizeof(float)));
+    glEnableVertexAttribArray(static_cast<GLuint>(ShaderManager::VertexAttributeType::SpringAttributeGroup3));
+    glVertexAttribPointer(static_cast<GLuint>(ShaderManager::VertexAttributeType::SpringAttributeGroup3), 1, GL_FLOAT, GL_FALSE, sizeof(SpringVertex), (void *)(8 * sizeof(float)));
 
-            glEnableVertexAttribArray(static_cast<GLuint>(ShaderManager::VertexAttributeType::SpringAttributeGroup1));
-            glVertexAttribPointer(static_cast<GLuint>(ShaderManager::VertexAttributeType::SpringAttributeGroup1), 4, GL_FLOAT, GL_FALSE, sizeof(SpringVertex), (void *)0);
-            glEnableVertexAttribArray(static_cast<GLuint>(ShaderManager::VertexAttributeType::SpringAttributeGroup2));
-            glVertexAttribPointer(static_cast<GLuint>(ShaderManager::VertexAttributeType::SpringAttributeGroup2), 4, GL_FLOAT, GL_FALSE, sizeof(SpringVertex), (void *)(4 * sizeof(float)));
-            glEnableVertexAttribArray(static_cast<GLuint>(ShaderManager::VertexAttributeType::SpringAttributeGroup3));
-            glVertexAttribPointer(static_cast<GLuint>(ShaderManager::VertexAttributeType::SpringAttributeGroup3), 1, GL_FLOAT, GL_FALSE, sizeof(SpringVertex), (void *)(8 * sizeof(float)));
+    glBindVertexArray(0);
 
-            glBindVertexArray(0);
+    ////////////////////////////////////////////////////////////////
+    // Initialize global settings
+    ////////////////////////////////////////////////////////////////
 
-            ////////////////////////////////////////////////////////////////
-            // Initialize global settings
-            ////////////////////////////////////////////////////////////////
+    // Enable blend for alpha transparency
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-            // Enable blend for alpha transparency
-            glEnable(GL_BLEND);
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    // Disable depth test
+    glDisable(GL_DEPTH_TEST);
 
-            // Disable depth test
-            glDisable(GL_DEPTH_TEST);
+    ////////////////////////////////////////////////////////////////
+    // Set parameters in all shaders
+    ////////////////////////////////////////////////////////////////
 
-            ////////////////////////////////////////////////////////////////
-            // Set parameters in all shaders
-            ////////////////////////////////////////////////////////////////
-
-            OnViewModelUpdated();
-        });
+    OnViewModelUpdated();
 }
 
 RgbImageData RenderContext::TakeScreenshot()
@@ -130,32 +115,27 @@ RgbImageData RenderContext::TakeScreenshot()
     // Take screenshot
     //
 
-    // Synchronously
-    mRenderThread.RunSynchronously(
-        [&]()
-        {
-            //
-            // Flush draw calls
-            //
+    //
+    // Flush draw calls
+    //
 
-            glFinish();
+    glFinish();
 
-            //
-            // Read pixels
-            //
+    //
+    // Read pixels
+    //
 
-            // Alignment is byte
-            glPixelStorei(GL_PACK_ALIGNMENT, 1);
-            CheckOpenGLError();
+    // Alignment is byte
+    glPixelStorei(GL_PACK_ALIGNMENT, 1);
+    CheckOpenGLError();
 
-            // Read the front buffer
-            glReadBuffer(GL_FRONT);
-            CheckOpenGLError();
+    // Read the front buffer
+    glReadBuffer(GL_FRONT);
+    CheckOpenGLError();
 
-            // Read
-            glReadPixels(0, 0, canvasWidth, canvasHeight, GL_RGB, GL_UNSIGNED_BYTE, pixelBuffer.get());
-            CheckOpenGLError();
-        });
+    // Read
+    glReadPixels(0, 0, canvasWidth, canvasHeight, GL_RGB, GL_UNSIGNED_BYTE, pixelBuffer.get());
+    CheckOpenGLError();
 
     return RgbImageData(
         ImageSize(canvasWidth, canvasHeight),
@@ -164,31 +144,19 @@ RgbImageData RenderContext::TakeScreenshot()
 
 void RenderContext::RenderStart()
 {
-    // Wait for current render to complete, if any
-    if (!!mPreviousRenderTaskCompletionIndicator)
-    {
-        mPreviousRenderTaskCompletionIndicator->Wait();
-        mPreviousRenderTaskCompletionIndicator.reset();
-    }
+    // Set polygon mode
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-    // Synchronously
-    mRenderThread.RunSynchronously(
-        [this]()
-        {
-            // Set polygon mode
-            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    // Clear canvas - and depth buffer
+    vec3f constexpr ClearColor = rgbColor(0xca, 0xf4, 0xf4).toVec3f();
+    glClearColor(ClearColor.x, ClearColor.y, ClearColor.z, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-            // Clear canvas - and depth buffer
-            vec3f constexpr ClearColor = rgbColor(0xca, 0xf4, 0xf4).toVec3f();
-            glClearColor(ClearColor.x, ClearColor.y, ClearColor.z, 1.0f);
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    // Reset all buffers
+    mPointVertexCount = 0;
 
-            // Reset all buffers
-            mPointVertexCount = 0;
-
-            // Process setting changes
-            ProcessSettingChanges();
-        });
+    // Process setting changes
+    ProcessSettingChanges();
 }
 
 void RenderContext::UploadPoints(
@@ -199,107 +167,102 @@ void RenderContext::UploadPoints(
     float const * pointHighlights,
     float const * pointFrozenCoefficients)
 {
-    // Synchronously
-    mRenderThread.RunSynchronously(
-        [&]()
-        {
-            //
-            // Map buffer
-            //
+    //
+    // Map buffer
+    //
 
-            glBindBuffer(GL_ARRAY_BUFFER, *mPointVertexVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, *mPointVertexVBO);
 
-            // Check whether we need to re-allocate the buffers
-            if (pointCount * 6 != mPointVertexCount)
-            {
-                mPointVertexCount = pointCount * 6;
+    // Check whether we need to re-allocate the buffers
+    if (pointCount * 6 != mPointVertexCount)
+    {
+        mPointVertexCount = pointCount * 6;
 
-                glBufferData(GL_ARRAY_BUFFER, mPointVertexCount * sizeof(PointVertex), nullptr, GL_STREAM_DRAW);
-                CheckOpenGLError();
-            }
+        glBufferData(GL_ARRAY_BUFFER, mPointVertexCount * sizeof(PointVertex), nullptr, GL_STREAM_DRAW);
+        CheckOpenGLError();
+    }
 
-            mPointVertexBuffer.map(mPointVertexCount);
+    mPointVertexBuffer.map(mPointVertexCount);
 
 
-            //
-            // Upload buffer
-            //
+    //
+    // Upload buffer
+    //
 
-            float constexpr WorldRadius = 0.3f;
+    float constexpr WorldRadius = 0.3f;
 
-            for (size_t p = 0; p < pointCount; ++p)
-            {
-                vec2f const & pointPosition = pointPositions[p];
-                float const halfRadius = pointNormRadii[p] * WorldRadius / 2.0f;
-                vec4f const & pointColor = pointColors[p];
-                float const pointHighlight = pointHighlights[p];
-                float const pointFrozenCoefficient = pointFrozenCoefficients[p];
+    for (size_t p = 0; p < pointCount; ++p)
+    {
+        vec2f const & pointPosition = pointPositions[p];
+        float const halfRadius = pointNormRadii[p] * WorldRadius / 2.0f;
+        vec4f const & pointColor = pointColors[p];
+        float const pointHighlight = pointHighlights[p];
+        float const pointFrozenCoefficient = pointFrozenCoefficients[p];
 
-                float const xLeft = pointPosition.x - halfRadius;
-                float const xRight = pointPosition.x + halfRadius;
-                float const yTop = pointPosition.y + halfRadius;
-                float const yBottom = pointPosition.y - halfRadius;
+        float const xLeft = pointPosition.x - halfRadius;
+        float const xRight = pointPosition.x + halfRadius;
+        float const yTop = pointPosition.y + halfRadius;
+        float const yBottom = pointPosition.y - halfRadius;
 
-                // Left, bottom
-                mPointVertexBuffer.emplace_back(
-                    vec2f(xLeft, yBottom),
-                    vec2f(-1.0f, -1.0f),
-                    pointColor,
-                    pointHighlight,
-                    pointFrozenCoefficient);
+        // Left, bottom
+        mPointVertexBuffer.emplace_back(
+            vec2f(xLeft, yBottom),
+            vec2f(-1.0f, -1.0f),
+            pointColor,
+            pointHighlight,
+            pointFrozenCoefficient);
 
-                // Left, top
-                mPointVertexBuffer.emplace_back(
-                    vec2f(xLeft, yTop),
-                    vec2f(-1.0f, 1.0f),
-                    pointColor,
-                    pointHighlight,
-                    pointFrozenCoefficient);
+        // Left, top
+        mPointVertexBuffer.emplace_back(
+            vec2f(xLeft, yTop),
+            vec2f(-1.0f, 1.0f),
+            pointColor,
+            pointHighlight,
+            pointFrozenCoefficient);
 
-                // Right, bottom
-                mPointVertexBuffer.emplace_back(
-                    vec2f(xRight, yBottom),
-                    vec2f(1.0f, -1.0f),
-                    pointColor,
-                    pointHighlight,
-                    pointFrozenCoefficient);
+        // Right, bottom
+        mPointVertexBuffer.emplace_back(
+            vec2f(xRight, yBottom),
+            vec2f(1.0f, -1.0f),
+            pointColor,
+            pointHighlight,
+            pointFrozenCoefficient);
 
-                // Left, top
-                mPointVertexBuffer.emplace_back(
-                    vec2f(xLeft, yTop),
-                    vec2f(-1.0f, 1.0f),
-                    pointColor,
-                    pointHighlight,
-                    pointFrozenCoefficient);
+        // Left, top
+        mPointVertexBuffer.emplace_back(
+            vec2f(xLeft, yTop),
+            vec2f(-1.0f, 1.0f),
+            pointColor,
+            pointHighlight,
+            pointFrozenCoefficient);
 
-                // Right, bottom
-                mPointVertexBuffer.emplace_back(
-                    vec2f(xRight, yBottom),
-                    vec2f(1.0f, -1.0f),
-                    pointColor,
-                    pointHighlight,
-                    pointFrozenCoefficient);
+        // Right, bottom
+        mPointVertexBuffer.emplace_back(
+            vec2f(xRight, yBottom),
+            vec2f(1.0f, -1.0f),
+            pointColor,
+            pointHighlight,
+            pointFrozenCoefficient);
 
-                // Right, top
-                mPointVertexBuffer.emplace_back(
-                    vec2f(xRight, yTop),
-                    vec2f(1.0f, 1.0f),
-                    pointColor,
-                    pointHighlight,
-                    pointFrozenCoefficient);
-            }
+        // Right, top
+        mPointVertexBuffer.emplace_back(
+            vec2f(xRight, yTop),
+            vec2f(1.0f, 1.0f),
+            pointColor,
+            pointHighlight,
+            pointFrozenCoefficient);
+    }
 
 
-            //
-            // Unmap buffer
-            //
+    //
+    // Unmap buffer
+    //
 
-            assert(mPointVertexBuffer.size() == mPointVertexCount);
+    assert(mPointVertexBuffer.size() == mPointVertexCount);
 
-            mPointVertexBuffer.unmap();
+    mPointVertexBuffer.unmap();
 
-            glBindBuffer(GL_ARRAY_BUFFER, 0);
-        });
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 void RenderContext::UploadSpringsStart(size_t springCount)
@@ -375,80 +338,61 @@ void RenderContext::UploadSpring(
 
 void RenderContext::UploadSpringsEnd()
 {
-    // Synchronously
-    auto result = mRenderThread.QueueTask(
-        [&]()
-        {
-            //
-            // Upload buffer, if needed
-            //
+    //
+    // Upload buffer, if needed
+    //
 
-            if (!mSpringVertexBuffer.empty())
-            {
-                glBindBuffer(GL_ARRAY_BUFFER, *mSpringVertexVBO);
-                glBufferData(GL_ARRAY_BUFFER, sizeof(SpringVertex) * mSpringVertexBuffer.size(), mSpringVertexBuffer.data(), GL_STREAM_DRAW);
-                glBindBuffer(GL_ARRAY_BUFFER, 0);
-            }
-        });
-
-    result->Wait();
+    if (!mSpringVertexBuffer.empty())
+    {
+        glBindBuffer(GL_ARRAY_BUFFER, *mSpringVertexVBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(SpringVertex) * mSpringVertexBuffer.size(), mSpringVertexBuffer.data(), GL_STREAM_DRAW);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+    }
 }
 
 void RenderContext::RenderEnd()
 {
-    assert(!mPreviousRenderTaskCompletionIndicator);
+    ////////////////////////////////////////////////////////////////
+    // Render springs
+    ////////////////////////////////////////////////////////////////
 
-    // Run asynchronously; we'll wait for this at the next RenderStart()
-    mPreviousRenderTaskCompletionIndicator = mRenderThread.QueueTask(
-        [this]()
-        {
-            ////////////////////////////////////////////////////////////////
-            // Render springs
-            ////////////////////////////////////////////////////////////////
+    if (!mSpringVertexBuffer.empty())
+    {
+        glBindVertexArray(*mSpringVAO);
 
-            if (!mSpringVertexBuffer.empty())
-            {
-                glBindVertexArray(*mSpringVAO);
+        mShaderManager->ActivateProgram<ShaderManager::ProgramType::Springs>();
 
-                mShaderManager->ActivateProgram<ShaderManager::ProgramType::Springs>();
+        assert((mSpringVertexBuffer.size() % 6) == 0);
+        glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(mSpringVertexBuffer.size()));
 
-                assert((mSpringVertexBuffer.size() % 6) == 0);
-                glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(mSpringVertexBuffer.size()));
+        glBindVertexArray(0);
+    }
 
-                glBindVertexArray(0);
-            }
+    ////////////////////////////////////////////////////////////////
+    // Render points
+    ////////////////////////////////////////////////////////////////
 
-            ////////////////////////////////////////////////////////////////
-            // Render points
-            ////////////////////////////////////////////////////////////////
+    glBindVertexArray(*mPointVAO);
 
-            glBindVertexArray(*mPointVAO);
+    mShaderManager->ActivateProgram<ShaderManager::ProgramType::Points>();
 
-            mShaderManager->ActivateProgram<ShaderManager::ProgramType::Points>();
+    assert((mPointVertexCount % 6) == 0);
+    glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(mPointVertexCount));
 
-            assert((mPointVertexCount % 6) == 0);
-            glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(mPointVertexCount));
+    glBindVertexArray(0);
 
-            glBindVertexArray(0);
+    ////////////////////////////////////////////////////////////////
+    // Terminate
+    ////////////////////////////////////////////////////////////////
 
-            ////////////////////////////////////////////////////////////////
-            // Terminate
-            ////////////////////////////////////////////////////////////////
-
-            // Flush all pending commands (but not the GPU buffer)
-            SLabOpenGL::Flush();
-
-            // Swap buffers
-            mSwapRenderBuffersFunction();
-        });
+    // Flush all pending commands (but not the GPU buffer)
+    SLabOpenGL::Flush();
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 void RenderContext::ProcessSettingChanges()
 {
-    std::lock_guard<std::mutex> const lock(mSettingsMutex);
-
     if (mIsCanvasSizeDirty)
     {
         OnCanvasSizeUpdated();

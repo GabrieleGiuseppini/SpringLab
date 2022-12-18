@@ -16,9 +16,8 @@ enum class SLabSettings : size_t
     CommonDoApplyGravity,
     CommonGlobalDamping,
 
-    ClassicSimulatorSpringStiffness,
-    ClassicSimulatorSpringDamping,
-    ClassicSimulatorSpringForceInertia,
+    ClassicSimulatorSpringStiffnessCoefficient,
+    ClassicSimulatorSpringDampingCoefficient,
 
     DoRenderAssignedParticleForces,
 

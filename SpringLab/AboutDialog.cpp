@@ -44,7 +44,7 @@ AboutDialog::AboutDialog(wxWindow * parent)
     mainSizer->AddSpacer(1);
 
     wxStaticText * title2Label = new wxStaticText(this, wxID_ANY, _(""), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTRE_HORIZONTAL);
-    title2Label->SetLabelText("(c) Gabriele Giuseppini 2020");
+    title2Label->SetLabelText("(c) Gabriele Giuseppini 2020-2023");
     mainSizer->Add(title2Label, 0, wxALIGN_CENTRE);
 
     mainSizer->AddSpacer(5);

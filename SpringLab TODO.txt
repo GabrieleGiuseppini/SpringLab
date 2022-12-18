@@ -1,9 +1,15 @@
-+ Open dialog
-+ Fix quit issue
+- Classic Simulator:
+	- Put spring coeff calc as in Floating Sandbox
+
+- Observer:
+	- How to calculate potential energy without being classic-simulator-dependent?
+		- Need callback from simulator - CalculatePotentialEnergy()
+
+==================================
+
+TODOOLD
 
 - Fix #pragma pack
-
-- Fix spring coeff calc - really needs mass factor?
 
 - Try average integration
 

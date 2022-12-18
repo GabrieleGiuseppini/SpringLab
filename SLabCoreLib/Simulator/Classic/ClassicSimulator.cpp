@@ -94,13 +94,13 @@ void ClassicSimulator::CreateState(
         // The "stiffness coefficient" is the factor which, once multiplied with the spring displacement,
         // yields the spring force, according to Hooke's law.
         mSpringStiffnessCoefficientBuffer[springIndex] =
-            simulationParameters.ClassicSimulator.SpringStiffness
+            simulationParameters.ClassicSimulator.SpringStiffnessCoefficient
             * springs.GetMaterialStiffness(springIndex);
 
         // Damping coefficient
         //
         // Magnitude of the drag force on the relative velocity component along the spring.
-        mSpringDampingCoefficientBuffer[springIndex] = simulationParameters.ClassicSimulator.SpringDamping;
+        mSpringDampingCoefficientBuffer[springIndex] = simulationParameters.ClassicSimulator.SpringDampingCoefficient;
     }
 }
 
@@ -169,6 +169,12 @@ void ClassicSimulator::IntegrateAndResetSpringForces(
     vec2f const * const restrict externalForceBuffer = mPointExternalForceBuffer.data();
     float const * const restrict integrationFactorBuffer = mPointIntegrationFactorBuffer.data();
 
+    float const globalDampingCoefficient = 1.0f - pow((1.0f - simulationParameters.Common.GlobalDamping), 0.4f);
+
+    // Pre-divide damp coefficient by dt to provide the scalar factor which, when multiplied with a displacement,
+    // provides the final, damped velocity
+    float const velocityFactor = globalDampingCoefficient / dt;
+
     size_t const count = object.GetPoints().GetBufferElementCount();
     for (size_t i = 0; i < count; ++i)
     {
@@ -176,17 +182,12 @@ void ClassicSimulator::IntegrateAndResetSpringForces(
         // Verlet integration (fourth order, with velocity being first order)
         //
 
-        positionBuffer[i] +=
+        vec2f const deltaPos =
             velocityBuffer[i] * dt
             + (springForceBuffer[i] + externalForceBuffer[i]) * integrationFactorBuffer[i];
 
-        velocityBuffer[i] =
-            (
-                velocityBuffer[i]
-                + springForceBuffer[i] * integrationFactorBuffer[i] / dt * simulationParameters.ClassicSimulator.SpringForceInertia
-                + externalForceBuffer[i] * integrationFactorBuffer[i] / dt
-            )
-            * simulationParameters.Common.GlobalDamping;
+        positionBuffer[i] += deltaPos;
+        velocityBuffer[i] = deltaPos * velocityFactor;
 
         // Zero out spring force now that we've integrated it
         springForceBuffer[i] = vec2f::zero();
