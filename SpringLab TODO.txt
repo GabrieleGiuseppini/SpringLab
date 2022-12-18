@@ -11,10 +11,6 @@ TODOOLD
 
 - Fix #pragma pack
 
-- Try average integration
-
-- Classic simulator: iterations block size (def=1)
-
 = Initial conditions:
 	+ Gravity:
 		+ Goes to SimulationParameters, as vec2f AssignedGravity,
@@ -35,42 +31,6 @@ TODOOLD
 		- Render: uploaded as vectors by SimulationController at Render()
 			- Enabled/Disabled by menu item => SimulationController::mDoRenderAssignedParticleForces
 
-	- Buoyancy Line
-		- "Matte" shader
-
-+ Decide whether to change spring reduction fraction into spring stiffness, and also damping
-	+ If so, recalc defaults to match FS
-	+ If so, nuke dt's
-	+ & rename both, & Tooltips
-
-- TODO: role of inertia
-	
-+ MT RenderContext: exceptions
-	+ The thing that's ahred_ptr is the TaskCompletion
-	+ TaskCompletion stores exc message
-	+ Wait throws
-	+ Test w/shader error
-	+ Test w/OpenGL version
-
-+ Nuke BufferAllocator & AllocWorkBuffer/Copy methods
-
-+ SettingsDialog
-	+ Settings
-	+ SettingsManager
-		+ Create @ MainFrame
-		+ Takes SimulationController directly
-	+ CommonParams, SimulationController and SettingsManager:
-		+ Gravity
-		+ dt
-		+ MassAdjustment
-		+ GlobalDamping
-	+ Dialog
-		+ One static box per common + each simulator
-	+ Use params @ Simulator
-	+ Open via toolbar, together with Reset and Open
-		+ "Actions"
-		+ Leave in menu, and add "Settings..."
-	
 = UI:		
 	= ControlToolBar (left):
 		+ Keyboard shortcuts
@@ -255,3 +215,34 @@ DONE:
 
 + Do "ClassicSimulator"
 	+ Do
+
++ Decide whether to change spring reduction fraction into spring stiffness, and also damping
+	+ If so, recalc defaults to match FS
+	+ If so, nuke dt's
+	+ & rename both, & Tooltips
+	
++ MT RenderContext: exceptions
+	+ The thing that's ahred_ptr is the TaskCompletion
+	+ TaskCompletion stores exc message
+	+ Wait throws
+	+ Test w/shader error
+	+ Test w/OpenGL version
+
++ Nuke BufferAllocator & AllocWorkBuffer/Copy methods
+
++ SettingsDialog
+	+ Settings
+	+ SettingsManager
+		+ Create @ MainFrame
+		+ Takes SimulationController directly
+	+ CommonParams, SimulationController and SettingsManager:
+		+ Gravity
+		+ dt
+		+ MassAdjustment
+		+ GlobalDamping
+	+ Dialog
+		+ One static box per common + each simulator
+	+ Use params @ Simulator
+	+ Open via toolbar, together with Reset and Open
+		+ "Actions"
+		+ Leave in menu, and add "Settings..."
