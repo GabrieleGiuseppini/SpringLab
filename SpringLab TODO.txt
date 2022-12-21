@@ -1,9 +1,23 @@
 - Classic Simulator:
-	- Put spring coeff calc as in Floating Sandbox
+	- Put spring coeff calc'n as in Floating Sandbox
 
-- Observer:
-	- How to calculate potential energy without being classic-simulator-dependent?
-		- Need callback from simulator - CalculatePotentialEnergy()
+- Measurements:
+	- New events/callbacks:
+		- "Measurements"
+			- Calc'd, managed, and invoked by controller
+			- Contains:
+				- Bending
+				- Potential energy
+				- Kinetic energy
+				- Update elapsed time x 2 (last, avg)
+		- Subscribed to by ProbePanel
+			- Displays scalars and/or time series
+	- Enhance materials:
+		= StructuralMaterial and json database:
+			- XXX Fixed
+			- XXX BendingProbe
+		- ObjectBuilder => Object
+		- ClassicSimulator interpretation of fixed
 
 ==================================
 
