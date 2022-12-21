@@ -106,7 +106,6 @@ if(FS_USE_STATIC_LIBS)
 	add_compile_definitions("IL_STATIC_LIB")
 endif()
 
-
 #
 # OpenGL
 #

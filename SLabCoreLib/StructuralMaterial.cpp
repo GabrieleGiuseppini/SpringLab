@@ -16,13 +16,19 @@ StructuralMaterial StructuralMaterial::Create(picojson::object const & structura
         picojson::object massJson = Utils::GetMandatoryJsonObject(structuralMaterialJson, "mass");
         float const nominalMass = Utils::GetMandatoryJsonMember<float>(massJson, "nominal_mass");
         float const density = Utils::GetMandatoryJsonMember<float>(massJson, "density");
+
         float const stiffness = Utils::GetOptionalJsonMember<float>(structuralMaterialJson, "stiffness", 1.0);
+
+        bool const isFixed = Utils::GetOptionalJsonMember<bool>(structuralMaterialJson, "is_fixed", false);
+        bool const isBendingProbe = Utils::GetOptionalJsonMember<bool>(structuralMaterialJson, "is_bending_probe", false);
 
         return StructuralMaterial(
             name,
             nominalMass,
             density,
-            stiffness);
+            stiffness,
+            isFixed,
+            isBendingProbe);
     }
     catch (SLabException const & ex)
     {

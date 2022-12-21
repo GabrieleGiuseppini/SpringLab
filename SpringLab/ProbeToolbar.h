@@ -10,6 +10,7 @@
 #include <SLabCoreLib/ISimulationEventHandler.h>
 
 #include <wx/sizer.h>
+#include <wx/textctrl.h>
 #include <wx/wx.h>
 
 #include <memory>
@@ -36,9 +37,12 @@ public:
 
     virtual void OnSimulationReset() override;
 
-    virtual void OnObjectProbe(
+    virtual void OnMeasurement(
         float totalKineticEnergy,
-        float totalPotentialEnergy) override;
+        float totalPotentialEnergy,
+        std::optional<float> bending,
+        std::chrono::microseconds lastSimulationDuration,
+        std::chrono::microseconds avgSimulationDuration) override;
 
     virtual void OnCustomProbe(
         std::string const & name,
@@ -58,8 +62,11 @@ private:
 private:
 
     //
-    // Probes
+    // UI
     //
+
+    wxTextCtrl * mBendingTextCtrl;
+    wxTextCtrl * mLastSimulationDurationTextCtrl;
 
     wxBoxSizer * mProbesSizer;
 

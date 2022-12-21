@@ -31,6 +31,10 @@ if (MSVC)
 			RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}"
 	)
 
+	set_target_properties(
+                Benchmarks
+                PROPERTIES EXCLUDE_FROM_DEFAULT_BUILD_DEBUG TRUE)
+
 endif (MSVC)
 
 

@@ -28,13 +28,21 @@ public:
         }
     }
 
-    virtual void OnObjectProbe(
+    virtual void OnMeasurement(
         float totalKineticEnergy,
-        float totalPotentialEnergy) override
+        float totalPotentialEnergy,
+        std::optional<float> bending,
+        std::chrono::microseconds lastSimulationDuration,
+        std::chrono::microseconds avgSimulationDuration) override
     {
         for (auto sink : mSinks)
         {
-            sink->OnObjectProbe(totalKineticEnergy, totalPotentialEnergy);
+            sink->OnMeasurement(
+                totalKineticEnergy, 
+                totalPotentialEnergy,
+                bending,
+                lastSimulationDuration,
+                avgSimulationDuration);
         }
     }
 

@@ -192,12 +192,12 @@ public:
         }
         else
         {
-            if (!!mCurrentEngagementState)
+            if (mCurrentEngagementState)
             {
+                mSimulationController->SetPointHighlight(mCurrentEngagementState->PointIndex, 0.0f);
+
                 // Disengage
                 mCurrentEngagementState.reset();
-
-                mSimulationController->SetPointHighlight(mCurrentEngagementState->PointIndex, 0.0f);
             }
         }
 

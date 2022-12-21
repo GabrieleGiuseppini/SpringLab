@@ -7,6 +7,8 @@
 
 #include "SLabTypes.h"
 
+#include <chrono>
+#include <optional>
 #include <string>
 
 /*
@@ -23,9 +25,12 @@ struct ISimulationEventHandler
         // Default-implemented
     }
 
-    virtual void OnObjectProbe(
+    virtual void OnMeasurement(
         float /*totalKineticEnergy*/,
-        float /*totalPotentialEnergy*/)
+        float /*totalPotentialEnergy*/,
+        std::optional<float> /*bending*/,
+        std::chrono::microseconds /*lastSimulationDuration*/,
+        std::chrono::microseconds /*avgSimulationDuration*/)
     {
         // Default-implemented
     }

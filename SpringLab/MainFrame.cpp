@@ -190,8 +190,6 @@ MainFrame::MainFrame(wxApp * mainApp)
             wxEXPAND);          // Expand horizontally
     }
 
-
-
     //
     // Finalize frame
     //
@@ -315,8 +313,6 @@ MainFrame::MainFrame(wxApp * mainApp)
 
         SetMenuBar(mainMenuBar);
     }
-
-
 
     //
     // Create Simulation Controller

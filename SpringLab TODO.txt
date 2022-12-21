@@ -1,17 +1,20 @@
 - Classic Simulator:
 	- Put spring coeff calc'n as in Floating Sandbox
+	- Add # of iterations parameter
+		- Simulator
+		- SettingsDialog
 
-- Measurements:
-	- New events/callbacks:
-		- "Measurements"
+= Measurements:
+	= New events/callbacks:
+		- OnMeasurements
 			- Calc'd, managed, and invoked by controller
 			- Contains:
 				- Bending
 				- Potential energy
 				- Kinetic energy
-				- Update elapsed time x 2 (last, avg)
-		- Subscribed to by ProbePanel
-			- Displays scalars and/or time series
+				+ Update elapsed time x 2 (last, avg)
+		+ Subscribed to by ProbePanel
+			+ Displays scalars and/or time series
 	- Enhance materials:
 		= StructuralMaterial and json database:
 			- XXX Fixed

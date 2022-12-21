@@ -6,6 +6,7 @@
 set  (SOURCES
 	AABB.h
 	Buffer.h
+	Chronometer.h
 	CircularList.h
 	Colors.cpp
 	Colors.h
@@ -27,6 +28,7 @@ set  (SOURCES
 	ObjectBuilder.h
 	ObjectDefinition.cpp
 	ObjectDefinition.h
+	PerfStats.h
 	Points.cpp
 	Points.h
 	RenderContext.cpp
@@ -40,7 +42,7 @@ set  (SOURCES
 	SimulationController.h
 	SimulationController_Interactions.cpp
 	SimulationParameters.cpp
-	SimulationParameters.h
+	SimulationParameters.h	
 	SLabDebug.h
 	SLabException.h
 	SLabMath.h

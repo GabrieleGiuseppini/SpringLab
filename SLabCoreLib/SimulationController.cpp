@@ -5,6 +5,7 @@
 ***************************************************************************************/
 #include "SimulationController.h"
 
+#include "Chronometer.h"
 #include "ObjectBuilder.h"
 #include "ResourceLocator.h"
 
@@ -42,7 +43,6 @@ SimulationController::SimulationController(
     , mSimulator()
     , mCurrentSimulatorTypeName(SimulatorRegistry::GetDefaultSimulatorTypeName())
     , mCurrentSimulationTime(0.0f)
-    , mTotalSimulationSteps(0)
     , mSimulationParameters()
     , mObject()
     , mCurrentObjectName()
@@ -51,7 +51,7 @@ SimulationController::SimulationController(
     // Parameters
     , mDoRenderAssignedParticleForces(false)
     // Stats
-    , mOriginTimestamp(SLabWallClock::time_point::max())
+    , mPerfStats()
 {
     LoadObject(ResourceLocator::GetDefaultObjectDefinitionFilePath());
 }
@@ -94,6 +94,8 @@ void SimulationController::UpdateSimulation()
     assert(!!mSimulator);
     assert(!!mObject);
 
+    PerfStats const lastPerfStats = mPerfStats;
+
     ////////////////////////////////////////////////////////
     // Update parameters
     ////////////////////////////////////////////////////////
@@ -109,7 +111,7 @@ void SimulationController::UpdateSimulation()
     // Update
     ////////////////////////////////////////////////////////
 
-    auto const updateStartTimestamp = std::chrono::steady_clock::now();
+    auto const updateStartTimestamp = Chronometer::now();
 
     // Update simulation
     mSimulator->Update(
@@ -117,27 +119,16 @@ void SimulationController::UpdateSimulation()
         mCurrentSimulationTime,
         mSimulationParameters);
 
-    auto const updateEndTimestamp = std::chrono::steady_clock::now();
+    mPerfStats.SimulationDuration.Update(Chronometer::now() - updateStartTimestamp);
 
-    // Update simulation time
+    // Update simulation time    
     mCurrentSimulationTime += mSimulationParameters.Common.SimulationTimeStepDuration;
 
     ////////////////////////////////////////////////////////
     // Observe
     ////////////////////////////////////////////////////////
 
-    ObserveObject();
-
-    ////////////////////////////////////////////////////////
-    // Book-Keeping
-    ////////////////////////////////////////////////////////
-
-    // Update stats
-    mCurrentSimulationTime += mSimulationParameters.Common.SimulationTimeStepDuration;
-    ++mTotalSimulationSteps;
-
-    // publish stats
-    PublishStats(updateEndTimestamp - updateStartTimestamp);
+    ObserveObject(lastPerfStats);
 }
 
 void SimulationController::Render()
@@ -258,7 +249,6 @@ void SimulationController::Reset(
 
     // Reset simulation state
     mCurrentSimulationTime = 0.0f;
-    mTotalSimulationSteps = 0;
     mIsSimulationStateDirty = false;
 
     // Publish reset
@@ -268,10 +258,10 @@ void SimulationController::Reset(
     // Reset stats
     //
 
-    mOriginTimestamp = SLabWallClock::GetInstance().Now();
+    mPerfStats.Reset();
 }
 
-void SimulationController::ObserveObject()
+void SimulationController::ObserveObject(PerfStats const & lastPerfStats)
 {
     //
     // Calculate:
@@ -298,7 +288,7 @@ void SimulationController::ObserveObject()
 
         float const displacementLength = (points.GetPosition(endpointBIndex) - points.GetPosition(endpointAIndex)).length();
 
-        // TODOHERE: 
+        // TODOHERE: we can only do this ourselves if MaterialStiffness is all that there is
         totalPotentialEnergy +=
             mSimulationParameters.ClassicSimulator.SpringStiffnessCoefficient
             * springs.GetMaterialStiffness(s)
@@ -309,15 +299,19 @@ void SimulationController::ObserveObject()
     totalPotentialEnergy *= 0.5f;
 
     //
+    // Update perf
+    //
+
+    auto const deltaStats = mPerfStats - lastPerfStats;
+
+    //
     // Publish observations
     //
 
-    mEventDispatcher.OnObjectProbe(totalKineticEnergy, totalPotentialEnergy);
-}
-
-void SimulationController::PublishStats(std::chrono::steady_clock::duration /*updateElapsed*/)
-{
-    // TODO: calc
-
-    // TODO: publish via event
+    mEventDispatcher.OnMeasurement(
+        totalKineticEnergy,
+        totalPotentialEnergy,
+        std::nullopt, // TODOHERE: bending
+        deltaStats.SimulationDuration.Finalize<std::chrono::microseconds>(),
+        mPerfStats.SimulationDuration.Finalize<std::chrono::microseconds>());
 }

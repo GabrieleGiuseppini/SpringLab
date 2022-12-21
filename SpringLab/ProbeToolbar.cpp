@@ -5,9 +5,12 @@
 ***************************************************************************************/
 #include "ProbeToolbar.h"
 
+#include <wx/gbsizer.h>
 #include <wx/stattext.h>
 
 #include <cassert>
+#include <iomanip>
+#include <sstream>
 
 static constexpr int TopPadding = 2;
 static constexpr int ProbePadding = 10;
@@ -27,28 +30,94 @@ ProbeToolbar::ProbeToolbar(wxWindow* parent)
 
     SetBackgroundColour(wxSystemSettings::GetColour(wxSYS_COLOUR_BTNFACE));
 
-
     //
-    // Create probes' sizer
-    //
-
-    mProbesSizer = new wxBoxSizer(wxHORIZONTAL);
-
-
-    //
-    // Create default probes
+    // Setup UI
     //
 
-    mKineticEnergyProbe = AddScalarTimeSeriesProbe("Kinetic Energy", 200);
-    mPotentialEnergyProbe = AddScalarTimeSeriesProbe("Potential Energy", 200);
-    mProbesSizer->Layout();
+    {
+        int constexpr HMargin = 10;
 
+        wxBoxSizer * hSizer = new wxBoxSizer(wxHORIZONTAL);
 
-    //
-    // Finalize
-    //
+        hSizer->AddSpacer(HMargin);
 
-    SetSizer(mProbesSizer);
+        // Fixed scalars
+        {
+            int constexpr TextCtrlWidth = 60;
+
+            wxGridBagSizer * gridSizer = new wxGridBagSizer(0, 0);
+
+            // Bending
+            {
+                auto label = new wxStaticText(this, wxID_ANY, _("Bending:"));
+                gridSizer->Add(
+                    label,
+                    wxGBPosition(0, 0),
+                    wxGBSpan(1, 1),
+                    wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL,
+                    0);
+
+                mBendingTextCtrl = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxSize(TextCtrlWidth, -1), wxTE_RIGHT | wxTE_READONLY);
+                gridSizer->Add(
+                    mBendingTextCtrl,
+                    wxGBPosition(0, 1),
+                    wxGBSpan(1, 1),
+                    wxEXPAND,
+                    0);
+            }
+
+            // Update duration
+            {
+                auto label1 = new wxStaticText(this, wxID_ANY, _("Sim time:"));
+                gridSizer->Add(
+                    label1,
+                    wxGBPosition(1, 0),
+                    wxGBSpan(1, 1),
+                    wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL,
+                    0);
+
+                mLastSimulationDurationTextCtrl = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxSize(TextCtrlWidth, -1), wxTE_RIGHT | wxTE_READONLY);
+                gridSizer->Add(
+                    mLastSimulationDurationTextCtrl,
+                    wxGBPosition(1, 1),
+                    wxGBSpan(1, 1),
+                    wxEXPAND,
+                    0);
+
+                auto label2 = new wxStaticText(this, wxID_ANY, _("us"));
+                gridSizer->Add(
+                    label2,
+                    wxGBPosition(1, 2),
+                    wxGBSpan(1, 1),
+                    wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL,
+                    0);
+            }
+
+            hSizer->Add(
+                gridSizer,
+                0,
+                0,
+                0);
+        }
+
+        // Probes
+        {
+            mProbesSizer = new wxBoxSizer(wxHORIZONTAL);
+
+            mKineticEnergyProbe = AddScalarTimeSeriesProbe("Kinetic Energy", 200);
+            mPotentialEnergyProbe = AddScalarTimeSeriesProbe("Potential Energy", 200);
+
+            hSizer->Add(
+                mProbesSizer,
+                0,
+                0,
+                0);
+        }
+
+        hSizer->AddSpacer(HMargin);
+
+        SetSizer(hSizer);
+    }
 }
 
 ProbeToolbar::~ProbeToolbar()
@@ -96,6 +165,9 @@ std::unique_ptr<ScalarTimeSeriesProbeControl> ProbeToolbar::AddScalarTimeSeriesP
 
 void ProbeToolbar::OnSimulationReset()
 {
+    mBendingTextCtrl->SetValue("");
+    mLastSimulationDurationTextCtrl->SetValue("");
+
     mKineticEnergyProbe->Reset();
     mPotentialEnergyProbe->Reset();
 
@@ -105,14 +177,42 @@ void ProbeToolbar::OnSimulationReset()
     }
 }
 
-void ProbeToolbar::OnObjectProbe(
+void ProbeToolbar::OnMeasurement(
     float totalKineticEnergy,
-    float totalPotentialEnergy)
+    float totalPotentialEnergy,
+    std::optional<float> bending,
+    std::chrono::microseconds lastSimulationDuration,
+    std::chrono::microseconds /*avgSimulationDuration*/)
 {
-    assert(!!mKineticEnergyProbe);
-    mKineticEnergyProbe->RegisterSample(totalKineticEnergy);
+    // Bending
+    if (bending)
+    {
+        std::ostringstream ss;
+        ss.fill('0');
+        ss << std::fixed << std::setprecision(2) << *bending;
 
-    assert(!!mPotentialEnergyProbe);
+        mBendingTextCtrl->SetValue(ss.str());
+    }
+    else
+    {
+        mBendingTextCtrl->SetValue("");
+    }
+    
+    // Simulation time
+    {
+        float const lastSimulationDurationMicroSeconds =
+            static_cast<float>(std::chrono::duration_cast<std::chrono::nanoseconds>(lastSimulationDuration).count())
+            / 1000.0f;
+
+        std::ostringstream ss;
+        ss.fill('0');
+        ss << std::fixed << std::setprecision(2) << lastSimulationDurationMicroSeconds;
+
+        mLastSimulationDurationTextCtrl->SetValue(ss.str());
+    }
+
+    // Time series
+    mKineticEnergyProbe->RegisterSample(totalKineticEnergy);
     mPotentialEnergyProbe->RegisterSample(totalPotentialEnergy);
 }
 

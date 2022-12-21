@@ -18,6 +18,9 @@ public:
     float Density;
     float Stiffness;
 
+    bool IsFixed;
+    bool IsBendingProbe;
+
 public:
 
     static StructuralMaterial Create(picojson::object const & structuralMaterialJson);
@@ -36,10 +39,14 @@ public:
         std::string name,
         float nominalMass,
         float density,
-        float stiffness)
+        float stiffness,
+        bool isFixed,
+        bool isBendingProbe)
         : Name(name)
         , NominalMass(nominalMass)
         , Density(density)
         , Stiffness(stiffness)
+        , IsFixed(isFixed)
+        , IsBendingProbe(isBendingProbe)
     {}
 };

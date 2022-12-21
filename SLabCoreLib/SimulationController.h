@@ -9,10 +9,10 @@
 #include "EventDispatcher.h"
 #include "ImageData.h"
 #include "Object.h"
+#include "PerfStats.h"
 #include "RenderContext.h"
 #include "SimulationParameters.h"
 #include "SLabTypes.h"
-#include "SLabWallClock.h"
 #include "StructuralMaterialDatabase.h"
 #include "Vectors.h"
 
@@ -192,9 +192,7 @@ private:
         std::string objectName,
         std::filesystem::path objectDefinitionFilepath);
 
-    void ObserveObject();
-
-    void PublishStats(std::chrono::steady_clock::duration updateElapsed);
+    void ObserveObject(PerfStats const & lastPerfStats);
 
 private:
 
@@ -210,7 +208,6 @@ private:
     std::string mCurrentSimulatorTypeName;
 
     float mCurrentSimulationTime;
-    size_t mTotalSimulationSteps;
 
     SimulationParameters mSimulationParameters;
 
@@ -230,5 +227,5 @@ private:
     // Stats
     //
 
-    SLabWallClock::time_point mOriginTimestamp;
+    PerfStats mPerfStats;
 };
