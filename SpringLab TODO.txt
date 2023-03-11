@@ -1,26 +1,20 @@
 
-= Measurements:
-	= New events/callbacks:
-		- OnMeasurements
-			- Calc'd, managed, and invoked by controller
-			- Contains:
-				- Bending
-				- Potential energy
-				- Kinetic energy
-				+ Update elapsed time x 2 (last, avg)
-		+ Subscribed to by ProbePanel
-			+ Displays scalars and/or time series
-	- Enhance materials:
-		= StructuralMaterial and json database:
-			- XXX Fixed
-			- XXX BendingProbe
-		- ObjectBuilder => Object
-		- ClassicSimulator interpretation of fixed
-
 = Five-pronged plan:
-	= 0. FS Base (by spring)
+	+ 0. FS Base (by spring)
+	= 0b: 
+		+ Fix move
+		- Bending measurement:
+			= StructuralMaterial and json database:
+				- XXX Fixed
+				- XXX BendingProbe
+			- ObjectBuilder => Object
+			- ClassicSimulator interpretation of fixed
+		- New object (very long), with fixed and probe
 	- 1. By Point
-	- TODOHERE
+	- 2. TODOHERE
+	- 3.
+	- 4. With intrinsics
+	- 5. Multi-threaded
 
 
 ==================================

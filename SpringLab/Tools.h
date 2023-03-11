@@ -135,9 +135,17 @@ public:
                     // Engage!
                     //
 
+                    bool const isPointAlreadyFrozen = mSimulationController->IsPointFrozen(*elementId);
+
                     mCurrentEngagementState.emplace(
                         *elementId,
+                        isPointAlreadyFrozen,
                         inputState.MousePosition);
+
+                    if (!isPointAlreadyFrozen)
+                    {
+                        mSimulationController->TogglePointFreeze(*elementId);
+                    }
 
                     mSimulationController->SetPointHighlight(mCurrentEngagementState->PointIndex, 1.0f);
                 }
@@ -162,6 +170,11 @@ public:
             {
                 mSimulationController->SetPointHighlight(mCurrentEngagementState->PointIndex, 0.0f);
 
+                if (!mCurrentEngagementState->WasPointAlreadyFrozen)
+                {
+                    mSimulationController->TogglePointFreeze(mCurrentEngagementState->PointIndex);
+                }
+
                 // Disengage
                 mCurrentEngagementState.reset();
             }
@@ -183,12 +196,15 @@ private:
     struct EngagementState
     {
         ElementIndex PointIndex;
+        bool const WasPointAlreadyFrozen;
         vec2f LastScreenPosition;
 
         EngagementState(
             ElementIndex pointIndex,
+            bool wasPointAlreadyFrozen,
             vec2f startScreenPosition)
             : PointIndex(pointIndex)
+            , WasPointAlreadyFrozen(wasPointAlreadyFrozen)
             , LastScreenPosition(startScreenPosition)
         {}
     };

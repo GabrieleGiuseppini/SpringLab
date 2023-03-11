@@ -64,6 +64,11 @@ vec2f SimulationController::GetPointPositionInScreenCoordinates(ElementIndex poi
     return mRenderContext->WorldToScreen(GetPointPosition(pointElementIndex));
 }
 
+bool SimulationController::IsPointFrozen(ElementIndex pointElementIndex) const
+{
+    return mObject->GetPoints().GetFrozenCoefficient(pointElementIndex) == 0.0f;
+}
+
 void SimulationController::MovePointBy(ElementIndex pointElementIndex, vec2f const & screenStride)
 {
     assert(!!mObject);
