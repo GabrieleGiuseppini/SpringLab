@@ -68,7 +68,7 @@ ProbeToolbar::ProbeToolbar(wxWindow* parent)
 
             // Update duration
             {
-                auto label1 = new wxStaticText(this, wxID_ANY, _("Sim time:"));
+                auto label1 = new wxStaticText(this, wxID_ANY, _("CPU time:"));
                 gridSizer->Add(
                     label1,
                     wxGBPosition(1, 0),

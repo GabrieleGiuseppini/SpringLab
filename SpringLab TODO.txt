@@ -1,15 +1,10 @@
 
 = Five-pronged plan:
 	+ 0. FS Base (by spring)
-	= 0b: 
+	+ 0b. Fixes: 
 		+ Fix move
-		- Bending measurement:
-			= StructuralMaterial and json database:
-				- XXX Fixed
-				- XXX BendingProbe
-			- ObjectBuilder => Object
-			- ClassicSimulator interpretation of fixed
-		- New object (very long), with fixed and probe
+		+ Bending measurement
+		+ New object (very long), with fixed and probe
 	- 1. By Point
 	- 2. TODOHERE
 	- 3.

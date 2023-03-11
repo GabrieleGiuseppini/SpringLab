@@ -209,6 +209,8 @@ Points ObjectBuilder::CreatePoints(std::vector<ObjectBuildPoint> const & pointIn
             pointInfo.Material);
     }
 
+    points.Finalize();
+
     return points;
 }
 

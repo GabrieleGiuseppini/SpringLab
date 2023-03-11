@@ -18,7 +18,8 @@ public:
 
     static std::filesystem::path GetDefaultObjectDefinitionFilePath()
     {
-        return GetInstalledObjectFolderPath() / "default_object.png";
+        //return GetInstalledObjectFolderPath() / "default_object.png";
+        return GetInstalledObjectFolderPath() / "80x5_bending_test.png";        
     }
 
     static std::filesystem::path GetStructuralMaterialDatabaseFilePath()

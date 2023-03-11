@@ -17,8 +17,7 @@
 
 #include <algorithm>
 #include <cassert>
-#include <cstring>
-#include <vector>
+#include <optional>
 
 class Points : public ElementContainer
 {
@@ -46,6 +45,22 @@ public:
     };
 
     using ConnectedSpringsVector = FixedSizeVector<ConnectedSpring, SimulationParameters::MaxSpringsPerPoint>;
+
+    /*
+     * The metadata about bending probes. 
+     */
+    struct BendingProbe
+    {
+        ElementIndex PointIndex;
+        vec2f OriginalWorldCoordinates;
+
+        BendingProbe(
+            ElementIndex pointIndex,
+            vec2f const & originalWorldCoordinates)
+            : PointIndex(pointIndex)
+            , OriginalWorldCoordinates(originalWorldCoordinates)
+        {}
+    };
 
 public:
 
@@ -77,6 +92,8 @@ public:
         vec2f const & position,
         vec3f const & color,
         StructuralMaterial const & structuralMaterial);
+
+    void Finalize();
 
     void Query(ElementIndex pointElementIndex) const;
 
@@ -271,6 +288,15 @@ public:
         return mRenderHighlightBuffer.data();
     }
 
+    //
+    // Misc
+    //
+
+    auto const & GetBendingProbe() const
+    {
+        return mBendingProbe;
+    }
+
 private:
 
     //////////////////////////////////////////////////////////
@@ -307,4 +333,10 @@ private:
     Buffer<vec4f> mFactoryRenderColorBuffer;
     Buffer<float> mRenderNormRadiusBuffer;
     Buffer<float> mRenderHighlightBuffer;
+
+    //
+    // Misc
+    //
+
+    std::optional<BendingProbe> mBendingProbe;
 };

@@ -299,6 +299,21 @@ void SimulationController::ObserveObject(PerfStats const & lastPerfStats)
     totalPotentialEnergy *= 0.5f;
 
     //
+    // Bending
+    //
+
+    std::optional<float> bending;
+
+    auto const & bendingProbe = mObject->GetPoints().GetBendingProbe();
+    if (bendingProbe)
+    {
+        vec2f const & currentProbePosition = mObject->GetPoints().GetPosition(bendingProbe->PointIndex);
+
+        // TODOHERE: arc?
+        bending = -(currentProbePosition.y - bendingProbe->OriginalWorldCoordinates.y);
+    }
+
+    //
     // Update perf
     //
 
@@ -311,7 +326,7 @@ void SimulationController::ObserveObject(PerfStats const & lastPerfStats)
     mEventDispatcher.OnMeasurement(
         totalKineticEnergy,
         totalPotentialEnergy,
-        std::nullopt, // TODOHERE: bending
+        bending,
         deltaStats.SimulationDuration.Finalize<std::chrono::nanoseconds>(),
         mPerfStats.SimulationDuration.Finalize<std::chrono::nanoseconds>());
 }

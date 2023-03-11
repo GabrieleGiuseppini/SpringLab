@@ -18,13 +18,35 @@ void Points::Add(
     mAssignedForceBuffer.emplace_back(vec2f::zero());
     mStructuralMaterialBuffer.emplace_back(&structuralMaterial);
     mMassBuffer.emplace_back(structuralMaterial.GetMass());
-    mFrozenCoefficientBuffer.emplace_back(1.0f);
+    mFrozenCoefficientBuffer.emplace_back(structuralMaterial.IsFixed ? 0.0f : 1.0f);
     mConnectedSpringsBuffer.emplace_back();
 
     mRenderColorBuffer.emplace_back(vec4f(color, 1.0f));
     mFactoryRenderColorBuffer.emplace_back(vec4f(color, 1.0f));
     mRenderNormRadiusBuffer.emplace_back(1.0f);
     mRenderHighlightBuffer.emplace_back(0.0f);
+}
+
+void Points::Finalize()
+{
+    //
+    // Bending probe
+    //
+
+    for (ElementIndex p : *this)
+    {
+        if (mStructuralMaterialBuffer[p]->IsBendingProbe)
+        {
+            if (mBendingProbe)
+            {
+                throw SLabException("There is more than one bending probe in the object");
+            }
+
+            mBendingProbe.emplace(
+                p,
+                mPositionBuffer[p]);
+        }
+    }
 }
 
 void Points::Query(ElementIndex pointElementIndex) const

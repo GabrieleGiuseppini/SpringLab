@@ -1,5 +1,39 @@
 [
     {
+        "color_key": "#0A0A0A", 
+	"is_fixed": true,
+        "mass": {
+            "density": 0.00935, 
+            "nominal_mass": 7850
+        }, 
+        "name": "Fixed Point",
+        "stiffness": 1.0, 
+        "template": {
+            "column": 0, 
+            "row": "0|Fixed Points"
+        }
+    }, 
+
+
+    {
+        "color_key": "#216ccf", 
+	"is_bending_probe": true,
+        "mass": {
+            "density": 0.00935, 
+            "nominal_mass": 7850
+        }, 
+        "name": "Iron Bending Probe",
+        "stiffness": 1.0, 
+        "template": {
+            "column": 0, 
+            "row": "1|Iron Probes"
+        }
+    }, 
+
+
+
+
+    {
         "color_key": "#808090", 
         "mass": {
             "density": 0.00935, 
@@ -9,7 +43,7 @@
         "stiffness": 1.0, 
         "template": {
             "column": 0, 
-            "row": "0|Iron"
+            "row": "5|Iron"
         }
     }, 
 
@@ -23,7 +57,7 @@
         "stiffness": 1.0, 
         "template": {
             "column": 1, 
-            "row": "0|Iron"
+            "row": "5|Iron"
         }
     }, 
    
@@ -37,7 +71,7 @@
         "stiffness": 1.0, 
         "template": {
             "column": 2, 
-            "row": "0|Iron"
+            "row": "5|Iron"
         }
     }, 
 
@@ -51,7 +85,7 @@
         "stiffness": 1.0, 
         "template": {
             "column": 3, 
-            "row": "0|Iron"
+            "row": "5|Iron"
         }
     }, 
 
@@ -65,7 +99,7 @@
         "stiffness": 1.0, 
         "template": {
             "column": 4, 
-            "row": "0|Iron"
+            "row": "5|Iron"
         }
     }, 
 
