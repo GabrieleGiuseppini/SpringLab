@@ -140,6 +140,8 @@ private:
 
 private:
 
+    void FinishInitialization();
+
     void OnError(
         std::string const & message,
         bool die);

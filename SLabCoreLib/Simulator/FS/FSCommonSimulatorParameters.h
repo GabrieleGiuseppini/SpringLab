@@ -17,7 +17,7 @@ struct FSCommonSimulatorParameters
     // The fraction of a spring's over-length that it gets reduced to in a simulation step
     float SpringReductionFraction;
     static float constexpr MinSpringReductionFraction = 0.0f;
-    static float constexpr MaxSpringReductionFraction = 2.0f;
+    static float constexpr MaxSpringReductionFraction = 1.0f;
 
     // Damping coefficient
     float SpringDampingCoefficient;

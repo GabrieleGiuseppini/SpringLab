@@ -11,8 +11,8 @@ RenderContext::RenderContext(
     : mShaderManager()
     , mViewModel(1.0f, vec2f::zero(), canvasWidth, canvasHeight)
     // Settings
-    , mIsCanvasSizeDirty(false)
-    , mIsViewModelDirty(false)
+    , mIsCanvasSizeDirty(true)
+    , mIsViewModelDirty(true)
 {
     GLuint tmpGLuint;
 
@@ -97,7 +97,7 @@ RenderContext::RenderContext(
     // Set parameters in all shaders
     ////////////////////////////////////////////////////////////////
 
-    OnViewModelUpdated();
+    ProcessSettingChanges();
 }
 
 RgbImageData RenderContext::TakeScreenshot()

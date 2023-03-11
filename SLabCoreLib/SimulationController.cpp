@@ -15,6 +15,8 @@ std::unique_ptr<SimulationController> SimulationController::Create(
     int initialCanvasWidth,
     int initialCanvasHeight)
 {
+    LogMessage("InitialCanvasSize: ", initialCanvasWidth, "x", initialCanvasHeight);
+
     // Load materials
     StructuralMaterialDatabase structuralMaterialDatabase = StructuralMaterialDatabase::Load();
 

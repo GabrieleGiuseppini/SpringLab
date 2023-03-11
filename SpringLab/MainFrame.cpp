@@ -191,28 +191,6 @@ MainFrame::MainFrame(wxApp * mainApp)
     }
 
     //
-    // Finalize frame
-    //
-
-    {
-        mMainPanel->SetSizer(mMainPanelVSizer);
-        mMainPanel->Layout();
-
-        auto * wholeSizer = new wxBoxSizer(wxVERTICAL);
-        wholeSizer->Add(mMainPanel, 1, wxEXPAND, 0);
-        this->SetSizer(wholeSizer);
-    }
-
-
-    //
-    // Initialize tooltips
-    //
-
-    wxToolTip::Enable(true);
-    wxToolTip::SetDelay(200);
-
-
-    //
     // Build menu
     //
 
@@ -315,56 +293,25 @@ MainFrame::MainFrame(wxApp * mainApp)
     }
 
     //
-    // Create Simulation Controller
+    // Finalize frame
     //
 
-    try
     {
-        mSimulationController = SimulationController::Create(
-            mMainGLCanvas->GetSize().x,
-            mMainGLCanvas->GetSize().y);
-    }
-    catch (std::exception const & e)
-    {
-        OnError("Error during initialization of simulation controller: " + std::string(e.what()), true);
+        mMainPanel->SetSizer(mMainPanelVSizer);
+        mMainPanel->Layout();
 
-        return;
+        auto * wholeSizer = new wxBoxSizer(wxVERTICAL);
+        wholeSizer->Add(mMainPanel, 1, wxEXPAND, 0);
+        this->SetSizer(wholeSizer);
     }
 
-    //
-    // Create Settings Manager
-    //
-
-    mSettingsManager = std::make_shared<SettingsManager>(
-        mSimulationController,
-        StandardSystemPaths::GetInstance().GetUserSimulatorSettingsRootFolderPath());
-
-    // Enable "Reload Last Modified Settings" menu if we have last-modified settings
-    mReloadLastModifiedSettingsMenuItem->Enable(mSettingsManager->HasLastModifiedSettingsPersisted());
 
     //
-    // Create Tool Controller
+    // Initialize tooltips
     //
 
-    try
-    {
-        mToolController = std::make_unique<ToolController>(
-            ToolType::MoveSimple,
-            mMainGLCanvas.get(),
-            mSimulationController);
-    }
-    catch (std::exception const & e)
-    {
-        OnError("Error during initialization of tool controller: " + std::string(e.what()), true);
-
-        return;
-    }
-
-    //
-    // Register event handlers
-    //
-
-    mSimulationController->RegisterEventHandler(mProbeToolbar);
+    wxToolTip::Enable(true);
+    wxToolTip::SetDelay(200);
 
 
     //
@@ -479,7 +426,7 @@ void MainFrame::OnMainGLCanvasResize(wxSizeEvent & event)
 {
     LogMessage("OnMainGLCanvasResize: ", event.GetSize().GetX(), "x", event.GetSize().GetY());
 
-    if (!!mSimulationController
+    if (mSimulationController
         && event.GetSize().GetX() > 0
         && event.GetSize().GetY() > 0)
     {
@@ -493,8 +440,10 @@ void MainFrame::OnMainGLCanvasResize(wxSizeEvent & event)
 
 void MainFrame::OnMainGLCanvasLeftDown(wxMouseEvent & /*event*/)
 {
-    assert(!!mToolController);
-    mToolController->OnLeftMouseDown();
+    if (mToolController)
+    {
+        mToolController->OnLeftMouseDown();
+    }
 
     // Hang on to the mouse for as long as the button is pressed
     if (!mIsMouseCapturedByGLCanvas)
@@ -513,14 +462,18 @@ void MainFrame::OnMainGLCanvasLeftUp(wxMouseEvent & /*event*/)
         mIsMouseCapturedByGLCanvas = false;
     }
 
-    assert(!!mToolController);
-    mToolController->OnLeftMouseUp();
+    if (mToolController)
+    {
+        mToolController->OnLeftMouseUp();
+    }
 }
 
 void MainFrame::OnMainGLCanvasRightDown(wxMouseEvent & /*event*/)
 {
-    assert(!!mToolController);
-    mToolController->OnRightMouseDown();
+    if (mToolController)
+    {
+        mToolController->OnRightMouseDown();
+    }
 
     // Hang on to the mouse for as long as the button is pressed
     if (!mIsMouseCapturedByGLCanvas)
@@ -539,26 +492,34 @@ void MainFrame::OnMainGLCanvasRightUp(wxMouseEvent & /*event*/)
         mIsMouseCapturedByGLCanvas = false;
     }
 
-    assert(!!mToolController);
-    mToolController->OnRightMouseUp();
+    if (mToolController)
+    {
+        mToolController->OnRightMouseUp();
+    }
 }
 
 void MainFrame::OnMainGLCanvasMouseMove(wxMouseEvent & event)
 {
-    assert(!!mToolController);
-    mToolController->OnMouseMove(event.GetX(), event.GetY());
+    if (mToolController)
+    {
+        mToolController->OnMouseMove(event.GetX(), event.GetY());
+    }
 }
 
 void MainFrame::OnMainGLCanvasMouseWheel(wxMouseEvent & event)
 {
-    assert(!!mSimulationController);
-    mSimulationController->AdjustZoom(powf(1.002f, event.GetWheelRotation()));
+    if (mSimulationController)
+    {
+        mSimulationController->AdjustZoom(powf(1.002f, event.GetWheelRotation()));
+    }
 }
 
 void MainFrame::OnMainGLCanvasCaptureMouseLost(wxMouseCaptureLostEvent & /*event*/)
 {
-    assert(!!mToolController);
-    mToolController->UnsetTool();
+    if (mToolController)
+    {
+        mToolController->UnsetTool();
+    }
 }
 
 //
@@ -823,6 +784,17 @@ void MainFrame::OnSimulatorTypeChanged(wxCommandEvent & event)
 void MainFrame::OnSimulationTimer(wxTimerEvent & /*event*/)
 {
     //
+    // Complete initialization, if still not done
+    //
+    // We do it here to make sure we get the final canvas size
+    //
+
+    if (!mSimulationController)
+    {
+        FinishInitialization();
+    }
+
+    //
     // Update tools
     //
 
@@ -882,6 +854,61 @@ void MainFrame::OnSimulationTimer(wxTimerEvent & /*event*/)
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
+
+void MainFrame::FinishInitialization()
+{
+    //
+    // Create Simulation Controller
+    //
+
+    try
+    {
+        mSimulationController = SimulationController::Create(
+            mMainGLCanvas->GetSize().x,
+            mMainGLCanvas->GetSize().y);
+    }
+    catch (std::exception const & e)
+    {
+        OnError("Error during initialization of simulation controller: " + std::string(e.what()), true);
+
+        return;
+    }
+
+    //
+    // Create Settings Manager
+    //
+
+    mSettingsManager = std::make_shared<SettingsManager>(
+        mSimulationController,
+        StandardSystemPaths::GetInstance().GetUserSimulatorSettingsRootFolderPath());
+
+    // Enable "Reload Last Modified Settings" menu if we have last-modified settings
+    mReloadLastModifiedSettingsMenuItem->Enable(mSettingsManager->HasLastModifiedSettingsPersisted());
+
+    //
+    // Create Tool Controller
+    //
+
+    try
+    {
+        mToolController = std::make_unique<ToolController>(
+            ToolType::MoveSimple,
+            mMainGLCanvas.get(),
+            mSimulationController);
+    }
+    catch (std::exception const & e)
+    {
+        OnError("Error during initialization of tool controller: " + std::string(e.what()), true);
+
+        return;
+    }
+
+    //
+    // Register event handlers
+    //
+
+    mSimulationController->RegisterEventHandler(mProbeToolbar);
+}
 
 void MainFrame::OnError(
     std::string const & message,
