@@ -174,13 +174,14 @@ void FSBaseSimulator::IntegrateAndResetSpringForces(
     vec2f const * const restrict externalForceBuffer = mPointExternalForceBuffer.data();
     float const * const restrict integrationFactorBuffer = mPointIntegrationFactorBuffer.data();
 
-    float const globalDampingCoefficient = 1.0f -
+    float const globalDamping = 
+        1.0f -
         pow((1.0f - simulationParameters.FSCommonSimulator.GlobalDamping),
             12.0f / static_cast<float>(simulationParameters.FSCommonSimulator.NumMechanicalDynamicsIterations));
 
     // Pre-divide damp coefficient by dt to provide the scalar factor which, when multiplied with a displacement,
     // provides the final, damped velocity
-    float const velocityFactor = globalDampingCoefficient / dt;
+    float const velocityFactor = (1.0f - globalDamping) / dt;
 
     size_t const count = object.GetPoints().GetBufferElementCount();
     for (size_t i = 0; i < count; ++i)
