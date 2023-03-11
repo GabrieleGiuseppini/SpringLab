@@ -9,6 +9,7 @@
 
 #include "Simulator/Common/CommonSimulatorParameters.h"
 #include "Simulator/Classic/ClassicSimulatorParameters.h"
+#include "Simulator/FS/FSCommonSimulatorParameters.h"
 
 /*
  * Parameters that affect the simulation.
@@ -16,7 +17,6 @@
 struct SimulationParameters
 {
     SimulationParameters();
-
 
     //
     // Physical Constants
@@ -27,18 +27,17 @@ struct SimulationParameters
     static constexpr vec2f GravityNormalized = vec2f(0.0f, -1.0f);
     static float constexpr GravityMagnitude = 9.80f; // m/s
 
-
     //
     // Simulator parameters
     //
 
     CommonSimulatorParameters Common;
     ClassicSimulatorParameters ClassicSimulator;
-
+    FSCommonSimulatorParameters FSCommonSimulator;
 
     //
     // Structural constants
     //
 
-    static size_t constexpr MaxSpringsPerPoint = 8;
+    static size_t constexpr MaxSpringsPerPoint = 8u + 1u; // 8 neighbours and 1 rope spring, when this is a rope endpoint
 };

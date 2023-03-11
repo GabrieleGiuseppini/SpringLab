@@ -1,14 +1,14 @@
 /***************************************************************************************
 * Original Author:      Gabriele Giuseppini
-* Created:              2020-05-22
+* Created:              2023-03-11
 * Copyright:            Gabriele Giuseppini  (https://github.com/GabrieleGiuseppini)
 ***************************************************************************************/
-#include "CommonSimulatorParameters.h"
+#include "FSCommonSimulatorParameters.h"
 
-CommonSimulatorParameters::CommonSimulatorParameters()
-    : SimulationTimeStepDuration(1.0f / 64.0f)
-    , MassAdjustment(1.0f)
-    , GravityAdjustment(1.0f)
-    , AssignedGravity(vec2f::zero())    
+FSCommonSimulatorParameters::FSCommonSimulatorParameters()
+    : NumMechanicalDynamicsIterations(30)
+    , SpringReductionFraction(0.5f)
+    , SpringDampingCoefficient(0.03f)
+    , GlobalDamping(0.00010749653315f)
 {
 }

@@ -103,6 +103,17 @@ SettingsDialog::SettingsDialog(
 
 
     //
+    // FS
+    //
+
+    wxPanel * fsSimulatorPanel = new wxPanel(notebook);
+
+    PopulateFSSimulatorPanel(fsSimulatorPanel);
+
+    notebook->AddPage(fsSimulatorPanel, "FS Simulator");
+
+
+    //
     // Rendering
     //
 
@@ -418,31 +429,6 @@ void SettingsDialog::PopulateCommonSimulatorPanel(wxPanel * panel)
                     CellBorder);
             }
 
-            // Global Damping
-            {
-                mCommonGlobalDampingSlider = new SliderControl<float>(
-                    mechanicsBox,
-                    SliderWidth,
-                    SliderHeight,
-                    "Global Damping",
-                    "The global velocity damp factor.",
-                    [this](float value)
-                    {
-                        this->mLiveSettings.SetValue(SLabSettings::CommonGlobalDamping, value);
-                        this->OnLiveSettingsChanged();
-                    },
-                    std::make_unique<LinearSliderCore>(
-                        mSimulationController->GetCommonMinGlobalDamping(),
-                        mSimulationController->GetCommonMaxGlobalDamping()));
-
-                mechanicsSizer->Add(
-                    mCommonGlobalDampingSlider,
-                    wxGBPosition(0, 3),
-                    wxGBSpan(1, 1),
-                    wxEXPAND | wxALL,
-                    CellBorder);
-            }
-
             mechanicsBoxSizer->Add(mechanicsSizer, 0, wxALL, StaticBoxInsetMargin);
         }
 
@@ -451,7 +437,7 @@ void SettingsDialog::PopulateCommonSimulatorPanel(wxPanel * panel)
         gridSizer->Add(
             mechanicsBox,
             wxGBPosition(0, 0),
-            wxGBSpan(1, 4),
+            wxGBSpan(1, 3),
             wxEXPAND | wxALL,
             CellBorder);
     }
@@ -526,6 +512,31 @@ void SettingsDialog::PopulateClassicSimulatorPanel(wxPanel * panel)
                     CellBorder);
             }
 
+            // Global Damping
+            {
+                mClassicSimulatorGlobalDampingSlider = new SliderControl<float>(
+                    mechanicsBox,
+                    SliderWidth,
+                    SliderHeight,
+                    "Global Damping",
+                    "The global velocity damp factor.",
+                    [this](float value)
+                    {
+                        this->mLiveSettings.SetValue(SLabSettings::ClassicSimulatorGlobalDamping, value);
+                        this->OnLiveSettingsChanged();
+                    },
+                    std::make_unique<LinearSliderCore>(
+                        mSimulationController->GetClassicSimulatorMinGlobalDamping(),
+                        mSimulationController->GetClassicSimulatorMaxGlobalDamping()));
+
+                mechanicsSizer->Add(
+                    mClassicSimulatorGlobalDampingSlider,
+                    wxGBPosition(0, 2),
+                    wxGBSpan(1, 1),
+                    wxEXPAND | wxALL,
+                    CellBorder);
+            }
+
             mechanicsBoxSizer->Add(mechanicsSizer, 0, wxALL, StaticBoxInsetMargin);
         }
 
@@ -534,7 +545,140 @@ void SettingsDialog::PopulateClassicSimulatorPanel(wxPanel * panel)
         gridSizer->Add(
             mechanicsBox,
             wxGBPosition(0, 0),
-            wxGBSpan(1, 2),
+            wxGBSpan(1, 3),
+            wxEXPAND | wxALL,
+            CellBorder);
+    }
+
+
+    // Finalize panel
+
+    panel->SetSizerAndFit(gridSizer);
+}
+
+void SettingsDialog::PopulateFSSimulatorPanel(wxPanel * panel)
+{
+    wxGridBagSizer * gridSizer = new wxGridBagSizer(0, 0);
+
+    // Mechanics
+    {
+        wxStaticBox * mechanicsBox = new wxStaticBox(panel, wxID_ANY, _("Mechanics"));
+
+        wxBoxSizer * mechanicsBoxSizer = new wxBoxSizer(wxVERTICAL);
+        mechanicsBoxSizer->AddSpacer(StaticBoxTopMargin);
+
+        {
+            wxGridBagSizer * mechanicsSizer = new wxGridBagSizer(0, 0);
+
+            // Num Iterations
+            {
+                mFSSimulatorNumMechanicalDynamicsIterationsSlider = new SliderControl<size_t>(
+                    mechanicsBox,
+                    SliderWidth,
+                    SliderHeight,
+                    "Num Iterations",
+                    "Adjusts the number of iterations of the spring relaxation algorithm.",
+                    [this](size_t value)
+                    {
+                        this->mLiveSettings.SetValue(SLabSettings::FSSimulatorNumMechanicalDynamicsIterations, value);
+                        this->OnLiveSettingsChanged();
+                    },
+                    std::make_unique<IntegralLinearSliderCore<size_t>>(
+                        mSimulationController->GetFSSimulatorMinNumMechanicalDynamicsIterations(),
+                        mSimulationController->GetFSSimulatorMaxNumMechanicalDynamicsIterations()));
+
+                mechanicsSizer->Add(
+                    mFSSimulatorNumMechanicalDynamicsIterationsSlider,
+                    wxGBPosition(0, 0),
+                    wxGBSpan(1, 1),
+                    wxEXPAND | wxALL,
+                    CellBorder);
+            }
+
+            // Spring Reduction Fraction
+            {
+                mFSSimulatorSpringReductionFraction = new SliderControl<float>(
+                    mechanicsBox,
+                    SliderWidth,
+                    SliderHeight,
+                    "Spring Reduction Fraction",
+                    "Adjusts the fraction of the over-length that gets reduced by the spring.",
+                    [this](float value)
+                    {
+                        this->mLiveSettings.SetValue(SLabSettings::FSSimulatorSpringReductionFraction, value);
+                        this->OnLiveSettingsChanged();
+                    },
+                    std::make_unique<LinearSliderCore>(
+                        mSimulationController->GetFSSimulatorMinSpringReductionFraction(),
+                        mSimulationController->GetFSSimulatorMaxSpringReductionFraction()));
+
+                mechanicsSizer->Add(
+                    mFSSimulatorSpringReductionFraction,
+                    wxGBPosition(0, 1),
+                    wxGBSpan(1, 1),
+                    wxEXPAND | wxALL,
+                    CellBorder);
+            }
+
+            // Spring Damping
+            {
+                mFSSimulatorSpringDampingSlider = new SliderControl<float>(
+                    mechanicsBox,
+                    SliderWidth,
+                    SliderHeight,
+                    "Spring Damping",
+                    "Adjusts the magnitude of the spring damping.",
+                    [this](float value)
+                    {
+                        this->mLiveSettings.SetValue(SLabSettings::FSSimulatorSpringDampingCoefficient, value);
+                        this->OnLiveSettingsChanged();
+                    },
+                    std::make_unique<LinearSliderCore>(
+                        mSimulationController->GetFSSimulatorMinSpringDampingCoefficient(),
+                        mSimulationController->GetFSSimulatorMaxSpringDampingCoefficient()));
+
+                mechanicsSizer->Add(
+                    mFSSimulatorSpringDampingSlider,
+                    wxGBPosition(0, 2),
+                    wxGBSpan(1, 1),
+                    wxEXPAND | wxALL,
+                    CellBorder);
+            }
+
+            // Global Damping
+            {
+                mFSSimulatorGlobalDampingSlider = new SliderControl<float>(
+                    mechanicsBox,
+                    SliderWidth,
+                    SliderHeight,
+                    "Global Damping",
+                    "The global velocity damp factor.",
+                    [this](float value)
+                    {
+                        this->mLiveSettings.SetValue(SLabSettings::FSSimulatorGlobalDamping, value);
+                        this->OnLiveSettingsChanged();
+                    },
+                    std::make_unique<LinearSliderCore>(
+                        mSimulationController->GetFSSimulatorMinGlobalDamping(),
+                        mSimulationController->GetFSSimulatorMaxGlobalDamping()));
+
+                mechanicsSizer->Add(
+                    mFSSimulatorGlobalDampingSlider,
+                    wxGBPosition(0, 3),
+                    wxGBSpan(1, 1),
+                    wxEXPAND | wxALL,
+                    CellBorder);
+            }
+
+            mechanicsBoxSizer->Add(mechanicsSizer, 0, wxALL, StaticBoxInsetMargin);
+        }
+
+        mechanicsBox->SetSizerAndFit(mechanicsBoxSizer);
+
+        gridSizer->Add(
+            mechanicsBox,
+            wxGBPosition(0, 0),
+            wxGBSpan(1, 4),
             wxEXPAND | wxALL,
             CellBorder);
     }
@@ -597,12 +741,18 @@ void SettingsDialog::SyncControlsWithSettings(Settings<SLabSettings> const & set
     // Common
     mCommonSimulationTimeStepDurationSlider->SetValue(settings.GetValue<float>(SLabSettings::CommonSimulationTimeStepDuration));
     mCommonMassAdjustmentSlider->SetValue(settings.GetValue<float>(SLabSettings::CommonMassAdjustment));
-    mCommonGravityAdjustmentSlider->SetValue(settings.GetValue<float>(SLabSettings::CommonGravityAdjustment));
-    mCommonGlobalDampingSlider->SetValue(settings.GetValue<float>(SLabSettings::CommonGlobalDamping));
+    mCommonGravityAdjustmentSlider->SetValue(settings.GetValue<float>(SLabSettings::CommonGravityAdjustment));    
 
     // Classic
     mClassicSimulatorSpringStiffnessSlider->SetValue(settings.GetValue<float>(SLabSettings::ClassicSimulatorSpringStiffnessCoefficient));
     mClassicSimulatorSpringDampingSlider->SetValue(settings.GetValue<float>(SLabSettings::ClassicSimulatorSpringDampingCoefficient));
+    mClassicSimulatorGlobalDampingSlider->SetValue(settings.GetValue<float>(SLabSettings::ClassicSimulatorGlobalDamping));
+
+    // FS
+    mFSSimulatorNumMechanicalDynamicsIterationsSlider->SetValue(settings.GetValue<size_t>(SLabSettings::FSSimulatorNumMechanicalDynamicsIterations));
+    mFSSimulatorSpringReductionFraction->SetValue(settings.GetValue<float>(SLabSettings::FSSimulatorSpringReductionFraction));
+    mFSSimulatorSpringDampingSlider->SetValue(settings.GetValue<float>(SLabSettings::FSSimulatorSpringDampingCoefficient));
+    mFSSimulatorGlobalDampingSlider->SetValue(settings.GetValue<float>(SLabSettings::FSSimulatorGlobalDamping));
 
     // Render
     mDoRenderAssignedParticleForcesCheckBox->SetValue(settings.GetValue<bool>(SLabSettings::DoRenderAssignedParticleForces));

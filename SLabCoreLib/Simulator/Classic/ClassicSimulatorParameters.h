@@ -18,4 +18,9 @@ struct ClassicSimulatorParameters
     float SpringDampingCoefficient;
     static float constexpr MinSpringDampingCoefficient = 0.0f;
     static float constexpr MaxSpringDampingCoefficient = 10000.0f;
+
+    // Global velocity damping; lowers velocity uniformly, damping oscillations.
+    float GlobalDamping;
+    static float constexpr MinGlobalDamping = 0.0f;
+    static float constexpr MaxGlobalDamping = 1.0f;
 };

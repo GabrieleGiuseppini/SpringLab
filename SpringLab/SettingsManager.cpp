@@ -26,11 +26,16 @@ BaseSettingsManager<SLabSettings>::BaseSettingsManagerFactory SettingsManager::M
     ADD_SETTING(float, CommonSimulationTimeStepDuration);
     ADD_SETTING(float, CommonMassAdjustment);
     ADD_SETTING(float, CommonGravityAdjustment);
-    ADD_SETTING(bool, CommonDoApplyGravity);
-    ADD_SETTING(float, CommonGlobalDamping);
+    ADD_SETTING(bool, CommonDoApplyGravity);    
 
     ADD_SETTING(float, ClassicSimulatorSpringStiffnessCoefficient);
     ADD_SETTING(float, ClassicSimulatorSpringDampingCoefficient);
+    ADD_SETTING(float, ClassicSimulatorGlobalDamping);
+
+    ADD_SETTING(size_t, FSSimulatorNumMechanicalDynamicsIterations);
+    ADD_SETTING(float, FSSimulatorSpringReductionFraction);
+    ADD_SETTING(float, FSSimulatorSpringDampingCoefficient);
+    ADD_SETTING(float, FSSimulatorGlobalDamping);
 
     ADD_SETTING(bool, DoRenderAssignedParticleForces);
 

@@ -6,6 +6,7 @@
 #include "SimulatorRegistry.h"
 
 #include "Simulator/Classic/ClassicSimulator.h"
+#include "Simulator/FS/FSBaseSimulator.h"
 
 SimulatorRegistry SimulatorRegistry::mInstance;
 
@@ -16,6 +17,7 @@ SimulatorRegistry::SimulatorRegistry()
     //
 
     RegisterSimulatorType<ClassicSimulator>();
+    RegisterSimulatorType<FSBaseSimulator>();
 }
 
 template<typename TSimulatorType>

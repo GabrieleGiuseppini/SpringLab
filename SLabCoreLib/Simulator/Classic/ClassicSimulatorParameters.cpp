@@ -8,5 +8,6 @@
 ClassicSimulatorParameters::ClassicSimulatorParameters()
     : SpringStiffnessCoefficient(36700.0f)
     , SpringDampingCoefficient(55.05f)
+    , GlobalDamping(0.99983998f)
 {
 }

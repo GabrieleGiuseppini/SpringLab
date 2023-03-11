@@ -73,7 +73,7 @@ MainFrame::MainFrame(wxApp * mainApp)
         std::string(APPLICATION_NAME_WITH_SHORT_VERSION),
         wxDefaultPosition,
         wxDefaultSize,
-        wxDEFAULT_FRAME_STYLE | wxMAXIMIZE, // TODO: close box
+        wxDEFAULT_FRAME_STYLE | wxMAXIMIZE,
         _T("Main Frame"));
 
     SetIcon(wxICON(BBB_SLAB_ICON));

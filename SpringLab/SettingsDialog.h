@@ -52,13 +52,18 @@ private:
     // Common
     SliderControl<float> * mCommonSimulationTimeStepDurationSlider;
     SliderControl<float> * mCommonMassAdjustmentSlider;
-    SliderControl<float> * mCommonGravityAdjustmentSlider;
-    SliderControl<float> * mCommonGlobalDampingSlider;
+    SliderControl<float> * mCommonGravityAdjustmentSlider;    
 
     // Classic
     SliderControl<float> * mClassicSimulatorSpringStiffnessSlider;
     SliderControl<float> * mClassicSimulatorSpringDampingSlider;
-    SliderControl<float> * mClassicSimulatorSpringForceInertiaSlider;
+    SliderControl<float> * mClassicSimulatorGlobalDampingSlider;
+
+    // FS
+    SliderControl<size_t> * mFSSimulatorNumMechanicalDynamicsIterationsSlider;
+    SliderControl<float> * mFSSimulatorSpringReductionFraction;
+    SliderControl<float> * mFSSimulatorSpringDampingSlider;
+    SliderControl<float> * mFSSimulatorGlobalDampingSlider;
 
     // Rendering
     wxCheckBox * mDoRenderAssignedParticleForcesCheckBox;
@@ -78,6 +83,7 @@ private:
 
     void PopulateCommonSimulatorPanel(wxPanel * panel);
     void PopulateClassicSimulatorPanel(wxPanel * panel);
+    void PopulateFSSimulatorPanel(wxPanel * panel);
     void PopulateRenderingPanel(wxPanel * panel);
 
     void SyncControlsWithSettings(Settings<SLabSettings> const & settings);

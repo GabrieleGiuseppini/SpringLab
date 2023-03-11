@@ -159,11 +159,6 @@ public:
     bool GetCommonDoApplyGravity() const { return mSimulationParameters.Common.AssignedGravity != vec2f::zero(); }
     void SetCommonDoApplyGravity(bool value);
 
-    float GetCommonGlobalDamping() const { return mSimulationParameters.Common.GlobalDamping; }
-    void SetCommonGlobalDamping(float value) { mSimulationParameters.Common.GlobalDamping = value; mIsSimulationStateDirty = true; }
-    float GetCommonMinGlobalDamping() const { return CommonSimulatorParameters::MinGlobalDamping; }
-    float GetCommonMaxGlobalDamping() const { return CommonSimulatorParameters::MaxGlobalDamping; }
-
     float GetClassicSimulatorSpringStiffnessCoefficient() const { return mSimulationParameters.ClassicSimulator.SpringStiffnessCoefficient; }
     void SetClassicSimulatorSpringStiffnessCoefficient(float value) { mSimulationParameters.ClassicSimulator.SpringStiffnessCoefficient = value; mIsSimulationStateDirty = true; }
     float GetClassicSimulatorMinSpringStiffnessCoefficient() const { return ClassicSimulatorParameters::MinSpringStiffnessCoefficient; }
@@ -173,6 +168,31 @@ public:
     void SetClassicSimulatorSpringDampingCoefficient(float value) { mSimulationParameters.ClassicSimulator.SpringDampingCoefficient = value; mIsSimulationStateDirty = true; }
     float GetClassicSimulatorMinSpringDampingCoefficient() const { return ClassicSimulatorParameters::MinSpringDampingCoefficient; }
     float GetClassicSimulatorMaxSpringDampingCoefficient() const { return ClassicSimulatorParameters::MaxSpringDampingCoefficient; }
+
+    float GetClassicSimulatorGlobalDamping() const { return mSimulationParameters.ClassicSimulator.GlobalDamping; }
+    void SetClassicSimulatorGlobalDamping(float value) { mSimulationParameters.ClassicSimulator.GlobalDamping = value; mIsSimulationStateDirty = true; }
+    float GetClassicSimulatorMinGlobalDamping() const { return ClassicSimulatorParameters::MinGlobalDamping; }
+    float GetClassicSimulatorMaxGlobalDamping() const { return ClassicSimulatorParameters::MaxGlobalDamping; }
+
+    size_t GetFSSimulatorNumMechanicalDynamicsIterations() const { return mSimulationParameters.FSCommonSimulator.NumMechanicalDynamicsIterations; }
+    void SetFSSimulatorNumMechanicalDynamicsIterations(size_t value) { mSimulationParameters.FSCommonSimulator.NumMechanicalDynamicsIterations = value; mIsSimulationStateDirty = true; }
+    size_t GetFSSimulatorMinNumMechanicalDynamicsIterations() const { return FSCommonSimulatorParameters::MinNumMechanicalDynamicsIterations; }
+    size_t GetFSSimulatorMaxNumMechanicalDynamicsIterations() const { return FSCommonSimulatorParameters::MaxNumMechanicalDynamicsIterations; }
+
+    float GetFSSimulatorSpringReductionFraction() const { return mSimulationParameters.FSCommonSimulator.SpringReductionFraction; }
+    void SetFSSimulatorSpringReductionFraction(float value) { mSimulationParameters.FSCommonSimulator.SpringReductionFraction = value; mIsSimulationStateDirty = true; }
+    float GetFSSimulatorMinSpringReductionFraction() const { return FSCommonSimulatorParameters::MinSpringReductionFraction; }
+    float GetFSSimulatorMaxSpringReductionFraction() const { return FSCommonSimulatorParameters::MaxSpringReductionFraction; }
+
+    float GetFSSimulatorSpringDampingCoefficient() const { return mSimulationParameters.FSCommonSimulator.SpringDampingCoefficient; }
+    void SetFSSimulatorSpringDampingCoefficient(float value) { mSimulationParameters.FSCommonSimulator.SpringDampingCoefficient = value; mIsSimulationStateDirty = true; }
+    float GetFSSimulatorMinSpringDampingCoefficient() const { return FSCommonSimulatorParameters::MinSpringDampingCoefficient; }
+    float GetFSSimulatorMaxSpringDampingCoefficient() const { return FSCommonSimulatorParameters::MaxSpringDampingCoefficient; }
+
+    float GetFSSimulatorGlobalDamping() const { return mSimulationParameters.FSCommonSimulator.GlobalDamping; }
+    void SetFSSimulatorGlobalDamping(float value) { mSimulationParameters.FSCommonSimulator.GlobalDamping = value; mIsSimulationStateDirty = true; }
+    float GetFSSimulatorMinGlobalDamping() const { return FSCommonSimulatorParameters::MinGlobalDamping; }
+    float GetFSSimulatorMaxGlobalDamping() const { return FSCommonSimulatorParameters::MaxGlobalDamping; }
 
     //
     // Own parameters

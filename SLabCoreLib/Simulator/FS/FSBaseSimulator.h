@@ -1,6 +1,6 @@
 /***************************************************************************************
 * Original Author:      Gabriele Giuseppini
-* Created:              2020-05-21
+* Created:              2023-03-11
 * Copyright:            Gabriele Giuseppini  (https://github.com/GabrieleGiuseppini)
 ***************************************************************************************/
 #pragma once
@@ -11,21 +11,21 @@
 #include <string>
 
 /*
- * Basic, physics-based, basely-optimized and naive simulator. 
- * A handy baseline for all simulators.
+ * Simulator implementing the same spring relaxation algorithm
+ * as Floating Sandbox 1.17.5.
  */
-class ClassicSimulator final : public ISimulator
+class FSBaseSimulator final : public ISimulator
 {
 public:
 
     static std::string GetSimulatorName()
     {
-        return "Classic";
+        return "FSBase";
     }
 
 public:
 
-    ClassicSimulator(
+    FSBaseSimulator(
         Object const & object,
         SimulationParameters const & simulationParameters);
 

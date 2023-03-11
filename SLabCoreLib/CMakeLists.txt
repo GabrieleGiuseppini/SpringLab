@@ -84,6 +84,13 @@ set  (SIMULATOR_CLASSIC_SOURCES
 	Simulator/Classic/ClassicSimulatorParameters.cpp
 )
 
+set  (SIMULATOR_FS_SOURCES
+	Simulator/FS/FSBaseSimulator.cpp
+	Simulator/FS/FSBaseSimulator.h
+	Simulator/FS/FSCommonSimulatorParameters.h
+	Simulator/FS/FSCommonSimulatorParameters.cpp
+)
+
 set  (GLAD_SOURCES
 	glad/glad.c
 	glad/glad.h
@@ -95,12 +102,14 @@ source_group(" " FILES ${SOURCES})
 source_group("glad" FILES ${GLAD_SOURCES})
 source_group("Simulator/Common" FILES ${SIMULATOR_COMMON_SOURCES})
 source_group("Simulator/Classic" FILES ${SIMULATOR_CLASSIC_SOURCES})
+source_group("Simulator/FS" FILES ${SIMULATOR_FS_SOURCES})
 
 add_library (SLabCoreLib 
 	${SOURCES} 
 	${GLAD_SOURCES} 
 	${SIMULATOR_COMMON_SOURCES}
-	${SIMULATOR_CLASSIC_SOURCES})
+	${SIMULATOR_CLASSIC_SOURCES}
+	${SIMULATOR_FS_SOURCES})
 
 target_include_directories(SLabCoreLib PRIVATE ${IL_INCLUDE_DIR})
 target_include_directories(SLabCoreLib PUBLIC ${PICOJSON_INCLUDE_DIRS})

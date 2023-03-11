@@ -1,13 +1,13 @@
 /***************************************************************************************
 * Original Author:      Gabriele Giuseppini
-* Created:              2020-05-22
+* Created:              2023-03-11
 * Copyright:            Gabriele Giuseppini  (https://github.com/GabrieleGiuseppini)
 ***************************************************************************************/
-#include "ClassicSimulator.h"
+#include "FSBaseSimulator.h"
 
 #include <cassert>
 
-ClassicSimulator::ClassicSimulator(
+FSBaseSimulator::FSBaseSimulator(
     Object const & object,
     SimulationParameters const & simulationParameters)
     // Point buffers
@@ -21,34 +21,36 @@ ClassicSimulator::ClassicSimulator(
     CreateState(object, simulationParameters);
 }
 
-void ClassicSimulator::OnStateChanged(
+void FSBaseSimulator::OnStateChanged(
     Object const & object,
     SimulationParameters const & simulationParameters)
 {
     CreateState(object, simulationParameters);
 }
 
-void ClassicSimulator::Update(
+void FSBaseSimulator::Update(
     Object & object,
     float /*currentSimulationTime*/,
     SimulationParameters const & simulationParameters)
 {
-    // Apply spring forces
-    ApplySpringsForces(object);
+    for (size_t i = 0; i < simulationParameters.FSCommonSimulator.NumMechanicalDynamicsIterations; ++i)
+    {
+        // Apply spring forces
+        ApplySpringsForces(object);
 
-    // Integrate spring and external forces,
-    // and reset spring forces
-    IntegrateAndResetSpringForces(object, simulationParameters);
+        // Integrate spring and external forces,
+        // and reset spring forces
+        IntegrateAndResetSpringForces(object, simulationParameters);
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-void ClassicSimulator::CreateState(
+void FSBaseSimulator::CreateState(
     Object const & object,
     SimulationParameters const & simulationParameters)
 {
-    float const dt = simulationParameters.Common.SimulationTimeStepDuration;
-
+    float const dt = simulationParameters.Common.SimulationTimeStepDuration / static_cast<float>(simulationParameters.FSCommonSimulator.NumMechanicalDynamicsIterations);
     float const dtSquared = dt * dt;
 
     //
@@ -80,20 +82,34 @@ void ClassicSimulator::CreateState(
 
     for (auto springIndex : springs)
     {
+        auto const endpointAIndex = springs.GetEndpointAIndex(springIndex);
+        auto const endpointBIndex = springs.GetEndpointBIndex(springIndex);
+
+        float const endpointAMass = points.GetMass(endpointAIndex) * simulationParameters.Common.MassAdjustment;
+        float const endpointBMass = points.GetMass(endpointBIndex) * simulationParameters.Common.MassAdjustment;
+
+        float const massFactor =
+            (endpointAMass * endpointBMass)
+            / (endpointAMass + endpointBMass);
+
         // The "stiffness coefficient" is the factor which, once multiplied with the spring displacement,
         // yields the spring force, according to Hooke's law.
         mSpringStiffnessCoefficientBuffer[springIndex] =
-            simulationParameters.ClassicSimulator.SpringStiffnessCoefficient
-            * springs.GetMaterialStiffness(springIndex);
+            simulationParameters.FSCommonSimulator.SpringReductionFraction
+            * springs.GetMaterialStiffness(springIndex)
+            * massFactor
+            / dtSquared;
 
         // Damping coefficient
-        //
         // Magnitude of the drag force on the relative velocity component along the spring.
-        mSpringDampingCoefficientBuffer[springIndex] = simulationParameters.ClassicSimulator.SpringDampingCoefficient;
+        mSpringDampingCoefficientBuffer[springIndex] =
+            simulationParameters.FSCommonSimulator.SpringDampingCoefficient
+            * massFactor
+            / dt;
     }
 }
 
-void ClassicSimulator::ApplySpringsForces(Object const & object)
+void FSBaseSimulator::ApplySpringsForces(Object const & object)
 {
     vec2f const * restrict const pointPositionBuffer = object.GetPoints().GetPositionBuffer();
     vec2f const * restrict const pointVelocityBuffer = object.GetPoints().GetVelocityBuffer();
@@ -146,11 +162,11 @@ void ClassicSimulator::ApplySpringsForces(Object const & object)
     }
 }
 
-void ClassicSimulator::IntegrateAndResetSpringForces(
+void FSBaseSimulator::IntegrateAndResetSpringForces(
     Object & object,
     SimulationParameters const & simulationParameters)
 {
-    float const dt = simulationParameters.Common.SimulationTimeStepDuration;
+    float const dt = simulationParameters.Common.SimulationTimeStepDuration / static_cast<float>(simulationParameters.FSCommonSimulator.NumMechanicalDynamicsIterations);
 
     vec2f * const restrict positionBuffer = object.GetPoints().GetPositionBuffer();
     vec2f * const restrict velocityBuffer = object.GetPoints().GetVelocityBuffer();
@@ -158,7 +174,9 @@ void ClassicSimulator::IntegrateAndResetSpringForces(
     vec2f const * const restrict externalForceBuffer = mPointExternalForceBuffer.data();
     float const * const restrict integrationFactorBuffer = mPointIntegrationFactorBuffer.data();
 
-    float const globalDampingCoefficient = 1.0f - pow((1.0f - simulationParameters.ClassicSimulator.GlobalDamping), 0.4f);
+    float const globalDampingCoefficient = 1.0f -
+        pow((1.0f - simulationParameters.FSCommonSimulator.GlobalDamping),
+            12.0f / static_cast<float>(simulationParameters.FSCommonSimulator.NumMechanicalDynamicsIterations));
 
     // Pre-divide damp coefficient by dt to provide the scalar factor which, when multiplied with a displacement,
     // provides the final, damped velocity
