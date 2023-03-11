@@ -13,7 +13,6 @@ enum class SLabSettings : size_t
     CommonSimulationTimeStepDuration = 0,
     CommonMassAdjustment,
     CommonGravityAdjustment,
-    CommonDoApplyGravity,    
 
     ClassicSimulatorSpringStiffnessCoefficient,
     ClassicSimulatorSpringDampingCoefficient,
