@@ -29,8 +29,8 @@ struct ISimulationEventHandler
         float /*totalKineticEnergy*/,
         float /*totalPotentialEnergy*/,
         std::optional<float> /*bending*/,
-        std::chrono::microseconds /*lastSimulationDuration*/,
-        std::chrono::microseconds /*avgSimulationDuration*/)
+        std::chrono::nanoseconds /*lastSimulationDuration*/,
+        std::chrono::nanoseconds /*avgSimulationDuration*/)
     {
         // Default-implemented
     }

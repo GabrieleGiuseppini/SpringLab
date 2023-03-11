@@ -119,7 +119,7 @@ void SimulationController::UpdateSimulation()
         mCurrentSimulationTime,
         mSimulationParameters);
 
-    mPerfStats.SimulationDuration.Update(Chronometer::now() - updateStartTimestamp);
+    mPerfStats.SimulationDuration.Update(std::chrono::duration_cast<std::chrono::nanoseconds>(Chronometer::now() - updateStartTimestamp));
 
     // Update simulation time    
     mCurrentSimulationTime += mSimulationParameters.Common.SimulationTimeStepDuration;
@@ -312,6 +312,6 @@ void SimulationController::ObserveObject(PerfStats const & lastPerfStats)
         totalKineticEnergy,
         totalPotentialEnergy,
         std::nullopt, // TODOHERE: bending
-        deltaStats.SimulationDuration.Finalize<std::chrono::microseconds>(),
-        mPerfStats.SimulationDuration.Finalize<std::chrono::microseconds>());
+        deltaStats.SimulationDuration.Finalize<std::chrono::nanoseconds>(),
+        mPerfStats.SimulationDuration.Finalize<std::chrono::nanoseconds>());
 }

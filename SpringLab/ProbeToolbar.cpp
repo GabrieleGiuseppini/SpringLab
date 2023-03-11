@@ -181,8 +181,8 @@ void ProbeToolbar::OnMeasurement(
     float totalKineticEnergy,
     float totalPotentialEnergy,
     std::optional<float> bending,
-    std::chrono::microseconds lastSimulationDuration,
-    std::chrono::microseconds /*avgSimulationDuration*/)
+    std::chrono::nanoseconds /*lastSimulationDuration*/,
+    std::chrono::nanoseconds avgSimulationDuration)
 {
     // Bending
     if (bending)
@@ -200,13 +200,13 @@ void ProbeToolbar::OnMeasurement(
     
     // Simulation time
     {
-        float const lastSimulationDurationMicroSeconds =
-            static_cast<float>(std::chrono::duration_cast<std::chrono::nanoseconds>(lastSimulationDuration).count())
+        float const avgSimulationDurationMicroSeconds =
+            static_cast<float>(std::chrono::duration_cast<std::chrono::nanoseconds>(avgSimulationDuration).count())
             / 1000.0f;
 
         std::ostringstream ss;
         ss.fill('0');
-        ss << std::fixed << std::setprecision(2) << lastSimulationDurationMicroSeconds;
+        ss << std::fixed << std::setprecision(2) << avgSimulationDurationMicroSeconds;
 
         mLastSimulationDurationTextCtrl->SetValue(ss.str());
     }

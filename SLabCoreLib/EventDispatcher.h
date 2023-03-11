@@ -32,8 +32,8 @@ public:
         float totalKineticEnergy,
         float totalPotentialEnergy,
         std::optional<float> bending,
-        std::chrono::microseconds lastSimulationDuration,
-        std::chrono::microseconds avgSimulationDuration) override
+        std::chrono::nanoseconds lastSimulationDuration,
+        std::chrono::nanoseconds avgSimulationDuration) override
     {
         for (auto sink : mSinks)
         {

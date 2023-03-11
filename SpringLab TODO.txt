@@ -1,4 +1,6 @@
 - Classic Simulator:
+	- TODOHERE: decide spring coeffs - wrt potential energy, and wrt Hooke simulators
+		- Both spring coeffs?
 	- Put spring coeff calc'n as in Floating Sandbox
 	- Add # of iterations parameter
 		- Simulator
