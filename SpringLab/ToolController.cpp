@@ -25,7 +25,12 @@ ToolController::ToolController(
     //
 
     mAllTools.emplace_back(
-        std::make_unique<MoveTool>(
+        std::make_unique<MoveSimpleTool>(
+            mCursorWindow,
+            mSimulationController));
+
+    mAllTools.emplace_back(
+        std::make_unique<MoveSmoothTool>(
             mCursorWindow,
             mSimulationController));
 

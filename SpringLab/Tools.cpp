@@ -7,11 +7,24 @@
 
 #include "WxHelpers.h"
 
-MoveTool::MoveTool(
+MoveSimpleTool::MoveSimpleTool(
     wxWindow * cursorWindow,
     std::shared_ptr<SimulationController> simulationController)
     : Tool(
-        ToolType::Move,
+        ToolType::MoveSimple,
+        cursorWindow,
+        std::move(simulationController))
+    , mCurrentEngagementState(std::nullopt)
+    , mUpCursor(WxHelpers::MakeCursor("move_cursor_up", 13, 5))
+    , mDownCursor(WxHelpers::MakeCursor("move_cursor_down", 13, 5))
+{
+}
+
+MoveSmoothTool::MoveSmoothTool(
+    wxWindow * cursorWindow,
+    std::shared_ptr<SimulationController> simulationController)
+    : Tool(
+        ToolType::MoveSmooth,
         cursorWindow,
         std::move(simulationController))
     , mCurrentEngagementState(std::nullopt)

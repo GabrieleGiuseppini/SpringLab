@@ -349,7 +349,7 @@ MainFrame::MainFrame(wxApp * mainApp)
     try
     {
         mToolController = std::make_unique<ToolController>(
-            ToolType::Move,
+            ToolType::MoveSimple,
             mMainGLCanvas.get(),
             mSimulationController);
     }
@@ -800,7 +800,7 @@ void MainFrame::OnInitialConditionsGravity(wxCommandEvent & event)
 void MainFrame::OnInitialConditionsMove(wxCommandEvent & /*event*/)
 {
     assert(!!mToolController);
-    mToolController->SetTool(ToolType::Move);
+    mToolController->SetTool(ToolType::MoveSimple);
 }
 
 void MainFrame::OnInitialConditionsPin(wxCommandEvent & /*event*/)

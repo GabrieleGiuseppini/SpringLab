@@ -64,6 +64,16 @@ vec2f SimulationController::GetPointPositionInScreenCoordinates(ElementIndex poi
     return mRenderContext->WorldToScreen(GetPointPosition(pointElementIndex));
 }
 
+void SimulationController::MovePointBy(ElementIndex pointElementIndex, vec2f const & screenStride)
+{
+    assert(!!mObject);
+
+    vec2f const worldStride = ScreenOffsetToWorldOffset(screenStride);
+
+    mObject->GetPoints().SetPosition(pointElementIndex, mObject->GetPoints().GetPosition(pointElementIndex) + worldStride);
+    mObject->GetPoints().SetVelocity(pointElementIndex, vec2f::zero());
+}
+
 void SimulationController::MovePointTo(ElementIndex pointElementIndex, vec2f const & screenCoordinates)
 {
     assert(!!mObject);

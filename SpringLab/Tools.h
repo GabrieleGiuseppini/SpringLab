@@ -18,8 +18,9 @@
 
 enum class ToolType
 {
-    Move = 0,
-    Pin = 1
+    MoveSimple = 0,
+    MoveSmooth = 1,
+    Pin = 2
 };
 
 struct InputState
@@ -81,11 +82,129 @@ private:
 // Tools
 //////////////////////////////////////////////////////////////////////////////////////////
 
-class MoveTool final : public Tool
+class MoveSimpleTool final : public Tool
 {
 public:
 
-    MoveTool(
+    MoveSimpleTool(
+        wxWindow * cursorWindow,
+        std::shared_ptr<SimulationController> simulationController);
+
+public:
+
+    virtual void Initialize(InputState const & /*inputState*/) override
+    {
+        mCurrentEngagementState.reset();
+
+        // Set cursor
+        SetCurrentCursor();
+    }
+
+    virtual void Deinitialize(InputState const & /*inputState*/) override
+    {
+        if (mCurrentEngagementState.has_value())
+        {
+            mSimulationController->SetPointHighlight(mCurrentEngagementState->PointIndex, 0.0f);
+        }
+    }
+
+    virtual void SetCurrentCursor() override
+    {
+        mCursorWindow->SetCursor(!!mCurrentEngagementState ? mDownCursor : mUpCursor);
+    }
+
+    virtual void Update(InputState const & inputState) override
+    {
+        bool const wasEngaged = !!mCurrentEngagementState;
+
+        if (inputState.IsLeftMouseDown)
+        {
+            if (!mCurrentEngagementState)
+            {
+                //
+                // Not engaged...
+                // ...see if we're able to pick a point and thus start engagement
+                //
+
+                vec2f const mousePosition = inputState.MousePosition;
+
+                auto const elementId = mSimulationController->GetNearestPointAt(mousePosition);
+                if (elementId.has_value())
+                {
+                    //
+                    // Engage!
+                    //
+
+                    mCurrentEngagementState.emplace(
+                        *elementId,
+                        inputState.MousePosition);
+
+                    mSimulationController->SetPointHighlight(mCurrentEngagementState->PointIndex, 1.0f);
+                }
+            }
+            else
+            {
+                //
+                // Engaged
+                //
+
+                vec2f const screenStride = inputState.MousePosition - mCurrentEngagementState->LastScreenPosition;
+                mSimulationController->MovePointBy(
+                    mCurrentEngagementState->PointIndex,
+                    screenStride);
+
+                mCurrentEngagementState->LastScreenPosition = inputState.MousePosition;
+            }
+        }
+        else
+        {
+            if (mCurrentEngagementState)
+            {
+                mSimulationController->SetPointHighlight(mCurrentEngagementState->PointIndex, 0.0f);
+
+                // Disengage
+                mCurrentEngagementState.reset();
+            }
+        }
+
+        if (!!mCurrentEngagementState != wasEngaged)
+        {
+            // State change
+
+            // Update cursor
+            SetCurrentCursor();
+        }
+    }
+
+private:
+
+    // Our state
+
+    struct EngagementState
+    {
+        ElementIndex PointIndex;
+        vec2f LastScreenPosition;
+
+        EngagementState(
+            ElementIndex pointIndex,
+            vec2f startScreenPosition)
+            : PointIndex(pointIndex)
+            , LastScreenPosition(startScreenPosition)
+        {}
+    };
+
+    std::optional<EngagementState> mCurrentEngagementState; // When set, indicates it's engaged
+
+    // The cursors
+    wxCursor const mUpCursor;
+    wxCursor const mDownCursor;
+};
+
+class MoveSmoothTool final : public Tool
+{
+public:
+
+    MoveSmoothTool(
         wxWindow * cursorWindow,
         std::shared_ptr<SimulationController> simulationController);
 

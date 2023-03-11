@@ -77,6 +77,8 @@ public:
 
     vec2f GetPointPositionInScreenCoordinates(ElementIndex pointElementIndex) const;
 
+    void MovePointBy(ElementIndex pointElementIndex, vec2f const & screenStride);
+
     void MovePointTo(ElementIndex pointElementIndex, vec2f const & screenCoordinates);
 
     void TogglePointFreeze(ElementIndex pointElementIndex);
