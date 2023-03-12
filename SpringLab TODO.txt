@@ -1,6 +1,9 @@
-FS Base:
+FS 0 Base:
 	- Bending: 20
 	- CPU: 244us
+FS 1 By Point:
+	- Bending: 20
+	- CPU: 348us
 
 ##########################################################
 
@@ -10,8 +13,8 @@ FS Base:
 		+ Fix move
 		+ Bending measurement
 		+ New object (very long), with fixed and probe
-	- 1. By Point
-	- 2. Compacted metadata
+	+ 1. By Point
+	- 2. Compact metadata
 	- 3. With integration
 	- 4. With intrinsics
 	- 5. Multi-threaded

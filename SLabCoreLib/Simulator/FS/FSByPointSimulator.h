@@ -12,20 +12,21 @@
 
 /*
  * Simulator implementing the same spring relaxation algorithm
- * as Floating Sandbox 1.17.5.
+ * as Floating Sandbox 1.17.5, but pivoted on a by-point visit;
+ * not optimized.
  */
-class FSBaseSimulator final : public ISimulator
+class FSByPointSimulator final : public ISimulator
 {
 public:
 
     static std::string GetSimulatorName()
     {
-        return "FS 0 - Base";
+        return "FS 1 - By Point";
     }
 
 public:
 
-    FSBaseSimulator(
+    FSByPointSimulator(
         Object const & object,
         SimulationParameters const & simulationParameters);
 
