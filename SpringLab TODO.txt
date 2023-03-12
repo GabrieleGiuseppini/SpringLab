@@ -3,7 +3,10 @@ FS 0 Base:
 	- CPU: 244us
 FS 1 By Point:
 	- Bending: 20
-	- CPU: 348us
+	- CPU: 367us
+FS 2 By Point, Compact:
+	- Bendind: 30
+	- CPU: 352us
 
 ##########################################################
 
@@ -14,7 +17,7 @@ FS 1 By Point:
 		+ Bending measurement
 		+ New object (very long), with fixed and probe
 	+ 1. By Point
-	- 2. Compact metadata
+	+ 2. Compact metadata
 	- 3. With integration
 	- 4. With intrinsics
 	- 5. Multi-threaded
@@ -57,9 +60,9 @@ TODOOLD
 			+ Initial conditions buttons
 			+ OpenObject, Reset buttons
 		- Pass initial state (simulation control state, doGravity, tool)  to toolbar
-	= ProbeToolBar (bottom):
+	+ ProbeToolBar (bottom):
 		+ Migrate EventPanel here
-		- Also displays basic stats: via TBD
+		+ Also displays basic stats
 	- Application Icons
 
 	- Load Object

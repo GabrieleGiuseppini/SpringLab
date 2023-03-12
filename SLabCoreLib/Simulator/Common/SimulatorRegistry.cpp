@@ -8,6 +8,7 @@
 #include "Simulator/Classic/ClassicSimulator.h"
 #include "Simulator/FS/FSBaseSimulator.h"
 #include "Simulator/FS/FSByPointSimulator.h"
+#include "Simulator/FS/FSByPointCompactSimulator.h"
 
 SimulatorRegistry SimulatorRegistry::mInstance;
 
@@ -20,6 +21,7 @@ SimulatorRegistry::SimulatorRegistry()
     RegisterSimulatorType<ClassicSimulator>();
     RegisterSimulatorType<FSBaseSimulator>();
     RegisterSimulatorType<FSByPointSimulator>();
+    RegisterSimulatorType<FSByPointCompactSimulator>();
 }
 
 template<typename TSimulatorType>

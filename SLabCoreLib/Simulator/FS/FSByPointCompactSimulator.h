@@ -7,26 +7,26 @@
 
 #include "Simulator/Common/ISimulator.h"
 
-#include <memory>
+#include <cstdint>
 #include <string>
 
 /*
  * Simulator implementing the same spring relaxation algorithm
  * as Floating Sandbox 1.17.5, but pivoted on a by-point visit;
- * not optimized.
+ * and with spring data stored compactly.
  */
-class FSByPointSimulator final : public ISimulator
+class FSByPointCompactSimulator final : public ISimulator
 {
 public:
 
     static std::string GetSimulatorName()
     {
-        return "FS 1 - By Point";
+        return "FS 2 - By Point, Compact";
     }
 
 public:
 
-    FSByPointSimulator(
+    FSByPointCompactSimulator(
         Object const & object,
         SimulationParameters const & simulationParameters);
 
@@ -65,11 +65,35 @@ private:
     Buffer<vec2f> mPointExternalForceBuffer;
     Buffer<float> mPointIntegrationFactorBuffer; // dt^2/Mass or zero when the point is frozen
 
+    struct ConnectedSpring
+    {
+        float StiffnessCoefficient;
+        float DampingCoefficient;
+        float RestLength;
+        ElementIndex OtherEndpointIndex;
 
-    //
-    // Spring buffers
-    //
+        ConnectedSpring()
+            : StiffnessCoefficient(0.0f)
+            , DampingCoefficient(0.0f)
+            , RestLength(0.0f)
+            , OtherEndpointIndex(NoneElementIndex)
+        {}
 
-    Buffer<float> mSpringStiffnessCoefficientBuffer;
-    Buffer<float> mSpringDampingCoefficientBuffer;
+        ConnectedSpring(
+            float stiffnessCoefficient,
+            float dampingCoefficient,
+            float restLength,
+            ElementIndex otherEndpointIndex)
+            : StiffnessCoefficient(stiffnessCoefficient)
+            , DampingCoefficient(dampingCoefficient)
+            , RestLength(restLength)
+            , OtherEndpointIndex(otherEndpointIndex)
+        {}
+    };
+
+    // Connected springs:
+    // - NumSprings
+    // - ConnectedSpring x [0,..,MaxSpringsPerPoint]
+
+    Buffer<std::uint8_t> mConnectedSpringsBuffer;
 };

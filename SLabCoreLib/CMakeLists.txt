@@ -89,6 +89,8 @@ set  (SIMULATOR_FS_SOURCES
 	Simulator/FS/FSBaseSimulator.h
 	Simulator/FS/FSByPointSimulator.cpp
 	Simulator/FS/FSByPointSimulator.h
+	Simulator/FS/FSByPointCompactSimulator.cpp
+	Simulator/FS/FSByPointCompactSimulator.h
 	Simulator/FS/FSCommonSimulatorParameters.h
 	Simulator/FS/FSCommonSimulatorParameters.cpp
 )
