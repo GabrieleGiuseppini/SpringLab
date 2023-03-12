@@ -1,3 +1,8 @@
+FS Base:
+	- Bending: 20
+	- CPU: 244us
+
+##########################################################
 
 = Five-pronged plan:
 	+ 0. FS Base (by spring)
@@ -6,8 +11,8 @@
 		+ Bending measurement
 		+ New object (very long), with fixed and probe
 	- 1. By Point
-	- 2. TODOHERE
-	- 3.
+	- 2. Compacted metadata
+	- 3. With integration
 	- 4. With intrinsics
 	- 5. Multi-threaded
 
