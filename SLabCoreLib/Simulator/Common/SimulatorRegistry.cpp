@@ -9,6 +9,8 @@
 #include "Simulator/FS/FSBaseSimulator.h"
 #include "Simulator/FS/FSByPointSimulator.h"
 #include "Simulator/FS/FSByPointCompactSimulator.h"
+#include "Simulator/FS/FSByPointCompactIntegratingSimulator.h"
+#include "Simulator/FS/FSByPointGaussSeidelSimulator.h"
 
 SimulatorRegistry SimulatorRegistry::mInstance;
 
@@ -22,6 +24,8 @@ SimulatorRegistry::SimulatorRegistry()
     RegisterSimulatorType<FSBaseSimulator>();
     RegisterSimulatorType<FSByPointSimulator>();
     RegisterSimulatorType<FSByPointCompactSimulator>();
+    RegisterSimulatorType<FSByPointCompactIntegratingSimulator>();
+    RegisterSimulatorType<FSByPointGaussSeidelSimulator>();
 }
 
 template<typename TSimulatorType>

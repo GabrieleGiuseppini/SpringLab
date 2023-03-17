@@ -71,7 +71,9 @@ public:
         //////////////////////////////////
         // Observable Physics
         , mPositionBuffer(mBufferElementCount, pointCount, vec2f::zero())
+        , mSecondaryPositionBuffer(mBufferElementCount, 0, vec2f::zero())
         , mVelocityBuffer(mBufferElementCount, pointCount, vec2f::zero())
+        , mSecondaryVelocityBuffer(mBufferElementCount, 0, vec2f::zero())
         // System State
         , mAssignedForceBuffer(mBufferElementCount, pointCount, vec2f::zero())
         , mStructuralMaterialBuffer(mBufferElementCount, pointCount, nullptr)
@@ -129,11 +131,21 @@ public:
         return mPositionBuffer.data();
     }
 
+    vec2f * GetSecondaryPositionBuffer() noexcept
+    {
+        return mSecondaryPositionBuffer.data();
+    }
+
     void SetPosition(
         ElementIndex pointElementIndex,
         vec2f const & value) noexcept
     {
         mPositionBuffer[pointElementIndex] = value;
+    }
+
+    void SwapPositionBuffers()
+    {
+        mPositionBuffer.swap(mSecondaryPositionBuffer);
     }
 
     vec2f const & GetVelocity(ElementIndex pointElementIndex) const noexcept
@@ -151,11 +163,21 @@ public:
         return mVelocityBuffer.data();
     }
 
+    vec2f * GetSecondaryVelocityBuffer() noexcept
+    {
+        return mSecondaryVelocityBuffer.data();
+    }
+
     void SetVelocity(
         ElementIndex pointElementIndex,
         vec2f const & value) noexcept
     {
         mVelocityBuffer[pointElementIndex] = value;
+    }
+
+    void SwapVelocityBuffers()
+    {
+        mVelocityBuffer.swap(mSecondaryVelocityBuffer);
     }
 
     //
@@ -308,7 +330,9 @@ private:
     //
 
     Buffer<vec2f> mPositionBuffer;
+    Buffer<vec2f> mSecondaryPositionBuffer;
     Buffer<vec2f> mVelocityBuffer;
+    Buffer<vec2f> mSecondaryVelocityBuffer;
 
     //
     // System State

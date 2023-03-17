@@ -5,7 +5,10 @@ FS 1 By Point:
 	- Bending: 20
 	- CPU: 367us
 FS 2 By Point, Compact:
-	- Bendind: 30
+	- Bendind: 20
+	- CPU: 352us
+FS 3 By Point, Compact, Integrating:
+	- Bendind: 20
 	- CPU: 352us
 
 ##########################################################
@@ -19,8 +22,12 @@ FS 2 By Point, Compact:
 	+ 1. By Point
 	+ 2. Compact metadata
 	- 3. With integration
+		+ a. PositionBased
+		- b. With integration (requires new buffer & swap)
 	- 4. With intrinsics
-	- 5. Multi-threaded
+	- 5. With reordering for cache optimization
+		- Note: remember cache lines are 64-byte == 16 floats
+	- 6. Multi-threaded
 
 
 ==================================
