@@ -16,24 +16,77 @@
 #include <stdexcept>
 
 /*
- * This class is the base of a hierarchy implementing a simple buffer of "things".
- * The buffer is fixed-size and cannot grow more than the size that it is initially
+ * A fixed-size buffer which cannot grow more than the size that it is initially
  * constructed with.
- *
- * The buffer is assumed to be mem-aligned so that if TElement is float,
- * then the buffer is aligned to the vectorization number of floats.
  */
 template <typename TElement>
-class BaseBuffer
+class Buffer final
 {
 public:
 
-    static constexpr size_t CalculateByteSize(size_t element_count) noexcept
+    static constexpr size_t CalculateByteSize(size_t element_count)
     {
         return sizeof(TElement) * element_count;
     }
 
 public:
+
+    explicit Buffer(size_t size)
+        : mBuffer(make_unique_buffer_aligned_to_vectorization_word<TElement>(size))
+        , mSize(size)
+        , mCurrentPopulatedSize(0)
+    {
+    }
+
+    Buffer(
+        TElement const * data,
+        size_t size)
+        : mBuffer(make_unique_buffer_aligned_to_vectorization_word<TElement>(size))
+        , mSize(size)
+        , mCurrentPopulatedSize(0)
+    {
+        std::memcpy(mBuffer.get(), data, size);
+        mCurrentPopulatedSize = size;
+    }
+
+    Buffer(
+        size_t size,
+        size_t fillStart,
+        TElement fillValue)
+        : Buffer(size)
+    {
+        assert(fillStart <= mSize);
+
+        // Fill-in values
+        std::fill(
+            mBuffer.get() + fillStart,
+            mBuffer.get() + mSize,
+            fillValue);
+    }
+
+    Buffer(
+        size_t size,
+        size_t fillStart,
+        std::function<TElement(size_t)> fillFunction)
+        : Buffer(size)
+    {
+        assert(fillStart <= mSize);
+
+        for (size_t i = fillStart; i < mSize; ++i)
+            mBuffer[i] = fillFunction(i);
+    }
+
+    Buffer(Buffer && other) noexcept
+        : mBuffer(std::move(other.mBuffer))
+        , mSize(other.mSize)
+        , mCurrentPopulatedSize(other.mCurrentPopulatedSize)
+    {
+    }
+
+    size_t GetSize() const
+    {
+        return mSize;
+    }
 
     /*
      * Gets the current number of elements populated in the buffer via emplace_back();
@@ -67,9 +120,11 @@ public:
      */
     void fill(TElement value)
     {
-        TElement * restrict const ptr = mBuffer;
+        TElement * restrict const ptr = mBuffer.get();
         for (size_t i = 0; i < mSize; ++i)
             ptr[i] = value;
+
+        mCurrentPopulatedSize = mSize;
     }
 
     /*
@@ -86,12 +141,19 @@ public:
      *
      * The sizes of the buffers must match.
      */
-    void copy_from(BaseBuffer<TElement> const & other)
+    void copy_from(Buffer<TElement> const & other)
     {
         assert(mSize == other.mSize);
-        std::memcpy(mBuffer, other.mBuffer, mSize * sizeof(TElement));
+        std::memcpy(mBuffer.get(), other.mBuffer.get(), mSize * sizeof(TElement));
 
         mCurrentPopulatedSize = other.mCurrentPopulatedSize;
+    }
+
+    inline void swap(Buffer & other) noexcept
+    {
+        std::swap(mBuffer, other.mBuffer);
+        std::swap(mSize, other.mSize);
+        std::swap(mCurrentPopulatedSize, other.mCurrentPopulatedSize);
     }
 
     /*
@@ -124,174 +186,15 @@ public:
 
     inline TElement const * restrict data() const
     {
-        return mBuffer;
+        return mBuffer.get();
     }
 
     inline TElement * data()
     {
-        return mBuffer;
+        return mBuffer.get();
     }
 
-protected:
-
-    BaseBuffer(
-        TElement * buffer,
-        size_t size)
-        : mBuffer(buffer)
-        , mSize(size)
-        , mCurrentPopulatedSize(0)
-    {
-        assert(nullptr != mBuffer);
-        assert(is_aligned_to_vectorization_word(buffer));
-    }
-
-    BaseBuffer(
-        TElement * buffer,
-        size_t size,
-        size_t fillStart,
-        TElement fillValue)
-        : BaseBuffer(
-            buffer,
-            size)
-    {
-        assert(fillStart <= mSize);
-
-        // Fill-in values
-        std::fill(
-            mBuffer + fillStart,
-            mBuffer + mSize,
-            fillValue);
-    }
-
-	BaseBuffer(
-		TElement * buffer,
-		size_t size,
-		size_t fillStart,
-		std::function<TElement(size_t)> fillFunction)
-		: BaseBuffer(
-			buffer,
-			size)
-	{
-		assert(fillStart <= mSize);
-
-		for (size_t i = fillStart; i < mSize; ++i)
-			mBuffer[i] = fillFunction(i);
-	}
-
-    BaseBuffer(BaseBuffer && other) noexcept
-        : mBuffer(other.mBuffer)
-        , mSize(other.mSize)
-        , mCurrentPopulatedSize(other.mCurrentPopulatedSize)
-    {
-        other.mBuffer = nullptr; // Just to faciliate debugging
-    }
-
-    inline void swap(BaseBuffer & other) noexcept
-    {
-        std::swap(mBuffer, other.mBuffer);
-        std::swap(mSize, other.mSize);
-        std::swap(mCurrentPopulatedSize, other.mCurrentPopulatedSize);
-    }
-
-    TElement * restrict mBuffer;
+    unique_aligned_buffer<TElement> mBuffer;
     size_t mSize;
     size_t mCurrentPopulatedSize;
-};
-
-/*
- * A buffer that owns its memory buffer.
- *
- * The buffer is mem-aligned so that if TElement is float, then the buffer
- * is aligned to the vectorization number of floats.
- */
-template <typename TElement>
-class Buffer : public BaseBuffer<TElement>
-{
-public:
-
-    Buffer(size_t size)
-        : Buffer(
-            make_unique_buffer_aligned_to_vectorization_word<TElement>(size),
-            size)
-    {
-    }
-
-    Buffer(
-        size_t size,
-        size_t fillStart,
-        TElement fillValue)
-        : Buffer(
-            make_unique_buffer_aligned_to_vectorization_word<TElement>(size),
-            size,
-            fillStart,
-            fillValue)
-    {
-    }
-
-	Buffer(
-		size_t size,
-		size_t fillStart,
-		std::function<TElement(size_t)> fillFunction)
-		: Buffer(
-			make_unique_buffer_aligned_to_vectorization_word<TElement>(size),
-			size,
-			fillStart,
-			fillFunction)
-	{
-	}
-
-    Buffer(Buffer && other) noexcept
-        : BaseBuffer<TElement>(std::move(other))
-        , mAllocatedBuffer(std::move(other.mAllocatedBuffer))
-    {
-    }
-
-    inline void swap(Buffer & other) noexcept
-    {
-        BaseBuffer<TElement>::swap(other);
-        std::swap(mAllocatedBuffer, other.mAllocatedBuffer);
-    }
-
-private:
-
-    Buffer(
-        unique_aligned_buffer<TElement> allocatedBuffer,
-        size_t size)
-    : BaseBuffer<TElement>(
-        reinterpret_cast<TElement *>(allocatedBuffer.get()),
-        size)
-    , mAllocatedBuffer(std::move(allocatedBuffer))
-    {
-    }
-
-    Buffer(
-        unique_aligned_buffer<TElement> allocatedBuffer,
-        size_t size,
-        size_t fillStart,
-        TElement fillValue)
-        : BaseBuffer<TElement>(
-            reinterpret_cast<TElement *>(allocatedBuffer.get()),
-            size,
-            fillStart,
-            fillValue)
-        , mAllocatedBuffer(std::move(allocatedBuffer))
-    {
-    }
-
-	Buffer(
-		unique_aligned_buffer<TElement> allocatedBuffer,
-		size_t size,
-		size_t fillStart,
-		std::function<TElement(size_t)> fillFunction)
-		: BaseBuffer<TElement>(
-			reinterpret_cast<TElement *>(allocatedBuffer.get()),
-			size,
-			fillStart,
-			fillFunction)
-		, mAllocatedBuffer(std::move(allocatedBuffer))
-	{
-	}
-
-    // The buffer owned by us
-    unique_aligned_buffer<TElement> mAllocatedBuffer;
 };

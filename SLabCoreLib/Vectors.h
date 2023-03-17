@@ -6,6 +6,7 @@
 #pragma once
 
 #include "SLabMath.h"
+#include "SysSpecifics.h"
 
 #include <algorithm>
 #include <cmath>
@@ -178,6 +179,30 @@ public:
         {
             return vec2f(0.0f, 0.0f);
         }
+    }
+
+    inline vec2f normalise_approx(float length) const noexcept
+    {
+#if FS_IS_ARCHITECTURE_X86_32() || FS_IS_ARCHITECTURE_X86_64()
+        // SSE version is 5% faster than "normal" vec.normalize(length)
+        __m128 _x = _mm_load_ss(&x);
+        __m128 _y = _mm_load_ss(&y);
+
+        __m128 const _length = _mm_load_ss(&length);
+
+        __m128 const _validMask = _mm_cmpneq_ss(_length, _mm_setzero_ps());
+
+        __m128 const _invLen_or_zero = _mm_and_ps(
+            _mm_rcp_ss(_length),
+            _validMask);
+
+        _x = _mm_mul_ss(_x, _invLen_or_zero);
+        _y = _mm_mul_ss(_y, _invLen_or_zero);
+
+        return vec2f(_mm_cvtss_f32(_x), _mm_cvtss_f32(_y));
+#else
+        #error Unsupported Architecture
+#endif
     }
 
     inline vec2f square() const noexcept

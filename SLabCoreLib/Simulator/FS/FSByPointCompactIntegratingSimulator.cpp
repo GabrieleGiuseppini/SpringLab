@@ -192,7 +192,7 @@ void FSByPointCompactIntegratingSimulator::ApplySpringsForcesAndIntegrate(
         vec2f const & thisPointPosition = pointPositionBuffer[pointIndex];
         vec2f const & thisPointVelocity = pointVelocityBuffer[pointIndex];
 
-        vec2f springForces = vec2f::zero();
+        vec2f pointForces = externalForceBuffer[pointIndex];
 
         ElementCount const connectedSpringsCount = *reinterpret_cast<ElementCount const *>(connectedSpringsBuffer);
         connectedSpringsBuffer += sizeof(ElementCount);
@@ -233,7 +233,7 @@ void FSByPointCompactIntegratingSimulator::ApplySpringsForcesAndIntegrate(
             // Apply forces
             //
 
-            springForces += springDir * (fSpring + fDamp);
+            pointForces += springDir * (fSpring + fDamp);
         }
 
         //
@@ -242,7 +242,7 @@ void FSByPointCompactIntegratingSimulator::ApplySpringsForcesAndIntegrate(
 
         vec2f const deltaPos =
             thisPointVelocity * dt
-            + (springForces + externalForceBuffer[pointIndex]) * integrationFactorBuffer[pointIndex];
+            + pointForces * integrationFactorBuffer[pointIndex];
 
         newPointPositionBuffer[pointIndex] = thisPointPosition + deltaPos;
         newPointVelocityBuffer[pointIndex] = deltaPos * velocityFactor;

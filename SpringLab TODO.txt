@@ -6,10 +6,10 @@ FS 1 By Point:
 	- CPU: 367us
 FS 2 By Point, Compact:
 	- Bendind: 20
-	- CPU: 352us
+	- CPU: 342us
 FS 3 By Point, Compact, Integrating:
 	- Bendind: 20
-	- CPU: 352us
+	- CPU: 356us
 
 ##########################################################
 
@@ -20,14 +20,18 @@ FS 3 By Point, Compact, Integrating:
 		+ Bending measurement
 		+ New object (very long), with fixed and probe
 	+ 1. By Point
-	+ 2. Compact metadata
-	- 3. With integration
+	+ 2. By Point, Compact metadata
+	+ 3. By Point, Compact metadata, With integration
 		+ a. PositionBased
-		- b. With integration (requires new buffer & swap)
-	- 4. With intrinsics
-	- 5. With reordering for cache optimization
+		+ b. With integration (requires new buffer & swap)
+	- 4. By Point, With Intrinsics
+	- 5. By Point, With Intrinsics, With reordering for cache optimization
 		- Note: remember cache lines are 64-byte == 16 floats
-	- 6. Multi-threaded
+	- 6. By Point, With Intrinsics, With reordering, Multi-threaded
+	- 20. By Spring, With Intrinsics
+
+	- Notes:
+		- When integration is...integrated, it might fare worse because we do double the number of fp operations
 
 
 ==================================
