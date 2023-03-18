@@ -135,6 +135,9 @@ void FSBySpringIntrinsics::ApplySpringsForces(Object const & object)
     // Word-by-word
     for (; s < springVectorizedCount; s += 4)
     {
+        // Notation:
+        //   low (left) -> height (right)
+        
         //
         // Calculate displacement, string lengths, and spring directions
         // 
@@ -164,7 +167,7 @@ void FSBySpringIntrinsics::ApplySpringsForces(Object const & object)
         __m128 const s1_displacement_xy = _mm_sub_ps(s1pb_pos_xy, s1pa_pos_xy);
 
         // s0_displacement.x, s0_displacement.y, s1_displacement.x, s1_displacement.y
-        __m128 const s0s1_displacement_xy = _mm_movelh_ps(s0_displacement_xy, s1_displacement_xy);
+        __m128 const s0s1_displacement_xy = _mm_movelh_ps(s0_displacement_xy, s1_displacement_xy); // First argument goes low
 
         // Spring 2 displacement (s2_position.x, s2_position.y, *, *)
         __m128 const s2pa_pos_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointPositionBuffer + endpointsBuffer[s + 2].PointAIndex)));
@@ -179,7 +182,7 @@ void FSBySpringIntrinsics::ApplySpringsForces(Object const & object)
         __m128 const s3_displacement_xy = _mm_sub_ps(s3pb_pos_xy, s3pa_pos_xy);
 
         // s2_displacement.x, s2_displacement.y, s3_displacement.x, s3_displacement.y
-        __m128 const s2s3_displacement_xy = _mm_movelh_ps(s2_displacement_xy, s3_displacement_xy);
+        __m128 const s2s3_displacement_xy = _mm_movelh_ps(s2_displacement_xy, s3_displacement_xy); // First argument goes low
 
         // Shuffle displacements:
         // s0_displacement.x, s1_displacement.x, s2_displacement.x, s3_displacement.x
@@ -261,7 +264,7 @@ void FSBySpringIntrinsics::ApplySpringsForces(Object const & object)
         __m128 const s1_relvel_xy = _mm_sub_ps(s1pb_vel_xy, s1pa_vel_xy);
 
         // s0_relvel.x, s0_relvel.y, s1_relvel.x, s1_relvel.y
-        __m128 const s0s1_relvel_xy = _mm_movelh_ps(s0_relvel_xy, s1_relvel_xy);
+        __m128 const s0s1_relvel_xy = _mm_movelh_ps(s0_relvel_xy, s1_relvel_xy); // First argument goes low
 
         // Spring 2 rel vel (s2_vel.x, s2_vel.y, *, *)
         __m128 const s2pa_vel_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointVelocityBuffer + endpointsBuffer[s + 2].PointAIndex)));
@@ -276,7 +279,7 @@ void FSBySpringIntrinsics::ApplySpringsForces(Object const & object)
         __m128 const s3_relvel_xy = _mm_sub_ps(s3pb_vel_xy, s3pa_vel_xy);
 
         // s2_relvel.x, s2_relvel.y, s3_relvel.x, s3_relvel.y
-        __m128 const s2s3_relvel_xy = _mm_movelh_ps(s2_relvel_xy, s3_relvel_xy);
+        __m128 const s2s3_relvel_xy = _mm_movelh_ps(s2_relvel_xy, s3_relvel_xy); // First argument goes low
 
         // Shuffle rel vals:
         // s0_relvel.x, s1_relvel.x, s2_relvel.x, s3_relvel.x
@@ -329,8 +332,8 @@ void FSBySpringIntrinsics::ApplySpringsForces(Object const & object)
         //      pointSpringForceBuffer[pointBIndex] -= total_forceA;
         //
 
-        __m128 s0s1_tforceA_xy = _mm_unpacklo_ps(s0s1s2s3_tforceA_x, s0s1s2s3_tforceA_y);
-        __m128 s2s3_tforceA_xy = _mm_unpackhi_ps(s0s1s2s3_tforceA_x, s0s1s2s3_tforceA_y);
+        __m128 s0s1_tforceA_xy = _mm_unpacklo_ps(s0s1s2s3_tforceA_x, s0s1s2s3_tforceA_y); // a[0], b[0], a[1], b[1]
+        __m128 s2s3_tforceA_xy = _mm_unpackhi_ps(s0s1s2s3_tforceA_x, s0s1s2s3_tforceA_y); // a[2], b[2], a[3], b[3]
 
         __m128 s0_forceA_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointSpringForceBuffer + endpointsBuffer[s + 0].PointAIndex)));
         __m128 s0_forceB_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointSpringForceBuffer + endpointsBuffer[s + 0].PointBIndex)));
@@ -343,12 +346,14 @@ void FSBySpringIntrinsics::ApplySpringsForces(Object const & object)
 
         s0_forceA_xy = _mm_add_ps(s0_forceA_xy, s0s1_tforceA_xy);
         s0_forceB_xy = _mm_sub_ps(s0_forceB_xy, s0s1_tforceA_xy);
+        // s1 <-> s0
         s0s1_tforceA_xy = _mm_castpd_ps(_mm_shuffle_pd(_mm_castps_pd(s0s1_tforceA_xy), _mm_castps_pd(s0s1_tforceA_xy), 1));
         s1_forceA_xy = _mm_add_ps(s1_forceA_xy, s0s1_tforceA_xy);
         s1_forceB_xy = _mm_sub_ps(s1_forceB_xy, s0s1_tforceA_xy);
 
         s2_forceA_xy = _mm_add_ps(s2_forceA_xy, s2s3_tforceA_xy);
         s2_forceB_xy = _mm_sub_ps(s2_forceB_xy, s2s3_tforceA_xy);
+        // s2 <-> s3
         s2s3_tforceA_xy = _mm_castpd_ps(_mm_shuffle_pd(_mm_castps_pd(s2s3_tforceA_xy), _mm_castps_pd(s2s3_tforceA_xy), 1));
         s3_forceA_xy = _mm_add_ps(s3_forceA_xy, s2s3_tforceA_xy);
         s3_forceB_xy = _mm_sub_ps(s3_forceB_xy, s2s3_tforceA_xy);
