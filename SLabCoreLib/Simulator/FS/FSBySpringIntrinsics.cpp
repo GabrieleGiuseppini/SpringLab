@@ -136,9 +136,21 @@ void FSBySpringIntrinsics::ApplySpringsForces(Object const & object)
     for (; s < springVectorizedCount; s += 4)
     {
         //
-        // Calculate displacement
+        // Calculate displacement and string lengths
         // 
-        
+        // Strategy:
+        //
+        // springDir[s0].x  =  displacement[s0].x  /  springLength[s0]
+        // springDir[s1].x  =  displacement[s1].x  /  springLength[s1]
+        // springDir[s2].x  =  displacement[s2].x  /  springLength[s2]
+        // springDir[s3].x  =  displacement[s3].x  /  springLength[s3]
+        //
+        // springDir[s0].y  =  displacement[s0].y  /  springLength[s0]
+        // springDir[s1].y  =  displacement[s1].y  /  springLength[s1]
+        // springDir[s2].y  =  displacement[s2].y  /  springLength[s2]
+        // springDir[s3].y  =  displacement[s3].y  /  springLength[s3]
+        //
+
         // Spring 0 displacement
         __m128 const s0pa_pos = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointPositionBuffer + endpointsBuffer[s + 0].PointAIndex)));
         __m128 const s0pb_pos = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointPositionBuffer + endpointsBuffer[s + 0].PointBIndex)));
@@ -207,8 +219,16 @@ void FSBySpringIntrinsics::ApplySpringsForces(Object const & object)
         // 1. Hooke's law
         //
 
-        // Calculate springs' forces' moduli - for endpoints A:
+        // Calculate springs' forces' moduli - for endpoint A:
         //    (displacementLength[s] - restLength[s]) * stiffness[s]
+        //
+        // Strategy:
+        //
+        // ( springLength[s0] - resetLength[s0] ) * stiffness[s0]
+        // ( springLength[s1] - resetLength[s1] ) * stiffness[s1]
+        // ( springLength[s2] - resetLength[s2] ) * stiffness[s2]
+        // ( springLength[s3] - resetLength[s3] ) * stiffness[s3]
+        //
 
         __m128 const s0s1s2s3_restLength = _mm_load_ps(restLengthBuffer + s);
         __m128 const s0s1s2s3_stiffness = _mm_load_ps(stiffnessCoefficientBuffer + s);
@@ -221,9 +241,82 @@ void FSBySpringIntrinsics::ApplySpringsForces(Object const & object)
         // 2. Damper forces
         //
         // Damp the velocities of each endpoint pair, as if the points were also connected by a damper
-        // along the same direction as the spring
+        // along the same direction as the spring, for endpoint A:
+        //      relVelocity.dot(springDir) * dampingCoeff[s]
+        //
+        // Strategy: 
+        //
+        // ( relV[s0].x * sprDir[s0].x  +  relV[s0].y * sprDir[s0].y )  *  dampCoeff[s0]
+        // ( relV[s1].x * sprDir[s1].x  +  relV[s1].y * sprDir[s1].y )  *  dampCoeff[s1]
+        // ( relV[s2].x * sprDir[s2].x  +  relV[s2].y * sprDir[s2].y )  *  dampCoeff[s2]
+        // ( relV[s3].x * sprDir[s3].x  +  relV[s3].y * sprDir[s3].y )  *  dampCoeff[s3]
         //
 
+        // Spring 0 rel vel
+        __m128 const s0pa_vel = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointVelocityBuffer + endpointsBuffer[s + 0].PointAIndex)));
+        __m128 const s0pb_vel = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointVelocityBuffer + endpointsBuffer[s + 0].PointBIndex)));
+        // vel[s0.B].x - vel[s0.A].x, vel[s0.B].y - vel[s0.A].y, *, *
+        __m128 const s0_relvel = _mm_sub_ps(s0pb_vel, s0pa_vel);
+
+        // Spring 1 rel vel
+        __m128 const s1pa_vel = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointVelocityBuffer + endpointsBuffer[s + 1].PointAIndex)));
+        __m128 const s1pb_vel = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointVelocityBuffer + endpointsBuffer[s + 1].PointBIndex)));
+        // vel[s1.B].x - vel[s1.A].x, vel[s1.B].y - vel[s1.A].y, *, *
+        __m128 const s1_relvel = _mm_sub_ps(s1pb_vel, s1pa_vel);
+
+        // s0_relvel.x, s0_relvel.y, s1_relvel.x, s1_relvel.y
+        __m128 const s0s1_relvel = _mm_movelh_ps(s0_relvel, s1_relvel);
+
+        // Spring 2 rel vel
+        __m128 const s2pa_vel = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointVelocityBuffer + endpointsBuffer[s + 2].PointAIndex)));
+        __m128 const s2pb_vel = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointVelocityBuffer + endpointsBuffer[s + 2].PointBIndex)));
+        // vel[s2.B].x - vel[s2.A].x, vel[s2.B].y - vel[s2.A].y, *, *
+        __m128 const s2_relvel = _mm_sub_ps(s2pb_vel, s2pa_vel);
+
+        // Spring 3 rel vel
+        __m128 const s3pa_vel = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointVelocityBuffer + endpointsBuffer[s + 3].PointAIndex)));
+        __m128 const s3pb_vel = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointVelocityBuffer + endpointsBuffer[s + 3].PointBIndex)));
+        // vel[s3.B].x - vel[s3.A].x, vel[s3.B].y - vel[s3.A].y, *, *
+        __m128 const s3_relvel = _mm_sub_ps(s3pb_vel, s3pa_vel);
+
+        // s2_relvel.x, s2_relvel.y, s3_relvel.x, s3_relvel.y
+        __m128 const s2s3_relvel = _mm_movelh_ps(s2_relvel, s3_relvel);
+
+        // Shuffle rel vals:
+        // s0_relvel.x, s1_relvel.x, s2_relvel.x, s3_relvel.x
+        __m128 s0s1s2s3_relvel_x = _mm_shuffle_ps(s0s1_relvel, s2s3_relvel, 0x88);
+        // s0_relvel.y, s1_relvel.y, s2_relvel.y, s3_relvel.y
+        __m128 s0s1s2s3_relvel_y = _mm_shuffle_ps(s0s1_relvel, s2s3_relvel, 0xDD);
+
+        // Damping coeffs
+        __m128 const s0s1s2s3_dampingCoeff = _mm_load_ps(dampingCoefficientBuffer + s);
+
+        __m128 const s0s1s2s3_damping_forceModuli =
+            _mm_mul_ps(                
+                _mm_add_ps( // Dot product
+                    _mm_mul_ps(s0s1s2s3_relvel_x, s0s1s2s3_dir_x),
+                    _mm_mul_ps(s0s1s2s3_relvel_y, s0s1s2s3_dir_y)),
+                s0s1s2s3_dampingCoeff);
+
+        //
+        // 3. Apply forces: 
+        //      force A = springDir * (hookeForce + dampingForce)
+        //      force B = - forceA
+        //
+        // Strategy:
+        //
+        //  force[s0].x  =   springDir[s0].x  *  (  hookeForce[s0] + dampingForce[s0] ) 
+        //  force[s1].x  =   springDir[s1].x  *  (  hookeForce[s1] + dampingForce[s1] )
+        //  force[s2].x  =   springDir[s2].x  *  (  hookeForce[s2] + dampingForce[s2] )
+        //  force[s3].x  =   springDir[s3].x  *  (  hookeForce[s3] + dampingForce[s3] )
+        //
+        //  force[s0].y  =   springDir[s0].y  *  (  hookeForce[s0] + dampingForce[s0] ) 
+        //  force[s1].y  =   springDir[s1].y  *  (  hookeForce[s1] + dampingForce[s1] )
+        //  force[s2].y  =   springDir[s2].y  *  (  hookeForce[s2] + dampingForce[s2] )
+        //  force[s3].y  =   springDir[s3].y  *  (  hookeForce[s3] + dampingForce[s3] )
+        //
+
+        // 
         // TODOHERE
     }
 
@@ -260,7 +353,7 @@ void FSBySpringIntrinsics::ApplySpringsForces(Object const & object)
             * dampingCoefficientBuffer[s];
 
         //
-        // Apply forces
+        // 3. Apply forces
         //
 
         vec2f const forceA = springDir * (fSpring + fDamp);
