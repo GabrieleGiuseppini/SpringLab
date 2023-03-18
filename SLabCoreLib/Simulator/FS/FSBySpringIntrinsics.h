@@ -1,32 +1,31 @@
 /***************************************************************************************
 * Original Author:      Gabriele Giuseppini
-* Created:              2023-03-12
+* Created:              2023-03-18
 * Copyright:            Gabriele Giuseppini  (https://github.com/GabrieleGiuseppini)
 ***************************************************************************************/
 #pragma once
 
 #include "Simulator/Common/ISimulator.h"
 
-#include <cstdint>
+#include <memory>
 #include <string>
 
 /*
  * Simulator implementing the same spring relaxation algorithm
- * as Floating Sandbox 1.17.5, but pivoted on a by-point visit,
- * and integrating for each point - effectively implementing Gauss-Seidel.
+ * as Floating Sandbox 1.17.5, optimized with intrinsics.
  */
-class FSByPointGaussSeidelSimulator final : public ISimulator
+class FSBySpringIntrinsics final : public ISimulator
 {
 public:
 
     static std::string GetSimulatorName()
     {
-        return "FS X - By Point, Gauss-Seidel";
+        return "FS 10 - By Spring - Instrinsics";
     }
 
 public:
 
-    FSByPointGaussSeidelSimulator(
+    FSBySpringIntrinsics(
         Object const & object,
         SimulationParameters const & simulationParameters);
 
@@ -49,7 +48,9 @@ private:
         Object const & object,
         SimulationParameters const & simulationParameters);
 
-    void ApplySpringsForcesAndIntegrate(
+    void ApplySpringsForces(Object const & object);
+
+    void IntegrateAndResetSpringForces(
         Object & object,
         SimulationParameters const & simulationParameters);
 
@@ -63,35 +64,11 @@ private:
     Buffer<vec2f> mPointExternalForceBuffer;
     Buffer<float> mPointIntegrationFactorBuffer; // dt^2/Mass or zero when the point is frozen
 
-    struct ConnectedSpring
-    {
-        float StiffnessCoefficient;
-        float DampingCoefficient;
-        float RestLength;
-        ElementIndex OtherEndpointIndex;
 
-        ConnectedSpring()
-            : StiffnessCoefficient(0.0f)
-            , DampingCoefficient(0.0f)
-            , RestLength(0.0f)
-            , OtherEndpointIndex(NoneElementIndex)
-        {}
+    //
+    // Spring buffers
+    //
 
-        ConnectedSpring(
-            float stiffnessCoefficient,
-            float dampingCoefficient,
-            float restLength,
-            ElementIndex otherEndpointIndex)
-            : StiffnessCoefficient(stiffnessCoefficient)
-            , DampingCoefficient(dampingCoefficient)
-            , RestLength(restLength)
-            , OtherEndpointIndex(otherEndpointIndex)
-        {}
-    };
-
-    // Connected springs:
-    // - NumSprings
-    // - ConnectedSpring x [0,..,MaxSpringsPerPoint]
-
-    Buffer<std::uint8_t> mConnectedSpringsBuffer;
+    Buffer<float> mSpringStiffnessCoefficientBuffer;
+    Buffer<float> mSpringDampingCoefficientBuffer;
 };

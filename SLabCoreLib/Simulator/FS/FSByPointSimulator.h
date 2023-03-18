@@ -21,7 +21,7 @@ public:
 
     static std::string GetSimulatorName()
     {
-        return "FS 1 - By Point";
+        return "FS 20 - By Point";
     }
 
 public:

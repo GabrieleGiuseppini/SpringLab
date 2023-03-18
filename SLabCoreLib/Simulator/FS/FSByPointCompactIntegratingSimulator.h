@@ -1,6 +1,6 @@
 /***************************************************************************************
 * Original Author:      Gabriele Giuseppini
-* Created:              2023-03-12
+* Created:              2023-03-17
 * Copyright:            Gabriele Giuseppini  (https://github.com/GabrieleGiuseppini)
 ***************************************************************************************/
 #pragma once
@@ -22,7 +22,7 @@ public:
 
     static std::string GetSimulatorName()
     {
-        return "FS 3 - By Point, Compact, Integrating";
+        return "FS 22 - By Point - Compact - Integrating";
     }
 
 public:

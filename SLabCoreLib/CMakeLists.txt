@@ -93,8 +93,8 @@ set  (SIMULATOR_FS_SOURCES
 	Simulator/FS/FSByPointCompactSimulator.h
 	Simulator/FS/FSByPointCompactIntegratingSimulator.cpp
 	Simulator/FS/FSByPointCompactIntegratingSimulator.h
-	Simulator/FS/FSByPointGaussSeidelSimulator.cpp
-	Simulator/FS/FSByPointGaussSeidelSimulator.h
+	Simulator/FS/FSBySpringIntrinsics.cpp
+	Simulator/FS/FSBySpringIntrinsics.h
 	Simulator/FS/FSCommonSimulatorParameters.h
 	Simulator/FS/FSCommonSimulatorParameters.cpp
 )

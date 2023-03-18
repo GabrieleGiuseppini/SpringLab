@@ -14,31 +14,33 @@ FS 3 By Point, Compact, Integrating:
 ##########################################################
 
 = Five-pronged plan:
-	+ 0. FS Base (by spring)
+	+ 0.  FS Base (by spring)
 	+ 0b. Fixes: 
 		+ Fix move
 		+ Bending measurement
 		+ New object (very long), with fixed and probe
-	+ 1. By Point
-	+ 2. By Point, Compact metadata
-	+ 3. By Point, Compact metadata, With integration
+	+ 1.  By Point
+	+ 2.  By Point, Compact metadata
+	+ 3.  By Point, Compact metadata, With integration
 		+ a. PositionBased
 		+ b. With integration (requires new buffer & swap)
-	- 4. By Point, With Intrinsics
-	- 5. By Point, With Intrinsics, With reordering for cache optimization
+	- 4.  By Point, With Intrinsics
+	- 5.  By Point, With Intrinsics, With reordering for cache optimization
 		- Note: remember cache lines are 64-byte == 16 floats
-	- 6. By Point, With Intrinsics, With reordering, Multi-threaded
+	- 6.  By Point, With Intrinsics, With reordering, Multi-threaded
 	- 20. By Spring, With Intrinsics
 
 	- Notes:
 		- When integration is...integrated, it might fare worse because we do double the number of fp operations
 
 
-==================================
+- Others:
+	- Position Based
+	- Paper, with Eigen
 
-TODOOLD
-
-- Fix #pragma pack
+####################################################################################################
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+####################################################################################################
 
 = Initial conditions:
 	+ Gravity:
@@ -60,37 +62,6 @@ TODOOLD
 		- Render: uploaded as vectors by SimulationController at Render()
 			- Enabled/Disabled by menu item => SimulationController::mDoRenderAssignedParticleForces
 
-= UI:		
-	= ControlToolBar (left):
-		+ Keyboard shortcuts
-			+ Tooltips
-		+ Controls:
-			+ SimulatorType drop-down
-				+ Move up & add "Simulator:" label above
-			+ Simulation control buttons
-			+ Initial conditions buttons
-			+ OpenObject, Reset buttons
-		- Pass initial state (simulation control state, doGravity, tool)  to toolbar
-	+ ProbeToolBar (bottom):
-		+ Migrate EventPanel here
-		+ Also displays basic stats
-	- Application Icons
-
-	- Load Object
-
--------------------------------------------------------
-
-- Misc:
-	- Check assembly of SimulationController::Render() wrt accesses to mObject->GetSprings()
-
-	- ProbePanel:
-		- ScalarTimeSeries
-		- Scalar
-			- Also @ EventHandler
-		- TODO: also used to display stats & simulator-specific outputs
-			- Simulation step #
-			- Simulation time
-			- Update elapsed: last, avg
 
 ####################################################################################################
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

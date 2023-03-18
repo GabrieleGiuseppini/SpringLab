@@ -20,7 +20,7 @@ public:
 
     static std::string GetSimulatorName()
     {
-        return "FS 0 - Base";
+        return "FS 00 - Base";
     }
 
 public:
