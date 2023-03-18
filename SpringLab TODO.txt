@@ -27,15 +27,22 @@ FS 3 By Point, Compact, Integrating:
 	- 4.  By Point, With Intrinsics
 	- 5.  By Point, With Intrinsics, With reordering for cache optimization
 		- Note: remember cache lines are 64-byte == 16 floats
+		- Reordering maps exposed by Simulators:
+			- Need raw intermediate shipbuilder structures
+			- Reordering done by shipbuilder who calls into Simulator
+				- Might be a static method, which takes intermediate results and spits both reordering maps
+					- TODOHERE: how to pass? 
 	- 6.  By Point, With Intrinsics, With reordering, Multi-threaded
-	- 20. By Spring, With Intrinsics
+	= 20. By Spring, With Intrinsics
+		- Then check TODO's for assembly
+		- See better unpacking/packing - doing math once instead of twice
 
 	- Notes:
 		- When integration is...integrated, it might fare worse because we do double the number of fp operations
 
 
 - Others:
-	- Position Based
+	- Position Based (Muller)
 	- Paper, with Eigen
 
 ####################################################################################################

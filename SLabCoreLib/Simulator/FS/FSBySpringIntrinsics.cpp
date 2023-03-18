@@ -136,7 +136,7 @@ void FSBySpringIntrinsics::ApplySpringsForces(Object const & object)
     for (; s < springVectorizedCount; s += 4)
     {
         //
-        // Calculate displacement and string lengths
+        // Calculate displacement, string lengths, and spring directions
         // 
         // Strategy:
         //
@@ -151,45 +151,43 @@ void FSBySpringIntrinsics::ApplySpringsForces(Object const & object)
         // springDir[s3].y  =  displacement[s3].y  /  springLength[s3]
         //
 
-        // Spring 0 displacement
-        __m128 const s0pa_pos = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointPositionBuffer + endpointsBuffer[s + 0].PointAIndex)));
-        __m128 const s0pb_pos = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointPositionBuffer + endpointsBuffer[s + 0].PointBIndex)));
-        // pos[s0.B].x - pos[s0.A].x, pos[s0.B].y - pos[s0.A].y, *, *
-        __m128 const s0_displacement = _mm_sub_ps(s0pb_pos, s0pa_pos);
+        // Spring 0 displacement (s0_position.x, s0_position.y, *, *)
+        __m128 const s0pa_pos_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointPositionBuffer + endpointsBuffer[s + 0].PointAIndex)));
+        __m128 const s0pb_pos_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointPositionBuffer + endpointsBuffer[s + 0].PointBIndex)));
+        // s0_displacement.x, s0_displacement.y, *, *
+        __m128 const s0_displacement_xy = _mm_sub_ps(s0pb_pos_xy, s0pa_pos_xy);
 
-        // Spring 1 displacement
-        __m128 const s1pa_pos = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointPositionBuffer + endpointsBuffer[s + 1].PointAIndex)));
-        __m128 const s1pb_pos = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointPositionBuffer + endpointsBuffer[s + 1].PointBIndex)));
-        // pos[s1.B].x - pos[s1.A].x, pos[s1.B].y - pos[s1.A].y, *, *
-        __m128 const s1_displacement = _mm_sub_ps(s1pb_pos, s1pa_pos);
+        // Spring 1 displacement (s1_position.x, s1_position.y, *, *)
+        __m128 const s1pa_pos_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointPositionBuffer + endpointsBuffer[s + 1].PointAIndex)));
+        __m128 const s1pb_pos_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointPositionBuffer + endpointsBuffer[s + 1].PointBIndex)));
+        // s1_displacement.x, s1_displacement.y
+        __m128 const s1_displacement_xy = _mm_sub_ps(s1pb_pos_xy, s1pa_pos_xy);
 
         // s0_displacement.x, s0_displacement.y, s1_displacement.x, s1_displacement.y
-        __m128 const s0s1_displacement = _mm_movelh_ps(s0_displacement, s1_displacement);
+        __m128 const s0s1_displacement_xy = _mm_movelh_ps(s0_displacement_xy, s1_displacement_xy);
 
-        // Spring 2 displacement
-        __m128 const s2pa_pos = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointPositionBuffer + endpointsBuffer[s + 2].PointAIndex)));
-        __m128 const s2pb_pos = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointPositionBuffer + endpointsBuffer[s + 2].PointBIndex)));
-        // pos[s2.B].x - pos[s2.A].x, pos[s2.B].y - pos[s2.A].y, *, *
-        __m128 const s2_displacement = _mm_sub_ps(s2pb_pos, s2pa_pos);
+        // Spring 2 displacement (s2_position.x, s2_position.y, *, *)
+        __m128 const s2pa_pos_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointPositionBuffer + endpointsBuffer[s + 2].PointAIndex)));
+        __m128 const s2pb_pos_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointPositionBuffer + endpointsBuffer[s + 2].PointBIndex)));
+        // s2_displacement.x, s2_displacement.y
+        __m128 const s2_displacement_xy = _mm_sub_ps(s2pb_pos_xy, s2pa_pos_xy);
 
-        // Spring 3 displacement
-        __m128 const s3pa_pos = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointPositionBuffer + endpointsBuffer[s + 3].PointAIndex)));
-        __m128 const s3pb_pos = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointPositionBuffer + endpointsBuffer[s + 3].PointBIndex)));
-        // pos[s3.B].x - pos[s3.A].x, pos[s3.B].y - pos[s3.A].y, *, *
-        __m128 const s3_displacement = _mm_sub_ps(s3pb_pos, s3pa_pos);
+        // Spring 3 displacement (s3_position.x, s3_position.y, *, *)
+        __m128 const s3pa_pos_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointPositionBuffer + endpointsBuffer[s + 3].PointAIndex)));
+        __m128 const s3pb_pos_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointPositionBuffer + endpointsBuffer[s + 3].PointBIndex)));
+        // s3_displacement.x, s3_displacement.y
+        __m128 const s3_displacement_xy = _mm_sub_ps(s3pb_pos_xy, s3pa_pos_xy);
 
         // s2_displacement.x, s2_displacement.y, s3_displacement.x, s3_displacement.y
-        __m128 const s2s3_displacement = _mm_movelh_ps(s2_displacement, s3_displacement);
+        __m128 const s2s3_displacement_xy = _mm_movelh_ps(s2_displacement_xy, s3_displacement_xy);
 
         // Shuffle displacements:
         // s0_displacement.x, s1_displacement.x, s2_displacement.x, s3_displacement.x
-        __m128 s0s1s2s3_displacement_x = _mm_shuffle_ps(s0s1_displacement, s2s3_displacement, 0x88);
+        __m128 s0s1s2s3_displacement_x = _mm_shuffle_ps(s0s1_displacement_xy, s2s3_displacement_xy, 0x88);
         // s0_displacement.y, s1_displacement.y, s2_displacement.y, s3_displacement.y
-        __m128 s0s1s2s3_displacement_y = _mm_shuffle_ps(s0s1_displacement, s2s3_displacement, 0xDD);
+        __m128 s0s1s2s3_displacement_y = _mm_shuffle_ps(s0s1_displacement_xy, s2s3_displacement_xy, 0xDD);
 
-        //
         // Calculate spring lengths
-        //
 
         // s0_displacement.x^2, s1_displacement.x^2, s2_displacement.x^2, s3_displacement.x^2
         __m128 const s0s1s2s3_displacement_x2 = _mm_mul_ps(s0s1s2s3_displacement_x, s0s1s2s3_displacement_x);
@@ -201,17 +199,15 @@ void FSBySpringIntrinsics::ApplySpringsForces(Object const & object)
 
         __m128 const s0s1s2s3_springLength = _mm_sqrt_ps(s0s1s2s3_displacement_x2_p_y2); // sqrt
 
-        //
         // Calculate spring directions
-        //
 
         __m128 const validMask = _mm_cmpneq_ps(s0s1s2s3_springLength, Zero);
 
-        __m128 s0s1s2s3_dir_x = _mm_div_ps(s0s1s2s3_displacement_x, s0s1s2s3_springLength);
-        __m128 s0s1s2s3_dir_y = _mm_div_ps(s0s1s2s3_displacement_y, s0s1s2s3_springLength);
+        __m128 s0s1s2s3_sdir_x = _mm_div_ps(s0s1s2s3_displacement_x, s0s1s2s3_springLength);
+        __m128 s0s1s2s3_sdir_y = _mm_div_ps(s0s1s2s3_displacement_y, s0s1s2s3_springLength);
         // L==0 => 1/L == 0, to maintain normalized == (0, 0), as in vec2f
-        s0s1s2s3_dir_x = _mm_and_ps(s0s1s2s3_dir_x, validMask);
-        s0s1s2s3_dir_y = _mm_and_ps(s0s1s2s3_dir_y, validMask);
+        s0s1s2s3_sdir_x = _mm_and_ps(s0s1s2s3_sdir_x, validMask);
+        s0s1s2s3_sdir_y = _mm_and_ps(s0s1s2s3_sdir_y, validMask);
 
         //////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -252,41 +248,41 @@ void FSBySpringIntrinsics::ApplySpringsForces(Object const & object)
         // ( relV[s3].x * sprDir[s3].x  +  relV[s3].y * sprDir[s3].y )  *  dampCoeff[s3]
         //
 
-        // Spring 0 rel vel
-        __m128 const s0pa_vel = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointVelocityBuffer + endpointsBuffer[s + 0].PointAIndex)));
-        __m128 const s0pb_vel = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointVelocityBuffer + endpointsBuffer[s + 0].PointBIndex)));
-        // vel[s0.B].x - vel[s0.A].x, vel[s0.B].y - vel[s0.A].y, *, *
-        __m128 const s0_relvel = _mm_sub_ps(s0pb_vel, s0pa_vel);
+        // Spring 0 rel vel (s0_vel.x, s0_vel.y, *, *)
+        __m128 const s0pa_vel_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointVelocityBuffer + endpointsBuffer[s + 0].PointAIndex)));
+        __m128 const s0pb_vel_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointVelocityBuffer + endpointsBuffer[s + 0].PointBIndex)));
+        // s0_relvel_x, s0_relvel_y, *, *
+        __m128 const s0_relvel_xy = _mm_sub_ps(s0pb_vel_xy, s0pa_vel_xy);
 
-        // Spring 1 rel vel
-        __m128 const s1pa_vel = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointVelocityBuffer + endpointsBuffer[s + 1].PointAIndex)));
-        __m128 const s1pb_vel = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointVelocityBuffer + endpointsBuffer[s + 1].PointBIndex)));
-        // vel[s1.B].x - vel[s1.A].x, vel[s1.B].y - vel[s1.A].y, *, *
-        __m128 const s1_relvel = _mm_sub_ps(s1pb_vel, s1pa_vel);
+        // Spring 1 rel vel (s1_vel.x, s1_vel.y, *, *)
+        __m128 const s1pa_vel_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointVelocityBuffer + endpointsBuffer[s + 1].PointAIndex)));
+        __m128 const s1pb_vel_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointVelocityBuffer + endpointsBuffer[s + 1].PointBIndex)));
+        // s1_relvel_x, s1_relvel_y, *, *
+        __m128 const s1_relvel_xy = _mm_sub_ps(s1pb_vel_xy, s1pa_vel_xy);
 
         // s0_relvel.x, s0_relvel.y, s1_relvel.x, s1_relvel.y
-        __m128 const s0s1_relvel = _mm_movelh_ps(s0_relvel, s1_relvel);
+        __m128 const s0s1_relvel_xy = _mm_movelh_ps(s0_relvel_xy, s1_relvel_xy);
 
-        // Spring 2 rel vel
-        __m128 const s2pa_vel = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointVelocityBuffer + endpointsBuffer[s + 2].PointAIndex)));
-        __m128 const s2pb_vel = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointVelocityBuffer + endpointsBuffer[s + 2].PointBIndex)));
-        // vel[s2.B].x - vel[s2.A].x, vel[s2.B].y - vel[s2.A].y, *, *
-        __m128 const s2_relvel = _mm_sub_ps(s2pb_vel, s2pa_vel);
+        // Spring 2 rel vel (s2_vel.x, s2_vel.y, *, *)
+        __m128 const s2pa_vel_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointVelocityBuffer + endpointsBuffer[s + 2].PointAIndex)));
+        __m128 const s2pb_vel_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointVelocityBuffer + endpointsBuffer[s + 2].PointBIndex)));
+        // s2_relvel_x, s2_relvel_y, *, *
+        __m128 const s2_relvel_xy = _mm_sub_ps(s2pb_vel_xy, s2pa_vel_xy);
 
-        // Spring 3 rel vel
-        __m128 const s3pa_vel = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointVelocityBuffer + endpointsBuffer[s + 3].PointAIndex)));
-        __m128 const s3pb_vel = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointVelocityBuffer + endpointsBuffer[s + 3].PointBIndex)));
-        // vel[s3.B].x - vel[s3.A].x, vel[s3.B].y - vel[s3.A].y, *, *
-        __m128 const s3_relvel = _mm_sub_ps(s3pb_vel, s3pa_vel);
+        // Spring 3 rel vel (s3_vel.x, s3_vel.y, *, *)
+        __m128 const s3pa_vel_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointVelocityBuffer + endpointsBuffer[s + 3].PointAIndex)));
+        __m128 const s3pb_vel_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointVelocityBuffer + endpointsBuffer[s + 3].PointBIndex)));
+        // s3_relvel_x, s3_relvel_y, *, *
+        __m128 const s3_relvel_xy = _mm_sub_ps(s3pb_vel_xy, s3pa_vel_xy);
 
         // s2_relvel.x, s2_relvel.y, s3_relvel.x, s3_relvel.y
-        __m128 const s2s3_relvel = _mm_movelh_ps(s2_relvel, s3_relvel);
+        __m128 const s2s3_relvel_xy = _mm_movelh_ps(s2_relvel_xy, s3_relvel_xy);
 
         // Shuffle rel vals:
         // s0_relvel.x, s1_relvel.x, s2_relvel.x, s3_relvel.x
-        __m128 s0s1s2s3_relvel_x = _mm_shuffle_ps(s0s1_relvel, s2s3_relvel, 0x88);
+        __m128 s0s1s2s3_relvel_x = _mm_shuffle_ps(s0s1_relvel_xy, s2s3_relvel_xy, 0x88);
         // s0_relvel.y, s1_relvel.y, s2_relvel.y, s3_relvel.y
-        __m128 s0s1s2s3_relvel_y = _mm_shuffle_ps(s0s1_relvel, s2s3_relvel, 0xDD);
+        __m128 s0s1s2s3_relvel_y = _mm_shuffle_ps(s0s1_relvel_xy, s2s3_relvel_xy, 0xDD);
 
         // Damping coeffs
         __m128 const s0s1s2s3_dampingCoeff = _mm_load_ps(dampingCoefficientBuffer + s);
@@ -294,8 +290,8 @@ void FSBySpringIntrinsics::ApplySpringsForces(Object const & object)
         __m128 const s0s1s2s3_damping_forceModuli =
             _mm_mul_ps(                
                 _mm_add_ps( // Dot product
-                    _mm_mul_ps(s0s1s2s3_relvel_x, s0s1s2s3_dir_x),
-                    _mm_mul_ps(s0s1s2s3_relvel_y, s0s1s2s3_dir_y)),
+                    _mm_mul_ps(s0s1s2s3_relvel_x, s0s1s2s3_sdir_x),
+                    _mm_mul_ps(s0s1s2s3_relvel_y, s0s1s2s3_sdir_y)),
                 s0s1s2s3_dampingCoeff);
 
         //
@@ -305,19 +301,66 @@ void FSBySpringIntrinsics::ApplySpringsForces(Object const & object)
         //
         // Strategy:
         //
-        //  force[s0].x  =   springDir[s0].x  *  (  hookeForce[s0] + dampingForce[s0] ) 
-        //  force[s1].x  =   springDir[s1].x  *  (  hookeForce[s1] + dampingForce[s1] )
-        //  force[s2].x  =   springDir[s2].x  *  (  hookeForce[s2] + dampingForce[s2] )
-        //  force[s3].x  =   springDir[s3].x  *  (  hookeForce[s3] + dampingForce[s3] )
+        //  total_forceA[s0].x  =   springDir[s0].x  *  (  hookeForce[s0] + dampingForce[s0] ) 
+        //  total_forceA[s1].x  =   springDir[s1].x  *  (  hookeForce[s1] + dampingForce[s1] )
+        //  total_forceA[s2].x  =   springDir[s2].x  *  (  hookeForce[s2] + dampingForce[s2] )
+        //  total_forceA[s3].x  =   springDir[s3].x  *  (  hookeForce[s3] + dampingForce[s3] )
         //
-        //  force[s0].y  =   springDir[s0].y  *  (  hookeForce[s0] + dampingForce[s0] ) 
-        //  force[s1].y  =   springDir[s1].y  *  (  hookeForce[s1] + dampingForce[s1] )
-        //  force[s2].y  =   springDir[s2].y  *  (  hookeForce[s2] + dampingForce[s2] )
-        //  force[s3].y  =   springDir[s3].y  *  (  hookeForce[s3] + dampingForce[s3] )
+        //  total_forceA[s0].y  =   springDir[s0].y  *  (  hookeForce[s0] + dampingForce[s0] ) 
+        //  total_forceA[s1].y  =   springDir[s1].y  *  (  hookeForce[s1] + dampingForce[s1] )
+        //  total_forceA[s2].y  =   springDir[s2].y  *  (  hookeForce[s2] + dampingForce[s2] )
+        //  total_forceA[s3].y  =   springDir[s3].y  *  (  hookeForce[s3] + dampingForce[s3] )
         //
 
-        // 
-        // TODOHERE
+        __m128 const s0s1s2s3_tforceA_x =
+            _mm_mul_ps(
+                s0s1s2s3_sdir_x,
+                _mm_add_ps(s0s1s2s3_hooke_forceModuli, s0s1s2s3_damping_forceModuli));
+
+        // TODO: see if compiler optimizes the sum; if not, do it once above
+        __m128 const s0s1s2s3_tforceA_y =
+            _mm_mul_ps(
+                s0s1s2s3_sdir_y,
+                _mm_add_ps(s0s1s2s3_hooke_forceModuli, s0s1s2s3_damping_forceModuli));
+
+        //
+        // Unpack and add forces:
+        //      pointSpringForceBuffer[pointAIndex] += total_forceA;
+        //      pointSpringForceBuffer[pointBIndex] -= total_forceA;
+        //
+
+        __m128 s0s1_tforceA_xy = _mm_unpacklo_ps(s0s1s2s3_tforceA_x, s0s1s2s3_tforceA_y);
+        __m128 s2s3_tforceA_xy = _mm_unpackhi_ps(s0s1s2s3_tforceA_x, s0s1s2s3_tforceA_y);
+
+        __m128 s0_forceA_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointSpringForceBuffer + endpointsBuffer[s + 0].PointAIndex)));
+        __m128 s0_forceB_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointSpringForceBuffer + endpointsBuffer[s + 0].PointBIndex)));
+        __m128 s1_forceA_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointSpringForceBuffer + endpointsBuffer[s + 1].PointAIndex)));
+        __m128 s1_forceB_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointSpringForceBuffer + endpointsBuffer[s + 1].PointBIndex)));
+        __m128 s2_forceA_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointSpringForceBuffer + endpointsBuffer[s + 2].PointAIndex)));
+        __m128 s2_forceB_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointSpringForceBuffer + endpointsBuffer[s + 2].PointBIndex)));
+        __m128 s3_forceA_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointSpringForceBuffer + endpointsBuffer[s + 3].PointAIndex)));
+        __m128 s3_forceB_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointSpringForceBuffer + endpointsBuffer[s + 3].PointBIndex)));
+
+        s0_forceA_xy = _mm_add_ps(s0_forceA_xy, s0s1_tforceA_xy);
+        s0_forceB_xy = _mm_sub_ps(s0_forceB_xy, s0s1_tforceA_xy);
+        s0s1_tforceA_xy = _mm_castpd_ps(_mm_shuffle_pd(_mm_castps_pd(s0s1_tforceA_xy), _mm_castps_pd(s0s1_tforceA_xy), 1));
+        s1_forceA_xy = _mm_add_ps(s1_forceA_xy, s0s1_tforceA_xy);
+        s1_forceB_xy = _mm_sub_ps(s1_forceB_xy, s0s1_tforceA_xy);
+
+        s2_forceA_xy = _mm_add_ps(s2_forceA_xy, s2s3_tforceA_xy);
+        s2_forceB_xy = _mm_sub_ps(s2_forceB_xy, s2s3_tforceA_xy);
+        s2s3_tforceA_xy = _mm_castpd_ps(_mm_shuffle_pd(_mm_castps_pd(s2s3_tforceA_xy), _mm_castps_pd(s2s3_tforceA_xy), 1));
+        s3_forceA_xy = _mm_add_ps(s3_forceA_xy, s2s3_tforceA_xy);
+        s3_forceB_xy = _mm_sub_ps(s3_forceB_xy, s2s3_tforceA_xy);
+
+        _mm_store_sd(reinterpret_cast<double * restrict>(pointSpringForceBuffer + endpointsBuffer[s + 0].PointAIndex), _mm_castps_pd(s0_forceA_xy));
+        _mm_store_sd(reinterpret_cast<double * restrict>(pointSpringForceBuffer + endpointsBuffer[s + 0].PointBIndex), _mm_castps_pd(s0_forceB_xy));
+        _mm_store_sd(reinterpret_cast<double * restrict>(pointSpringForceBuffer + endpointsBuffer[s + 1].PointAIndex), _mm_castps_pd(s1_forceA_xy));
+        _mm_store_sd(reinterpret_cast<double * restrict>(pointSpringForceBuffer + endpointsBuffer[s + 1].PointBIndex), _mm_castps_pd(s1_forceB_xy));
+        _mm_store_sd(reinterpret_cast<double * restrict>(pointSpringForceBuffer + endpointsBuffer[s + 2].PointAIndex), _mm_castps_pd(s2_forceA_xy));
+        _mm_store_sd(reinterpret_cast<double * restrict>(pointSpringForceBuffer + endpointsBuffer[s + 2].PointBIndex), _mm_castps_pd(s2_forceB_xy));
+        _mm_store_sd(reinterpret_cast<double * restrict>(pointSpringForceBuffer + endpointsBuffer[s + 3].PointAIndex), _mm_castps_pd(s3_forceA_xy));
+        _mm_store_sd(reinterpret_cast<double * restrict>(pointSpringForceBuffer + endpointsBuffer[s + 3].PointBIndex), _mm_castps_pd(s3_forceB_xy));
     }
 
     // One-by-one
