@@ -14,7 +14,7 @@
  * Simulator implementing the same spring relaxation algorithm
  * as Floating Sandbox 1.17.5.
  */
-class FSBaseSimulator final : public ISimulator
+class FSBaseSimulator : public ISimulator
 {
 public:
 

@@ -29,17 +29,17 @@ FS 20 - By Springs, With Intrinsics:
 		+ a. PositionBased
 		+ b. With integration (requires new buffer & swap)
 	- 4.  By Point, With Intrinsics
-	- 5.  By Point, With Intrinsics, With reordering for cache optimization
-		- Note: remember cache lines are 64-byte == 16 floats
-		- Reordering maps exposed by Simulators:
-			- Need raw intermediate shipbuilder structures
-			- Reordering done by shipbuilder who calls into Simulator
-				- Might be a static method, which takes intermediate results and spits both reordering maps
-					- TODOHERE: how to pass? 
-	- 6.  By Point, With Intrinsics, With reordering, Multi-threaded
-	= 20. By Spring, With Intrinsics
-		- Use "vectorization_float_count" instead of 4
-
+	- 5.  By Point, With Intrinsics, Layout Optimized
+	- 6.  By Point, With Intrinsics, Layout Optimized, Multi-threaded
+	+ 20. By Spring, With Intrinsics
+	- 21. By Spring, With Intrinsics, Layout Optimized
+		+ SCoreLib::CacheModel class
+		- Reorderings done by ObjectBuilder:
+			- Reordering maps exposed by Simulators:
+				+ Need raw intermediate shipbuilder structures
+				- Reordering done by shipbuilder who calls into Simulator
+					- TODO: Chicken-and-egg problem: Simulator needs Object in order to be created
+						- Option 1: unit of registration might be pair: Simulator, Reorderer
 	- Notes:
 		- When integration is...integrated, it might fare worse because we do double the number of fp operations
 

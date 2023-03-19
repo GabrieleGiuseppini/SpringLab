@@ -79,7 +79,8 @@ void SimulationController::LoadObject(std::filesystem::path const & objectDefini
     auto newObject = std::make_unique<Object>(
         ObjectBuilder::Create(
             std::move(objectDefinition),
-            mStructuralMaterialDatabase));
+            mStructuralMaterialDatabase,
+            SimulatorRegistry::GetLayoutOptimizer(mCurrentSimulatorTypeName)));
 
     //
     // No errors, so we may continue

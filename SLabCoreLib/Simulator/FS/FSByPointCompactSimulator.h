@@ -15,7 +15,7 @@
  * as Floating Sandbox 1.17.5, but pivoted on a by-point visit;
  * and with spring data stored compactly.
  */
-class FSByPointCompactSimulator final : public ISimulator
+class FSByPointCompactSimulator : public ISimulator
 {
 public:
 

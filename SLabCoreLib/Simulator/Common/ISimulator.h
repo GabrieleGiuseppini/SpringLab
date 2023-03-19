@@ -12,8 +12,7 @@ class ISimulator
 {
 public:
 
-    virtual ~ISimulator()
-    {}
+    virtual ~ISimulator() = default;
 
     /*
      * Invoked when either a parameter changes, or when an attribute of the

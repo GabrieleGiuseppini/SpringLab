@@ -14,7 +14,8 @@
 
 Object ObjectBuilder::Create(
     ObjectDefinition && objectDefinition,
-    StructuralMaterialDatabase const & structuralMaterialDatabase)
+    StructuralMaterialDatabase const & structuralMaterialDatabase,
+    ILayoutOptimizer const & layoutOptimizer)
 {
     int const structureWidth = objectDefinition.StructuralLayerImage.Size.Width;
     float const halfWidth = static_cast<float>(structureWidth) / 2.0f;
@@ -83,13 +84,21 @@ Object ObjectBuilder::Create(
         pointInfos,
         springInfos);
 
+    //
+    // Remap
+    //
+
+    auto const [pointInfos2, springInfos2] = Remap(
+        pointInfos,
+        springInfos,
+        layoutOptimizer);
 
 
     //
     // Visit all Build Point's and create Points, i.e. the entire set of points
     //
 
-    Points points = CreatePoints(pointInfos);
+    Points points = CreatePoints(pointInfos2);
 
 
     //
@@ -97,7 +106,7 @@ Object ObjectBuilder::Create(
     //
 
     Springs springs = CreateSprings(
-        springInfos,
+        springInfos2,
         points);
 
     //
@@ -240,4 +249,40 @@ Springs ObjectBuilder::CreateSprings(
     }
 
     return springs;
+}
+
+std::tuple<std::vector<ObjectBuildPoint>, std::vector<ObjectBuildSpring>> ObjectBuilder::Remap(
+    std::vector<ObjectBuildPoint> const & pointInfos,
+    std::vector<ObjectBuildSpring> const & springInfos,
+    ILayoutOptimizer const & layoutOptimizer)
+{
+    auto const layoutRemap = layoutOptimizer.Remap(pointInfos, springInfos);
+
+    // Remap point info's
+
+    std::vector<ObjectBuildPoint> pointInfos2;
+    pointInfos2.reserve(pointInfos.size());
+    for (ElementIndex oldP : layoutRemap.PointRemap)
+    {
+        pointInfos2.emplace_back(pointInfos[oldP]);
+
+        for (size_t is = 0; is < pointInfos2.back().ConnectedSprings.size(); ++is)
+        {
+            pointInfos2.back().ConnectedSprings[is] = layoutRemap.SpringRemap[pointInfos2.back().ConnectedSprings[is]];
+        }
+    }
+
+    // Remap spring info's
+
+    std::vector<ObjectBuildSpring> springInfos2;
+    springInfos2.reserve(springInfos.size());
+    for (ElementIndex oldS : layoutRemap.SpringRemap)
+    {
+        springInfos2.emplace_back(springInfos[oldS]);
+
+        springInfos2.back().PointAIndex = layoutRemap.PointRemap[springInfos2.back().PointAIndex];
+        springInfos2.back().PointBIndex = layoutRemap.PointRemap[springInfos2.back().PointBIndex];
+    }
+
+    return { pointInfos2, springInfos2 };
 }

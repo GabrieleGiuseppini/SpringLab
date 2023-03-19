@@ -14,7 +14,7 @@
  * Simulator implementing the same spring relaxation algorithm
  * as Floating Sandbox 1.17.5, optimized with intrinsics.
  */
-class FSBySpringIntrinsics final : public ISimulator
+class FSBySpringIntrinsicsSimulator : public ISimulator
 {
 public:
 
@@ -25,7 +25,7 @@ public:
 
 public:
 
-    FSBySpringIntrinsics(
+    FSBySpringIntrinsicsSimulator(
         Object const & object,
         SimulationParameters const & simulationParameters);
 

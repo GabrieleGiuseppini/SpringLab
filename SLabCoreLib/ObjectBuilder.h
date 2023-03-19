@@ -6,7 +6,9 @@
 #pragma once
 
 #include "ImageSize.h"
+#include "ILayoutOptimizer.h"
 #include "Object.h"
+#include "ObjectBuilderTypes.h"
 #include "ObjectDefinition.h"
 #include "Points.h"
 #include "SLabTypes.h"
@@ -28,63 +30,12 @@ public:
 
     static Object Create(
         ObjectDefinition && objectDefinition,
-        StructuralMaterialDatabase const & structuralMaterialDatabase);
+        StructuralMaterialDatabase const & structuralMaterialDatabase,
+        ILayoutOptimizer const & layoutOptimizer);
 
 private:
 
     using ObjectBuildPointIndexMatrix = std::unique_ptr<std::unique_ptr<std::optional<ElementIndex>[]>[]>;
-
-    struct ObjectBuildPoint
-    {
-        vec2f Position;
-        rgbColor RenderColor;
-        StructuralMaterial const & Material;
-
-        std::vector<ElementIndex> ConnectedSprings;
-
-        ObjectBuildPoint(
-            vec2f position,
-            rgbColor renderColor,
-            StructuralMaterial const & material)
-            : Position(position)
-            , RenderColor(renderColor)
-            , Material(material)
-            , ConnectedSprings()
-        {
-        }
-
-        void AddConnectedSpring(ElementIndex springIndex)
-        {
-            assert(!ContainsConnectedSpring(springIndex));
-            ConnectedSprings.push_back(springIndex);
-        }
-
-    private:
-
-        inline bool ContainsConnectedSpring(ElementIndex springIndex1) const
-        {
-            return std::find(
-                ConnectedSprings.cbegin(),
-                ConnectedSprings.cend(),
-                springIndex1)
-                != ConnectedSprings.cend();
-        }
-    };
-
-    struct ObjectBuildSpring
-    {
-        ElementIndex PointAIndex;
-        ElementIndex PointBIndex;
-
-        ObjectBuildSpring(
-            ElementIndex pointAIndex,
-            ElementIndex pointBIndex)
-            : PointAIndex(pointAIndex)
-            , PointBIndex(pointBIndex)
-        {
-        }
-    };
-
 
 private:
 
@@ -103,4 +54,9 @@ private:
     static Springs CreateSprings(
         std::vector<ObjectBuildSpring> const & springInfos,
         Points & points);
+
+    static std::tuple<std::vector<ObjectBuildPoint>, std::vector<ObjectBuildSpring>> Remap(
+        std::vector<ObjectBuildPoint> const & pointInfos,
+        std::vector<ObjectBuildSpring> const & springInfos,
+        ILayoutOptimizer const & layoutOptimizer);
 };

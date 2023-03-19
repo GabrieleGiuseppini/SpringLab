@@ -6,6 +6,7 @@
 set  (SOURCES
 	AABB.h
 	Buffer.h
+	CacheModel.h
 	Chronometer.h
 	CircularList.h
 	Colors.cpp
@@ -16,6 +17,7 @@ set  (SOURCES
 	FixedSizeVector.h
 	FileSystem.h
 	FloatingPoint.h
+	ILayoutOptimizer.h
 	ImageData.h
 	ImageFileTools.cpp
 	ImageFileTools.h
@@ -26,6 +28,7 @@ set  (SOURCES
 	Object.h
 	ObjectBuilder.cpp
 	ObjectBuilder.h
+	ObjectBuilderTypes.h
 	ObjectDefinition.cpp
 	ObjectDefinition.h
 	PerfStats.h
@@ -93,8 +96,10 @@ set  (SIMULATOR_FS_SOURCES
 	Simulator/FS/FSByPointCompactSimulator.h
 	Simulator/FS/FSByPointCompactIntegratingSimulator.cpp
 	Simulator/FS/FSByPointCompactIntegratingSimulator.h
-	Simulator/FS/FSBySpringIntrinsics.cpp
-	Simulator/FS/FSBySpringIntrinsics.h
+	Simulator/FS/FSBySpringIntrinsicsSimulator.cpp
+	Simulator/FS/FSBySpringIntrinsicsSimulator.h
+	Simulator/FS/FSBySpringIntrinsicsLayoutOptimizationSimulator.cpp
+	Simulator/FS/FSBySpringIntrinsicsLayoutOptimizationSimulator.h
 	Simulator/FS/FSCommonSimulatorParameters.h
 	Simulator/FS/FSCommonSimulatorParameters.cpp
 )

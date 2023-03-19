@@ -15,7 +15,7 @@
  * as Floating Sandbox 1.17.5, but pivoted on a by-point visit;
  * not optimized.
  */
-class FSByPointSimulator final : public ISimulator
+class FSByPointSimulator : public ISimulator
 {
 public:
 

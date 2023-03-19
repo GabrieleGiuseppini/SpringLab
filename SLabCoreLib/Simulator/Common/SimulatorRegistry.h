@@ -7,6 +7,8 @@
 
 #include "ISimulator.h"
 
+#include "ILayoutOptimizer.h"
+
 #include <cassert>
 #include <functional>
 #include <memory>
@@ -40,6 +42,13 @@ public:
         return mInstance.mSimulatorFactories[simulatorName](object, simulationParameters);
     }
 
+    static ILayoutOptimizer const & GetLayoutOptimizer(std::string const & simulatorName)
+    {
+        assert(mInstance.mSimulatorLayoutOptimizers.count(simulatorName) == 1);
+
+        return *mInstance.mSimulatorLayoutOptimizers[simulatorName];
+    }
+
 private:
 
     SimulatorRegistry();
@@ -55,4 +64,5 @@ private:
 
     std::vector<std::string> mSimulatorTypeNames;
     std::unordered_map<std::string, factory_function> mSimulatorFactories;
+    std::unordered_map<std::string, std::unique_ptr<ILayoutOptimizer>> mSimulatorLayoutOptimizers;
 };

@@ -16,7 +16,7 @@
  * and performing integration;
  * with spring data stored compactly.
  */
-class FSByPointCompactIntegratingSimulator final : public ISimulator
+class FSByPointCompactIntegratingSimulator : public ISimulator
 {
 public:
 

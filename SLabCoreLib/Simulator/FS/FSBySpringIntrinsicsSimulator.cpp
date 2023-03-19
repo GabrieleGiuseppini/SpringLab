@@ -3,13 +3,13 @@
 * Created:              2023-03-18
 * Copyright:            Gabriele Giuseppini  (https://github.com/GabrieleGiuseppini)
 ***************************************************************************************/
-#include "FSBySpringIntrinsics.h"
+#include "FSBySpringIntrinsicsSimulator.h"
 
 #include "SysSpecifics.h"
 
 #include <cassert>
 
-FSBySpringIntrinsics::FSBySpringIntrinsics(
+FSBySpringIntrinsicsSimulator::FSBySpringIntrinsicsSimulator(
     Object const & object,
     SimulationParameters const & simulationParameters)
     // Point buffers
@@ -23,14 +23,14 @@ FSBySpringIntrinsics::FSBySpringIntrinsics(
     CreateState(object, simulationParameters);
 }
 
-void FSBySpringIntrinsics::OnStateChanged(
+void FSBySpringIntrinsicsSimulator::OnStateChanged(
     Object const & object,
     SimulationParameters const & simulationParameters)
 {
     CreateState(object, simulationParameters);
 }
 
-void FSBySpringIntrinsics::Update(
+void FSBySpringIntrinsicsSimulator::Update(
     Object & object,
     float /*currentSimulationTime*/,
     SimulationParameters const & simulationParameters)
@@ -48,7 +48,7 @@ void FSBySpringIntrinsics::Update(
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-void FSBySpringIntrinsics::CreateState(
+void FSBySpringIntrinsicsSimulator::CreateState(
     Object const & object,
     SimulationParameters const & simulationParameters)
 {
@@ -111,11 +111,13 @@ void FSBySpringIntrinsics::CreateState(
     }
 }
 
-void FSBySpringIntrinsics::ApplySpringsForces(Object const & object)
+void FSBySpringIntrinsicsSimulator::ApplySpringsForces(Object const & object)
 {
+    // This implementation is for 4-float SSE
 #if !FS_IS_ARCHITECTURE_X86_32() && !FS_IS_ARCHITECTURE_X86_64()
 #error Unsupported Architecture
-#endif
+#endif    
+    static_assert(vectorization_float_count<int> == 4);
 
     vec2f const * restrict const pointPositionBuffer = object.GetPoints().GetPositionBuffer();
     vec2f const * restrict const pointVelocityBuffer = object.GetPoints().GetVelocityBuffer();
@@ -393,7 +395,7 @@ void FSBySpringIntrinsics::ApplySpringsForces(Object const & object)
     }
 }
 
-void FSBySpringIntrinsics::IntegrateAndResetSpringForces(
+void FSBySpringIntrinsicsSimulator::IntegrateAndResetSpringForces(
     Object & object,
     SimulationParameters const & simulationParameters)
 {
