@@ -38,8 +38,6 @@ FS 20 - By Springs, With Intrinsics:
 					- TODOHERE: how to pass? 
 	- 6.  By Point, With Intrinsics, With reordering, Multi-threaded
 	= 20. By Spring, With Intrinsics
-		- Then check TODO's for assembly
-			- Also endpoints - constant-ized?
 		- Use "vectorization_float_count" instead of 4
 
 	- Notes:
