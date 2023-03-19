@@ -50,4 +50,12 @@ public:
     LayoutRemap Remap(
         std::vector<ObjectBuildPoint> const & points,
         std::vector<ObjectBuildSpring> const & springs) const override;
+
+private:
+
+    float CalculateACMR(
+        std::vector<ObjectBuildPoint> const & points,
+        std::vector<ObjectBuildSpring> const & springs,
+        std::vector<ElementIndex> const & pointRemap,
+        std::vector<ElementIndex> const & springRemap) const;
 };

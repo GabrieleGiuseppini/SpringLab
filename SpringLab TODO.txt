@@ -32,14 +32,11 @@ FS 20 - By Springs, With Intrinsics:
 	- 5.  By Point, With Intrinsics, Layout Optimized
 	- 6.  By Point, With Intrinsics, Layout Optimized, Multi-threaded
 	+ 20. By Spring, With Intrinsics
-	- 21. By Spring, With Intrinsics, Layout Optimized
+	= 21. By Spring, With Intrinsics, Layout Optimized
 		+ SCoreLib::CacheModel class
-		- Reorderings done by ObjectBuilder:
-			- Reordering maps exposed by Simulators:
-				+ Need raw intermediate shipbuilder structures
-				- Reordering done by shipbuilder who calls into Simulator
-					- TODO: Chicken-and-egg problem: Simulator needs Object in order to be created
-						- Option 1: unit of registration might be pair: Simulator, Reorderer
+		+ Reorderings done by ObjectBuilder, with new ILayoutOptimizer framework
+		+ initial ACMR = 0.267261
+		- Optimize
 	- Notes:
 		- When integration is...integrated, it might fare worse because we do double the number of fp operations
 
