@@ -36,22 +36,24 @@ SimulatorRegistry::SimulatorRegistry()
 
 namespace {
 
-    template <typename TSimulatorType, typename = void>
-    struct has_layout_optimizer : std::false_type {};
+    template<typename, typename = void>
+    constexpr bool has_layout_optimizer = false;
 
-    template <typename TSimulatorType>
-    struct has_layout_optimizer<TSimulatorType, decltype((void)TSimulatorType::layout_optimizer, void())> : std::true_type {};
+    template<typename TSimulatorType>
+    constexpr bool has_layout_optimizer<TSimulatorType, std::void_t<typename TSimulatorType::layout_optimizer>> = true;
 
-    template <class TSimulatorType>
-    std::unique_ptr<ILayoutOptimizer> make_simulator_optimizer(std::false_type)
-    {
-        return std::unique_ptr<IdempotentLayoutOptimizer>(new IdempotentLayoutOptimizer());
-    }
 
     template <class TSimulatorType>
-    std::unique_ptr<ILayoutOptimizer> make_simulator_optimizer(std::true_type)
+    std::unique_ptr<ILayoutOptimizer> make_simulator_optimizer()
     {
-        return std::make_unique<TSimulatorType::layout_optimizer>();
+        if constexpr (has_layout_optimizer<TSimulatorType>)
+        {
+            return std::make_unique<typename TSimulatorType::layout_optimizer>();
+        }
+        else
+        {
+            return std::unique_ptr<IdempotentLayoutOptimizer>(new IdempotentLayoutOptimizer());
+        }
     }
 }
 
@@ -69,7 +71,9 @@ void SimulatorRegistry::RegisterSimulatorType()
             return std::make_unique<TSimulatorType>(object, simulationParameters);
         });
 
+    static_assert(has_layout_optimizer<FSBySpringIntrinsicsLayoutOptimizationSimulator>);
+
     mSimulatorLayoutOptimizers.emplace(
         simulatorName,
-        make_simulator_optimizer<TSimulatorType>(has_layout_optimizer<TSimulatorType>{}));
+        make_simulator_optimizer<TSimulatorType>());
 }
