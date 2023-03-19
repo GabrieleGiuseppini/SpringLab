@@ -1,15 +1,19 @@
 FS 0 Base:
 	- Bending: 20
-	- CPU: 244us
+	- CPU: 260us
 FS 1 By Point:
 	- Bending: 20
-	- CPU: 367us
+	- CPU: 396us
 FS 2 By Point, Compact:
 	- Bendind: 20
-	- CPU: 342us
+	- CPU: 375us
 FS 3 By Point, Compact, Integrating:
 	- Bendind: 20
-	- CPU: 356us
+	- CPU: 380us
+
+FS 20 - By Springs, With Intrinsics:
+	- Bendind: 20
+	- CPU: 212us
 
 ##########################################################
 
@@ -35,7 +39,9 @@ FS 3 By Point, Compact, Integrating:
 	- 6.  By Point, With Intrinsics, With reordering, Multi-threaded
 	= 20. By Spring, With Intrinsics
 		- Then check TODO's for assembly
-		- See better unpacking/packing - doing math once instead of twice
+			- Also endpoints - constant-ized?
+		- See better initial unpacking/packing - doing math once instead of twice
+		- Use "vectorization_float_count" instead of 4
 
 	- Notes:
 		- When integration is...integrated, it might fare worse because we do double the number of fp operations

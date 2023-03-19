@@ -15,6 +15,8 @@ void SimulationController::SetPointHighlight(ElementIndex pointElementIndex, flo
     assert(!!mObject);
 
     mObject->GetPoints().SetRenderHighlight(pointElementIndex, highlight);
+
+    LogMessage("Highlighted point: ", pointElementIndex);
 }
 
 std::optional<ElementIndex> SimulationController::GetNearestPointAt(vec2f const & screenCoordinates) const

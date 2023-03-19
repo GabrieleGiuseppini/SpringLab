@@ -132,6 +132,8 @@ void FSBySpringIntrinsics::ApplySpringsForces(Object const & object)
     ElementCount const springVectorizedCount = springCount - (springCount % 4);
     ElementIndex s = 0;
 
+    aligned_to_vword vec2f springForces[4];
+
     // Word-by-word
     for (; s < springVectorizedCount; s += 4)
     {
@@ -223,10 +225,10 @@ void FSBySpringIntrinsics::ApplySpringsForces(Object const & object)
         //
         // Strategy:
         //
-        // ( springLength[s0] - resetLength[s0] ) * stiffness[s0]
-        // ( springLength[s1] - resetLength[s1] ) * stiffness[s1]
-        // ( springLength[s2] - resetLength[s2] ) * stiffness[s2]
-        // ( springLength[s3] - resetLength[s3] ) * stiffness[s3]
+        // ( springLength[s0] - restLength[s0] ) * stiffness[s0]
+        // ( springLength[s1] - restLength[s1] ) * stiffness[s1]
+        // ( springLength[s2] - restLength[s2] ) * stiffness[s2]
+        // ( springLength[s3] - restLength[s3] ) * stiffness[s3]
         //
 
         __m128 const s0s1s2s3_restLength = _mm_load_ps(restLengthBuffer + s);
@@ -315,16 +317,17 @@ void FSBySpringIntrinsics::ApplySpringsForces(Object const & object)
         //  total_forceA[s3].y  =   springDir[s3].y  *  (  hookeForce[s3] + dampingForce[s3] )
         //
 
+        __m128 const tForceModuli = _mm_add_ps(s0s1s2s3_hooke_forceModuli, s0s1s2s3_damping_forceModuli);
+
         __m128 const s0s1s2s3_tforceA_x =
             _mm_mul_ps(
                 s0s1s2s3_sdir_x,
-                _mm_add_ps(s0s1s2s3_hooke_forceModuli, s0s1s2s3_damping_forceModuli));
+                tForceModuli);
 
-        // TODO: see if compiler optimizes the sum; if not, do it once above
         __m128 const s0s1s2s3_tforceA_y =
             _mm_mul_ps(
                 s0s1s2s3_sdir_y,
-                _mm_add_ps(s0s1s2s3_hooke_forceModuli, s0s1s2s3_damping_forceModuli));
+                tForceModuli);
 
         //
         // Unpack and add forces:
@@ -335,6 +338,7 @@ void FSBySpringIntrinsics::ApplySpringsForces(Object const & object)
         __m128 s0s1_tforceA_xy = _mm_unpacklo_ps(s0s1s2s3_tforceA_x, s0s1s2s3_tforceA_y); // a[0], b[0], a[1], b[1]
         __m128 s2s3_tforceA_xy = _mm_unpackhi_ps(s0s1s2s3_tforceA_x, s0s1s2s3_tforceA_y); // a[2], b[2], a[3], b[3]
 
+        /* TODOTEST
         __m128 s0_forceA_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointSpringForceBuffer + endpointsBuffer[s + 0].PointAIndex)));
         __m128 s0_forceB_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointSpringForceBuffer + endpointsBuffer[s + 0].PointBIndex)));
         __m128 s1_forceA_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointSpringForceBuffer + endpointsBuffer[s + 1].PointAIndex)));
@@ -366,6 +370,19 @@ void FSBySpringIntrinsics::ApplySpringsForces(Object const & object)
         _mm_store_sd(reinterpret_cast<double * restrict>(pointSpringForceBuffer + endpointsBuffer[s + 2].PointBIndex), _mm_castps_pd(s2_forceB_xy));
         _mm_store_sd(reinterpret_cast<double * restrict>(pointSpringForceBuffer + endpointsBuffer[s + 3].PointAIndex), _mm_castps_pd(s3_forceA_xy));
         _mm_store_sd(reinterpret_cast<double * restrict>(pointSpringForceBuffer + endpointsBuffer[s + 3].PointBIndex), _mm_castps_pd(s3_forceB_xy));
+        */
+
+        _mm_store_ps(reinterpret_cast<float *>(&(springForces[0])), s0s1_tforceA_xy);
+        _mm_store_ps(reinterpret_cast<float *>(&(springForces[2])), s2s3_tforceA_xy);
+
+        pointSpringForceBuffer[endpointsBuffer[s + 0].PointAIndex] += springForces[0];
+        pointSpringForceBuffer[endpointsBuffer[s + 0].PointBIndex] -= springForces[0];
+        pointSpringForceBuffer[endpointsBuffer[s + 1].PointAIndex] += springForces[1];
+        pointSpringForceBuffer[endpointsBuffer[s + 1].PointBIndex] -= springForces[1];
+        pointSpringForceBuffer[endpointsBuffer[s + 2].PointAIndex] += springForces[2];
+        pointSpringForceBuffer[endpointsBuffer[s + 2].PointBIndex] -= springForces[2];
+        pointSpringForceBuffer[endpointsBuffer[s + 3].PointAIndex] += springForces[3];
+        pointSpringForceBuffer[endpointsBuffer[s + 3].PointBIndex] -= springForces[3];
     }
 
     // One-by-one
