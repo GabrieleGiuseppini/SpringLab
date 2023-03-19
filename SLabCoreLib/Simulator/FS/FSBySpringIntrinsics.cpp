@@ -338,40 +338,6 @@ void FSBySpringIntrinsics::ApplySpringsForces(Object const & object)
         __m128 s0s1_tforceA_xy = _mm_unpacklo_ps(s0s1s2s3_tforceA_x, s0s1s2s3_tforceA_y); // a[0], b[0], a[1], b[1]
         __m128 s2s3_tforceA_xy = _mm_unpackhi_ps(s0s1s2s3_tforceA_x, s0s1s2s3_tforceA_y); // a[2], b[2], a[3], b[3]
 
-        /* TODOTEST
-        __m128 s0_forceA_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointSpringForceBuffer + endpointsBuffer[s + 0].PointAIndex)));
-        __m128 s0_forceB_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointSpringForceBuffer + endpointsBuffer[s + 0].PointBIndex)));
-        __m128 s1_forceA_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointSpringForceBuffer + endpointsBuffer[s + 1].PointAIndex)));
-        __m128 s1_forceB_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointSpringForceBuffer + endpointsBuffer[s + 1].PointBIndex)));
-        __m128 s2_forceA_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointSpringForceBuffer + endpointsBuffer[s + 2].PointAIndex)));
-        __m128 s2_forceB_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointSpringForceBuffer + endpointsBuffer[s + 2].PointBIndex)));
-        __m128 s3_forceA_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointSpringForceBuffer + endpointsBuffer[s + 3].PointAIndex)));
-        __m128 s3_forceB_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointSpringForceBuffer + endpointsBuffer[s + 3].PointBIndex)));
-
-        s0_forceA_xy = _mm_add_ps(s0_forceA_xy, s0s1_tforceA_xy);
-        s0_forceB_xy = _mm_sub_ps(s0_forceB_xy, s0s1_tforceA_xy);
-        // s1 <-> s0
-        s0s1_tforceA_xy = _mm_castpd_ps(_mm_shuffle_pd(_mm_castps_pd(s0s1_tforceA_xy), _mm_castps_pd(s0s1_tforceA_xy), 1));
-        s1_forceA_xy = _mm_add_ps(s1_forceA_xy, s0s1_tforceA_xy);
-        s1_forceB_xy = _mm_sub_ps(s1_forceB_xy, s0s1_tforceA_xy);
-
-        s2_forceA_xy = _mm_add_ps(s2_forceA_xy, s2s3_tforceA_xy);
-        s2_forceB_xy = _mm_sub_ps(s2_forceB_xy, s2s3_tforceA_xy);
-        // s2 <-> s3
-        s2s3_tforceA_xy = _mm_castpd_ps(_mm_shuffle_pd(_mm_castps_pd(s2s3_tforceA_xy), _mm_castps_pd(s2s3_tforceA_xy), 1));
-        s3_forceA_xy = _mm_add_ps(s3_forceA_xy, s2s3_tforceA_xy);
-        s3_forceB_xy = _mm_sub_ps(s3_forceB_xy, s2s3_tforceA_xy);
-
-        _mm_store_sd(reinterpret_cast<double * restrict>(pointSpringForceBuffer + endpointsBuffer[s + 0].PointAIndex), _mm_castps_pd(s0_forceA_xy));
-        _mm_store_sd(reinterpret_cast<double * restrict>(pointSpringForceBuffer + endpointsBuffer[s + 0].PointBIndex), _mm_castps_pd(s0_forceB_xy));
-        _mm_store_sd(reinterpret_cast<double * restrict>(pointSpringForceBuffer + endpointsBuffer[s + 1].PointAIndex), _mm_castps_pd(s1_forceA_xy));
-        _mm_store_sd(reinterpret_cast<double * restrict>(pointSpringForceBuffer + endpointsBuffer[s + 1].PointBIndex), _mm_castps_pd(s1_forceB_xy));
-        _mm_store_sd(reinterpret_cast<double * restrict>(pointSpringForceBuffer + endpointsBuffer[s + 2].PointAIndex), _mm_castps_pd(s2_forceA_xy));
-        _mm_store_sd(reinterpret_cast<double * restrict>(pointSpringForceBuffer + endpointsBuffer[s + 2].PointBIndex), _mm_castps_pd(s2_forceB_xy));
-        _mm_store_sd(reinterpret_cast<double * restrict>(pointSpringForceBuffer + endpointsBuffer[s + 3].PointAIndex), _mm_castps_pd(s3_forceA_xy));
-        _mm_store_sd(reinterpret_cast<double * restrict>(pointSpringForceBuffer + endpointsBuffer[s + 3].PointBIndex), _mm_castps_pd(s3_forceB_xy));
-        */
-
         _mm_store_ps(reinterpret_cast<float *>(&(springForces[0])), s0s1_tforceA_xy);
         _mm_store_ps(reinterpret_cast<float *>(&(springForces[2])), s2s3_tforceA_xy);
 
