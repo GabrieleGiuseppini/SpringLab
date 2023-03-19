@@ -132,7 +132,7 @@ void FSBySpringIntrinsics::ApplySpringsForces(Object const & object)
     ElementCount const springVectorizedCount = springCount - (springCount % 4);
     ElementIndex s = 0;
 
-    aligned_to_vword vec2f springForces[4];
+    aligned_to_vword vec2f tmpSpringForces[4];
 
     // Word-by-word
     for (; s < springVectorizedCount; s += 4)
@@ -338,17 +338,17 @@ void FSBySpringIntrinsics::ApplySpringsForces(Object const & object)
         __m128 s0s1_tforceA_xy = _mm_unpacklo_ps(s0s1s2s3_tforceA_x, s0s1s2s3_tforceA_y); // a[0], b[0], a[1], b[1]
         __m128 s2s3_tforceA_xy = _mm_unpackhi_ps(s0s1s2s3_tforceA_x, s0s1s2s3_tforceA_y); // a[2], b[2], a[3], b[3]
 
-        _mm_store_ps(reinterpret_cast<float *>(&(springForces[0])), s0s1_tforceA_xy);
-        _mm_store_ps(reinterpret_cast<float *>(&(springForces[2])), s2s3_tforceA_xy);
+        _mm_store_ps(reinterpret_cast<float *>(&(tmpSpringForces[0])), s0s1_tforceA_xy);
+        _mm_store_ps(reinterpret_cast<float *>(&(tmpSpringForces[2])), s2s3_tforceA_xy);
 
-        pointSpringForceBuffer[endpointsBuffer[s + 0].PointAIndex] += springForces[0];
-        pointSpringForceBuffer[endpointsBuffer[s + 0].PointBIndex] -= springForces[0];
-        pointSpringForceBuffer[endpointsBuffer[s + 1].PointAIndex] += springForces[1];
-        pointSpringForceBuffer[endpointsBuffer[s + 1].PointBIndex] -= springForces[1];
-        pointSpringForceBuffer[endpointsBuffer[s + 2].PointAIndex] += springForces[2];
-        pointSpringForceBuffer[endpointsBuffer[s + 2].PointBIndex] -= springForces[2];
-        pointSpringForceBuffer[endpointsBuffer[s + 3].PointAIndex] += springForces[3];
-        pointSpringForceBuffer[endpointsBuffer[s + 3].PointBIndex] -= springForces[3];
+        pointSpringForceBuffer[endpointsBuffer[s + 0].PointAIndex] += tmpSpringForces[0];
+        pointSpringForceBuffer[endpointsBuffer[s + 0].PointBIndex] -= tmpSpringForces[0];
+        pointSpringForceBuffer[endpointsBuffer[s + 1].PointAIndex] += tmpSpringForces[1];
+        pointSpringForceBuffer[endpointsBuffer[s + 1].PointBIndex] -= tmpSpringForces[1];
+        pointSpringForceBuffer[endpointsBuffer[s + 2].PointAIndex] += tmpSpringForces[2];
+        pointSpringForceBuffer[endpointsBuffer[s + 2].PointBIndex] -= tmpSpringForces[2];
+        pointSpringForceBuffer[endpointsBuffer[s + 3].PointAIndex] += tmpSpringForces[3];
+        pointSpringForceBuffer[endpointsBuffer[s + 3].PointBIndex] -= tmpSpringForces[3];
     }
 
     // One-by-one

@@ -1,19 +1,19 @@
 FS 0 Base:
 	- Bending: 20
-	- CPU: 260us
+	- CPU: 260us | 233us
 FS 1 By Point:
 	- Bending: 20
-	- CPU: 396us
+	- CPU: 396us | 352
 FS 2 By Point, Compact:
 	- Bendind: 20
-	- CPU: 375us
+	- CPU: 375us | 332
 FS 3 By Point, Compact, Integrating:
 	- Bendind: 20
-	- CPU: 380us
+	- CPU: 380us | 342
 
 FS 20 - By Springs, With Intrinsics:
 	- Bendind: 20
-	- CPU: 212us
+	- CPU: 212us | 187us
 
 ##########################################################
 
@@ -40,7 +40,6 @@ FS 20 - By Springs, With Intrinsics:
 	= 20. By Spring, With Intrinsics
 		- Then check TODO's for assembly
 			- Also endpoints - constant-ized?
-		- See better initial unpacking/packing - doing math once instead of twice
 		- Use "vectorization_float_count" instead of 4
 
 	- Notes:
