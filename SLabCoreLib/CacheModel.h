@@ -5,54 +5,63 @@
  ***************************************************************************************/
 #pragma once
 
+#include "SLabTypes.h"
+
 #include <algorithm>
 #include <cassert>
 #include <deque>
 
 /*
  * Model for a very simplistic FIFO cache. 
+ * The cache is comprised of a number of lines, each holding B bytes.
+ * We assume the content of a cache line is memory-aligned to the cache line size.
  *
  * Used to evaluate goodness of element re-ordering strategies.
  */
-template<typename TElement, size_t CacheSize>
+template<size_t NLines, size_t BLine, typename TElement>
 class CacheModel
 {
+
+	static ElementCount constexpr LineElementCount = BLine / sizeof(TElement);
+
 public:
 
 	// Visits the element; returns true if this was a cache hit
-	bool Visit(TElement element)
+	bool Visit(ElementIndex elementIndex)
 	{
-		assert(mWorkingSet.size() <= CacheSize);
+		assert(mLines.size() <= NLines);
 
-		if (std::find(
-			mWorkingSet.cbegin(),
-			mWorkingSet.cend(),
-			element) == mWorkingSet.cend())
+		for (ElementIndex lineStartElementIndex : mLines)
 		{
-			// Cache miss
-
-			// Cache it
-			if (mWorkingSet.size() == CacheSize)
+			if (lineStartElementIndex <= elementIndex && elementIndex < lineStartElementIndex + LineElementCount)
 			{
-				mWorkingSet.pop_front();
+				// Cache hit
+				return true;
 			}
-			mWorkingSet.push_back(element);			
+		}
 
-			return false;
-		}
-		else
+		// Cache miss
+
+		// Cache it
+
+		if (mLines.size() == NLines)
 		{
-			// Cache hit
-			return true;
+			mLines.pop_front();
 		}
+
+		mLines.push_back(elementIndex - (elementIndex % LineElementCount));
+
+		return false;
 	}
 
 	void Reset()
 	{
-		mWorkingSet.clear();
+		mLines.clear();
 	}
 
 private:
 
-	std::deque<TElement> mWorkingSet;
+	// A FIFO list of lines; each line indicates the index of the first element
+	// in it
+	std::deque<ElementIndex> mLines;
 };

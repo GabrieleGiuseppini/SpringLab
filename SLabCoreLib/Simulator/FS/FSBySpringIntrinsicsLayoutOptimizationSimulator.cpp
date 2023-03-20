@@ -8,6 +8,8 @@
 #include "CacheModel.h"
 #include "Log.h"
 
+using MyCacheModel = CacheModel<1, 64, vec2f>;
+
 ILayoutOptimizer::LayoutRemap FSBySpringIntrinsicsLayoutOptimizer::Remap(
     std::vector<ObjectBuildPoint> const & points,
     std::vector<ObjectBuildSpring> const & springs) const
@@ -42,7 +44,7 @@ float FSBySpringIntrinsicsLayoutOptimizer::CalculateACMR(
     //
 
     // Point cache: encompasses all point-based buffers
-    CacheModel<ElementIndex, 16> pointCache;
+    MyCacheModel pointCache;
 
     size_t cacheHits = 0;
     size_t cacheMisses = 0;

@@ -35,8 +35,11 @@ FS 20 - By Springs, With Intrinsics:
 	= 21. By Spring, With Intrinsics, Layout Optimized
 		+ SCoreLib::CacheModel class
 		+ Reorderings done by ObjectBuilder, with new ILayoutOptimizer framework
-		+ initial ACMR = 0.267261
+		+ initial ACMR = 0.515219
 		- Optimize
+			- Recursive func returns (score, winner) of next, <N> lookahead
+				- Takes copy of cache but not of visited
+			
 	- Notes:
 		- When integration is...integrated, it might fare worse because we do double the number of fp operations
 
