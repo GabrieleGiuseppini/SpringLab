@@ -22,15 +22,15 @@ template<size_t NLines, size_t BLine, typename TElement>
 class CacheModel
 {
 
+	static_assert(NLines > 0);
+	static_assert(BLine > 0);
+
 	static ElementCount constexpr LineElementCount = BLine / sizeof(TElement);
 
 public:
 
-	// Visits the element; returns true if this was a cache hit
-	bool Visit(ElementIndex elementIndex)
+	bool IsCached(ElementIndex elementIndex) const
 	{
-		assert(mLines.size() <= NLines);
-
 		for (ElementIndex lineStartElementIndex : mLines)
 		{
 			if (lineStartElementIndex <= elementIndex && elementIndex < lineStartElementIndex + LineElementCount)
@@ -40,10 +40,23 @@ public:
 			}
 		}
 
+		return false;
+	}
+
+	// Visits the element; returns true if this was a cache hit
+	bool Visit(ElementIndex elementIndex)
+	{
+		if (IsCached(elementIndex))
+		{
+			// Cache hit
+			return true;
+		}
+
 		// Cache miss
 
 		// Cache it
 
+		assert(mLines.size() <= NLines);
 		if (mLines.size() == NLines)
 		{
 			mLines.pop_front();
