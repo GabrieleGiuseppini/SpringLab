@@ -6,6 +6,7 @@
 #pragma once
 
 #include "Colors.h"
+#include "Matrix.h"
 #include "SLabTypes.h"
 #include "StructuralMaterialDatabase.h"
 #include "Vectors.h"
@@ -17,7 +18,7 @@
  * Types describing the intermediate object structure.
  */
 
-using ObjectBuildPointIndexMatrix = std::unique_ptr<std::unique_ptr<std::optional<ElementIndex>[]>[]>;
+using ObjectBuildPointIndexMatrix = Matrix2<std::optional<ElementIndex>>;
 
 struct ObjectBuildPoint
 {

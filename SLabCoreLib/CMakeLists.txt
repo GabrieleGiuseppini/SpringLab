@@ -25,6 +25,7 @@ set  (SOURCES
 	ISimulationEventHandler.h
 	Log.cpp
 	Log.h
+	Matrix.h
 	Object.h
 	ObjectBuilder.cpp
 	ObjectBuilder.h

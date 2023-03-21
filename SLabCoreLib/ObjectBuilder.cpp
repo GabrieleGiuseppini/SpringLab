@@ -36,11 +36,7 @@ Object ObjectBuilder::Create(
     //
 
     // Matrix of points - we allocate 2 extra dummy rows and cols - around - to avoid checking for boundaries
-    ObjectBuildPointIndexMatrix pointIndexMatrix(new std::unique_ptr<std::optional<ElementIndex>[]>[structureWidth + 2]);
-    for (int c = 0; c < structureWidth + 2; ++c)
-    {
-        pointIndexMatrix[c] = std::unique_ptr<std::optional<ElementIndex>[]>(new std::optional<ElementIndex>[structureHeight + 2]);
-    }
+    ObjectBuildPointIndexMatrix pointIndexMatrix(structureWidth + 2, structureHeight + 2);
 
     // Visit all columns
     for (int x = 0; x < structureWidth; ++x)
@@ -58,7 +54,7 @@ Object ObjectBuilder::Create(
 
                 ElementIndex const pointIndex = static_cast<ElementIndex>(pointInfos.size());
 
-                pointIndexMatrix[x + 1][y + 1] = static_cast<ElementIndex>(pointIndex);
+                pointIndexMatrix[{x + 1, y + 1}] = static_cast<ElementIndex>(pointIndex);
 
                 pointInfos.emplace_back(
                     vec2f(
@@ -156,13 +152,13 @@ void ObjectBuilder::DetectSprings(
         // From left to right - excluding extras at boundaries
         for (int x = 1; x <= structureImageSize.Width; ++x)
         {
-            if (!!pointIndexMatrix[x][y])
+            if (!!pointIndexMatrix[{x, y}])
             {
                 //
                 // A point exists at these coordinates
                 //
 
-                ElementIndex pointIndex = *pointIndexMatrix[x][y];
+                ElementIndex pointIndex = *pointIndexMatrix[{x, y}];
 
                 //
                 // Check if a spring exists
@@ -175,7 +171,7 @@ void ObjectBuilder::DetectSprings(
                     int adjx1 = x + Directions[i][0];
                     int adjy1 = y + Directions[i][1];
 
-                    if (!!pointIndexMatrix[adjx1][adjy1])
+                    if (!!pointIndexMatrix[{adjx1, adjy1}])
                     {
                         // This point is adjacent to the first point at one of E, SE, S, SW
 
@@ -183,7 +179,7 @@ void ObjectBuilder::DetectSprings(
                         // Create BuildSpring
                         //
 
-                        ElementIndex const otherEndpointIndex = *pointIndexMatrix[adjx1][adjy1];
+                        ElementIndex const otherEndpointIndex = *pointIndexMatrix[{adjx1, adjy1}];
 
                         ElementIndex const springIndex = static_cast<ElementIndex>(springInfos.size());
 

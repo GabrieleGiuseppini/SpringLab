@@ -14,7 +14,7 @@
 #include <ostream>
 #include <string>
 
-#pragma pack(push)
+#pragma pack(push, 1)
 
 struct vec2f
 {
@@ -269,7 +269,9 @@ inline std::basic_ostream<char> & operator<<(std::basic_ostream<char> & os, vec2
     return os;
 }
 
-#pragma pack(push)
+//////////////////////////////////////////////
+
+#pragma pack(push, 1)
 
 struct vec3f
 {
@@ -448,7 +450,9 @@ inline std::basic_ostream<char> & operator<<(std::basic_ostream<char>& os, vec3f
     return os;
 }
 
-#pragma pack(push)
+//////////////////////////////////////////////
+
+#pragma pack(push, 1)
 
 struct vec4f
 {
@@ -594,6 +598,116 @@ static_assert(offsetof(vec4f, w) == 3 * sizeof(float));
 static_assert(sizeof(vec4f) == 4 * sizeof(float));
 
 inline std::basic_ostream<char> & operator<<(std::basic_ostream<char> & os, vec4f const & v)
+{
+    os << v.toString();
+    return os;
+}
+
+//////////////////////////////////////////////
+
+#pragma pack(push, 1)
+
+struct vec2i
+{
+public:
+
+    int x;
+    int y;
+
+    static constexpr vec2i zero()
+    {
+        return vec2i();
+    }
+
+    inline constexpr vec2i()
+        : x(0)
+        , y(0)
+    {
+    }
+
+    inline constexpr vec2i(
+        int _x,
+        int _y)
+        : x(_x)
+        , y(_y)
+    {
+    }
+
+    inline vec2i operator+(vec2i const & other) const
+    {
+        return vec2i(
+            x + other.x,
+            y + other.y);
+    }
+
+    inline vec2i operator-(vec2i const & other) const
+    {
+        return vec2i(
+            x - other.x,
+            y - other.y);
+    }
+
+    inline vec2i operator-() const
+    {
+        return vec2i(
+            -x,
+            -y);
+    }
+
+    inline vec2i & operator+=(vec2i const & other)
+    {
+        x += other.x;
+        y += other.y;
+        return *this;
+    }
+
+    inline vec2i & operator-=(vec2i const & other)
+    {
+        x -= other.x;
+        y -= other.y;
+        return *this;
+    }
+
+    inline bool operator==(vec2i const & other) const
+    {
+        return x == other.x && y == other.y;
+    }
+
+    inline bool operator!=(vec2i const & other) const
+    {
+        return !(*this == other);
+    }
+
+    // (lexicographic comparison only)
+    inline bool operator<(vec2i const & other) const
+    {
+        return x < other.x || (x == other.x && y < other.y);
+    }
+
+    /*
+     * Returns the vector rotated by PI/2.
+     */
+    inline vec2i to_perpendicular() const noexcept
+    {
+        return vec2i(-y, x);
+    }
+
+    template<typename TSize>
+    bool IsInSize(TSize const & size) const
+    {
+        return x >= 0 && x < size.width && y >= 0 && y < size.height;
+    }
+
+    std::string toString() const;
+};
+
+#pragma pack(pop)
+
+static_assert(offsetof(vec2i, x) == 0);
+static_assert(offsetof(vec2i, y) == sizeof(int));
+static_assert(sizeof(vec2i) == 2 * sizeof(int));
+
+inline std::basic_ostream<char> & operator<<(std::basic_ostream<char> & os, vec2i const & v)
 {
     os << v.toString();
     return os;

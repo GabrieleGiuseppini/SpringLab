@@ -229,6 +229,9 @@ ControlToolbar::ControlToolbar(wxWindow* parent)
                     wxBITMAP_TYPE_PNG),
                 wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
 
+            // Not used at the moment
+            mInitialConditionsParticleForceButton->Enable(false);
+
             mInitialConditionsParticleForceButton->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent & /*event*/) { OnInitialConditionsButton(mInitialConditionsParticleForceButton); });
 
             mInitialConditionsParticleForceButton->SetToolTip("Set a force on individual particles");

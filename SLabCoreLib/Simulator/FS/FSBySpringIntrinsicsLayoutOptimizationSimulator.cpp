@@ -114,7 +114,8 @@ ILayoutOptimizer::LayoutRemap FSBySpringIntrinsicsLayoutOptimizer::Remap(
     // Optimize
     //
 
-    auto const optimalLayout = Optimize1(pointMatrix, points, springs);
+    // TODOTEST
+    auto const optimalLayout = Optimize2(pointMatrix, points, springs);
 
     // TODOTEST
     for (size_t s  = 0; s < optimalLayout.SpringRemap.size() && s < 120; ++s)
@@ -164,7 +165,7 @@ float FSBySpringIntrinsicsLayoutOptimizer::CalculateACMR(
 }
 
 ILayoutOptimizer::LayoutRemap FSBySpringIntrinsicsLayoutOptimizer::Optimize1(
-    ObjectBuildPointIndexMatrix const & pointMatrix,
+    ObjectBuildPointIndexMatrix const & /*pointMatrix*/,
     std::vector<ObjectBuildPoint> const & points,
     std::vector<ObjectBuildSpring> const & springs) const
 {
@@ -205,10 +206,37 @@ ILayoutOptimizer::LayoutRemap FSBySpringIntrinsicsLayoutOptimizer::Optimize2(
     std::vector<ObjectBuildPoint> const & points,
     std::vector<ObjectBuildSpring> const & springs) const
 {
-    std::vector<ElementIndex> optimalPointRemap = IdempotentLayoutOptimizer::MakePointRemap(points);
+    std::vector<ElementIndex> optimalPointRemap;
     std::vector<ElementIndex> optimalSpringRemap;
 
+    std::vector<bool> remappedPoints(points.size(), false);
+    std::vector<bool> remappedSprings(springs.size(), false);
+
     // TODOHERE
+    (void)pointMatrix;
+
+    //
+    // Map leftovers now
+    //
+
+    LogMessage("LayoutOptimizer: ", std::count(remappedPoints.cbegin(), remappedPoints.cend(), false), " leftover points, ",
+        std::count(remappedSprings.cbegin(), remappedSprings.cend(), false), " leftover springs");
+
+    for (ElementIndex p = 0; p < points.size(); ++p)
+    {
+        if (!remappedPoints[p])
+        {
+            optimalPointRemap.emplace_back(p);
+        }
+    }
+
+    for (ElementIndex s = 0; s < springs.size(); ++s)
+    {
+        if (!remappedSprings[s])
+        {
+            optimalSpringRemap.emplace_back(s);
+        }
+    }
 
     return LayoutRemap(
         std::move(optimalPointRemap),
