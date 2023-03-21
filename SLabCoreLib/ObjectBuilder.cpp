@@ -89,6 +89,7 @@ Object ObjectBuilder::Create(
     //
 
     auto const [pointInfos2, springInfos2] = Remap(
+        pointIndexMatrix,
         pointInfos,
         springInfos,
         layoutOptimizer);
@@ -252,11 +253,12 @@ Springs ObjectBuilder::CreateSprings(
 }
 
 std::tuple<std::vector<ObjectBuildPoint>, std::vector<ObjectBuildSpring>> ObjectBuilder::Remap(
+    ObjectBuildPointIndexMatrix const & pointIndexMatrix,
     std::vector<ObjectBuildPoint> const & pointInfos,
     std::vector<ObjectBuildSpring> const & springInfos,
     ILayoutOptimizer const & layoutOptimizer)
 {
-    auto const layoutRemap = layoutOptimizer.Remap(pointInfos, springInfos);
+    auto const layoutRemap = layoutOptimizer.Remap(pointIndexMatrix, pointInfos, springInfos);
 
     // Remap point info's
 

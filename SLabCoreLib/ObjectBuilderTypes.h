@@ -10,11 +10,14 @@
 #include "StructuralMaterialDatabase.h"
 #include "Vectors.h"
 
+#include <memory>
 #include <vector>
 
 /*
  * Types describing the intermediate object structure.
  */
+
+using ObjectBuildPointIndexMatrix = std::unique_ptr<std::unique_ptr<std::optional<ElementIndex>[]>[]>;
 
 struct ObjectBuildPoint
 {

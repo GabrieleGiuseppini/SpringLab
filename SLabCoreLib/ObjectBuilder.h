@@ -35,10 +35,6 @@ public:
 
 private:
 
-    using ObjectBuildPointIndexMatrix = std::unique_ptr<std::unique_ptr<std::optional<ElementIndex>[]>[]>;
-
-private:
-
     /////////////////////////////////////////////////////////////////
     // Building helpers
     /////////////////////////////////////////////////////////////////
@@ -56,6 +52,7 @@ private:
         Points & points);
 
     static std::tuple<std::vector<ObjectBuildPoint>, std::vector<ObjectBuildSpring>> Remap(
+        ObjectBuildPointIndexMatrix const & pointIndexMatrix,
         std::vector<ObjectBuildPoint> const & pointInfos,
         std::vector<ObjectBuildSpring> const & springInfos,
         ILayoutOptimizer const & layoutOptimizer);

@@ -96,6 +96,7 @@ std::tuple<std::optional<ElementIndex>, int> FindNextBestSpring(
 }
 
 ILayoutOptimizer::LayoutRemap FSBySpringIntrinsicsLayoutOptimizer::Remap(
+    ObjectBuildPointIndexMatrix const & pointMatrix,
     std::vector<ObjectBuildPoint> const & points,
     std::vector<ObjectBuildSpring> const & springs) const
 {
@@ -113,42 +114,22 @@ ILayoutOptimizer::LayoutRemap FSBySpringIntrinsicsLayoutOptimizer::Remap(
     // Optimize
     //
 
-    std::vector<ElementIndex> optimalSpringRemap;
+    auto const optimalLayout = Optimize1(pointMatrix, points, springs);
 
-    MyCacheModel pointCache;
-
-    std::vector<bool> visitedSprings(springs.size(), false);
-
-    for (ElementCount nIteration = 0; nIteration < springs.size(); ++nIteration)
+    // TODOTEST
+    for (size_t s  = 0; s < optimalLayout.SpringRemap.size() && s < 120; ++s)
     {
-        // There's still a non-visited spring
-        assert(std::find(visitedSprings.cbegin(), visitedSprings.cend(), false) != visitedSprings.cend());
-
-        // Find next best spring
-        auto const [sIndex, _] = FindNextBestSpring<Lookead>(springs, pointCache, visitedSprings);
-
-        assert(sIndex);
-
-        // Store remap
-        optimalSpringRemap.emplace_back(*sIndex);
-
-        // Visit spring
-        pointCache.Visit(springs[*sIndex].PointAIndex);
-        pointCache.Visit(springs[*sIndex].PointBIndex);
-        assert(visitedSprings[*sIndex] == false);
-        visitedSprings[*sIndex] = true;
+        LogMessage(springs[s].PointAIndex, " <-> ", springs[s].PointBIndex);
     }
 
     //
     // Recalculate ACMR
     //
 
-    float const finalAcmr = CalculateACMR(points, springs, idempotentPointRemap, optimalSpringRemap);
+    float const finalAcmr = CalculateACMR(points, springs, optimalLayout.PointRemap, optimalLayout.SpringRemap);
     LogMessage("FSBySpringIntrinsicsLayoutOptimizer: final ACMR = ", finalAcmr);
 
-    return LayoutRemap(
-        std::move(idempotentPointRemap),
-        std::move(optimalSpringRemap));
+    return optimalLayout;
 }
 
 float FSBySpringIntrinsicsLayoutOptimizer::CalculateACMR(
@@ -180,4 +161,56 @@ float FSBySpringIntrinsicsLayoutOptimizer::CalculateACMR(
     }
 
     return static_cast<float>(cacheMisses) / static_cast<float>(cacheHits + cacheMisses);
+}
+
+ILayoutOptimizer::LayoutRemap FSBySpringIntrinsicsLayoutOptimizer::Optimize1(
+    ObjectBuildPointIndexMatrix const & pointMatrix,
+    std::vector<ObjectBuildPoint> const & points,
+    std::vector<ObjectBuildSpring> const & springs) const
+{
+    std::vector<ElementIndex> optimalPointRemap = IdempotentLayoutOptimizer::MakePointRemap(points);
+    std::vector<ElementIndex> optimalSpringRemap;
+
+    MyCacheModel pointCache;
+
+    std::vector<bool> visitedSprings(springs.size(), false);
+
+    for (ElementCount nIteration = 0; nIteration < springs.size(); ++nIteration)
+    {
+        // There's still a non-visited spring
+        assert(std::find(visitedSprings.cbegin(), visitedSprings.cend(), false) != visitedSprings.cend());
+
+        // Find next best spring
+        auto const [sIndex, _] = FindNextBestSpring<Lookead>(springs, pointCache, visitedSprings);
+
+        assert(sIndex);
+
+        // Store remap
+        optimalSpringRemap.emplace_back(*sIndex);
+
+        // Visit spring
+        pointCache.Visit(springs[*sIndex].PointAIndex);
+        pointCache.Visit(springs[*sIndex].PointBIndex);
+        assert(visitedSprings[*sIndex] == false);
+        visitedSprings[*sIndex] = true;
+    }
+
+    return LayoutRemap(
+        std::move(optimalPointRemap),
+        std::move(optimalSpringRemap));
+}
+
+ILayoutOptimizer::LayoutRemap FSBySpringIntrinsicsLayoutOptimizer::Optimize2(
+    ObjectBuildPointIndexMatrix const & pointMatrix,
+    std::vector<ObjectBuildPoint> const & points,
+    std::vector<ObjectBuildSpring> const & springs) const
+{
+    std::vector<ElementIndex> optimalPointRemap = IdempotentLayoutOptimizer::MakePointRemap(points);
+    std::vector<ElementIndex> optimalSpringRemap;
+
+    // TODOHERE
+
+    return LayoutRemap(
+        std::move(optimalPointRemap),
+        std::move(optimalSpringRemap));
 }

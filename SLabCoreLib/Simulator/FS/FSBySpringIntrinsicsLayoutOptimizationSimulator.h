@@ -49,6 +49,7 @@ class FSBySpringIntrinsicsLayoutOptimizer : public ILayoutOptimizer
 public:
 
     LayoutRemap Remap(
+        ObjectBuildPointIndexMatrix const & pointMatrix,
         std::vector<ObjectBuildPoint> const & points,
         std::vector<ObjectBuildSpring> const & springs) const override;
 
@@ -59,4 +60,14 @@ private:
         std::vector<ObjectBuildSpring> const & springs,
         std::vector<ElementIndex> const & pointRemap,
         std::vector<ElementIndex> const & springRemap) const;
+
+    LayoutRemap Optimize1(
+        ObjectBuildPointIndexMatrix const & pointMatrix,
+        std::vector<ObjectBuildPoint> const & points,
+        std::vector<ObjectBuildSpring> const & springs) const;
+
+    LayoutRemap Optimize2(
+        ObjectBuildPointIndexMatrix const & pointMatrix,
+        std::vector<ObjectBuildPoint> const & points,
+        std::vector<ObjectBuildSpring> const & springs) const;
 };

@@ -31,6 +31,7 @@ public:
     };
 
     virtual LayoutRemap Remap(
+        ObjectBuildPointIndexMatrix const & pointMatrix,
         std::vector<ObjectBuildPoint> const & points,
         std::vector<ObjectBuildSpring> const & springs) const = 0;
 };
@@ -44,6 +45,7 @@ class IdempotentLayoutOptimizer final : public ILayoutOptimizer
 public:
 
     LayoutRemap Remap(
+        ObjectBuildPointIndexMatrix const & /*pointMatrix*/,
         std::vector<ObjectBuildPoint> const & points,
         std::vector<ObjectBuildSpring> const & springs) const override
     {
