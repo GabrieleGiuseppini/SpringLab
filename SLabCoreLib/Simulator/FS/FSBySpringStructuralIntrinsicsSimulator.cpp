@@ -149,223 +149,308 @@ void FSBySpringStructuralIntrinsicsSimulator::ApplySpringsForces(Object const & 
 
     aligned_to_vword vec2f tmpSpringForces[4];
 
+    // TODOTEST
+    vec2f * todoPos = const_cast<vec2f *>(pointPositionBuffer);
+    todoPos[endpointsBuffer[0].PointAIndex] = vec2f(1.f, 10.f);
+    todoPos[endpointsBuffer[0].PointBIndex] = vec2f(101.f, 110.f);
+    todoPos[endpointsBuffer[1].PointAIndex] = vec2f(2.f, 20.f);
+    todoPos[endpointsBuffer[1].PointBIndex] = vec2f(202.f, 220.f);
+    todoPos[endpointsBuffer[2].PointAIndex] = vec2f(1.f, 10.f);
+    todoPos[endpointsBuffer[2].PointBIndex] = vec2f(202.f, 220.f);
+    todoPos[endpointsBuffer[3].PointAIndex] = vec2f(2.f, 20.f);
+    todoPos[endpointsBuffer[3].PointBIndex] = vec2f(101.f, 110.f);
+
+    // TODO: this first loop only for the perfect squares; then, followed by "basic intrinsics"
     // Word-by-word
     for (; s < springVectorizedCount; s += 4)
     {
-        // Notation:
-        //   low (left) -> height (right)
-        
+        // XMM register notation:
+        //   low (left, or top) -> height (right, or bottom)
+
         //
-        // Calculate displacement, string lengths, and spring directions
+        //  s0(2).a     s1(3).a
+        //    |\        /|
+        //    | \s0  s1/ |
+        //    |  \    /  |
+        //  s2|   \  /   |s3
+        //    |    \/    |
+        //    |    /\    |
+        //    |   /  \   |
+        //    |  /    \  |
+        //    | /      \ |
+        //    |/        \|
+        //  s1(2).b     s0(3).b
+
+        //
+        // Calculate displacements, string lengths, and spring directions
+        //
+        // Steps:
         // 
-        // Strategy:
+        // s0_b_pos_x   -   s0_pos_a.x   =  s0_dis_x
+        // s0_b_pos_y   -   s0_pos_a.y   =  s0_dis_y
+        // s1_b_pos_x   -   s1_pos_a.x   =  s1_dis_x
+        // s1_b_pos_y   -   s1_pos_a.y   =  s1_dis_y
+        // 
+        // Swap 2H with 2L in first register, then:
+        // 
+        // s1_pos_b_x   -   s0_pos_a.x   =  s2_dis_x
+        // s1_pos_b_y   -   s0_pos_a.y   =  s2_dis_y
+        // s0_pos_b_x   -   s1_pos_a.x   =  s3_dis_x
+        // s0_pos_b_y   -   s1_pos_a.y   =  s3_dis_y
+        // 
+        // Shuffle:
         //
-        // springDir[s0].x  =  displacement[s0].x  /  springLength[s0]
-        // springDir[s1].x  =  displacement[s1].x  /  springLength[s1]
-        // springDir[s2].x  =  displacement[s2].x  /  springLength[s2]
-        // springDir[s3].x  =  displacement[s3].x  /  springLength[s3]
+        // s0_dis_x     s0_dis_y
+        // s1_dis_x     s1_dis_y
+        // s2_dis_x     s2_dis_y
+        // s3_dis_x     s3_dis_y
         //
-        // springDir[s0].y  =  displacement[s0].y  /  springLength[s0]
-        // springDir[s1].y  =  displacement[s1].y  /  springLength[s1]
-        // springDir[s2].y  =  displacement[s2].y  /  springLength[s2]
-        // springDir[s3].y  =  displacement[s3].y  /  springLength[s3]
+
+        // s0/1_a/b_pos_x
+        // s0/1_a/b_pos_y
+        // *
+        // *
+        __m128 const s0_a_pos_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointPositionBuffer + endpointsBuffer[s + 0].PointAIndex)));
+        __m128 const s0_b_pos_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointPositionBuffer + endpointsBuffer[s + 0].PointBIndex)));
+        __m128 const s1_a_pos_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointPositionBuffer + endpointsBuffer[s + 1].PointAIndex)));
+        __m128 const s1_b_pos_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointPositionBuffer + endpointsBuffer[s + 1].PointBIndex)));
+
+        assert(pointPositionBuffer[endpointsBuffer[s + 2].PointAIndex] == pointPositionBuffer[endpointsBuffer[s + 0].PointAIndex]);
+        assert(pointPositionBuffer[endpointsBuffer[s + 2].PointBIndex] == pointPositionBuffer[endpointsBuffer[s + 1].PointBIndex]);
+        assert(pointPositionBuffer[endpointsBuffer[s + 3].PointAIndex] == pointPositionBuffer[endpointsBuffer[s + 1].PointAIndex]);
+        assert(pointPositionBuffer[endpointsBuffer[s + 3].PointBIndex] == pointPositionBuffer[endpointsBuffer[s + 0].PointBIndex]);
+        
+        __m128 const s0s1_a_pos_xy = _mm_movelh_ps(s0_a_pos_xy, s1_a_pos_xy); // First argument goes low
+        __m128 s0s1_b_pos_xy = _mm_movelh_ps(s0_b_pos_xy, s1_b_pos_xy); // First argument goes low
+        __m128 const s0s1_dis_xy = _mm_sub_ps(s0s1_b_pos_xy, s0s1_a_pos_xy);
+        s0s1_b_pos_xy = _mm_shuffle_ps(s0s1_b_pos_xy, s0s1_b_pos_xy, _MM_SHUFFLE(1, 0, 3, 2));
+        __m128 const s2s3_dis_xy = _mm_sub_ps(s0s1_b_pos_xy, s0s1_a_pos_xy);
+
+        __m128 s0s1s2s3_dis_x = _mm_shuffle_ps(s0s1_dis_xy, s2s3_dis_xy, 0x88);
+        __m128 s0s1s2s3_dis_y = _mm_shuffle_ps(s0s1_dis_xy, s2s3_dis_xy, 0xDD);
+
+        // TODOHERE
+
+        //
+        // s0_sdir_x = s0_dis_x / s0_slen       s0_sdir_y = s0_dis_y / s0_slen
+        // s1_sdir_x = s1_dis_x / s1_slen       s1_sdir_y = s1_dis_y / s1_slen
+        // s2_sdir_x = s2_dis_x / s2_slen       s2_sdir_y = s2_dis_y / s2_slen
+        // s3_sdir_x = s3_dis_x / s3_slen       s3_sdir_y = s3_dis_y / s3_slen
         //
 
         // TODOHERE
 
-        // Spring 0 displacement (s0_position.x, s0_position.y, *, *)
-        __m128 const s0pa_pos_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointPositionBuffer + endpointsBuffer[s + 0].PointAIndex)));
-        __m128 const s0pb_pos_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointPositionBuffer + endpointsBuffer[s + 0].PointBIndex)));
-        // s0_displacement.x, s0_displacement.y, *, *
-        __m128 const s0_displacement_xy = _mm_sub_ps(s0pb_pos_xy, s0pa_pos_xy);
+        ////// TODOOLD
+        ////
+        //////
+        ////// Calculate displacement, string lengths, and spring directions
+        ////// 
+        ////// Strategy:
+        //////
+        ////// springDir[s0].x  =  displacement[s0].x  /  springLength[s0]
+        ////// springDir[s1].x  =  displacement[s1].x  /  springLength[s1]
+        ////// springDir[s2].x  =  displacement[s2].x  /  springLength[s2]
+        ////// springDir[s3].x  =  displacement[s3].x  /  springLength[s3]
+        //////
+        ////// springDir[s0].y  =  displacement[s0].y  /  springLength[s0]
+        ////// springDir[s1].y  =  displacement[s1].y  /  springLength[s1]
+        ////// springDir[s2].y  =  displacement[s2].y  /  springLength[s2]
+        ////// springDir[s3].y  =  displacement[s3].y  /  springLength[s3]
+        //////
 
-        // Spring 1 displacement (s1_position.x, s1_position.y, *, *)
-        __m128 const s1pa_pos_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointPositionBuffer + endpointsBuffer[s + 1].PointAIndex)));
-        __m128 const s1pb_pos_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointPositionBuffer + endpointsBuffer[s + 1].PointBIndex)));
-        // s1_displacement.x, s1_displacement.y
-        __m128 const s1_displacement_xy = _mm_sub_ps(s1pb_pos_xy, s1pa_pos_xy);
+        ////// Spring 0 displacement (s0_position.x, s0_position.y, *, *)
+        ////__m128 const s0pa_pos_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointPositionBuffer + endpointsBuffer[s + 0].PointAIndex)));
+        ////__m128 const s0pb_pos_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointPositionBuffer + endpointsBuffer[s + 0].PointBIndex)));
+        ////// s0_displacement.x, s0_displacement.y, *, *
+        ////__m128 const s0_displacement_xy = _mm_sub_ps(s0pb_pos_xy, s0pa_pos_xy);
 
-        // s0_displacement.x, s0_displacement.y, s1_displacement.x, s1_displacement.y
-        __m128 const s0s1_displacement_xy = _mm_movelh_ps(s0_displacement_xy, s1_displacement_xy); // First argument goes low
+        ////// Spring 1 displacement (s1_position.x, s1_position.y, *, *)
+        ////__m128 const s1pa_pos_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointPositionBuffer + endpointsBuffer[s + 1].PointAIndex)));
+        ////__m128 const s1pb_pos_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointPositionBuffer + endpointsBuffer[s + 1].PointBIndex)));
+        ////// s1_displacement.x, s1_displacement.y
+        ////__m128 const s1_displacement_xy = _mm_sub_ps(s1pb_pos_xy, s1pa_pos_xy);
 
-        // Spring 2 displacement (s2_position.x, s2_position.y, *, *)
-        __m128 const s2pa_pos_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointPositionBuffer + endpointsBuffer[s + 2].PointAIndex)));
-        __m128 const s2pb_pos_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointPositionBuffer + endpointsBuffer[s + 2].PointBIndex)));
-        // s2_displacement.x, s2_displacement.y
-        __m128 const s2_displacement_xy = _mm_sub_ps(s2pb_pos_xy, s2pa_pos_xy);
+        ////// s0_displacement.x, s0_displacement.y, s1_displacement.x, s1_displacement.y
+        ////__m128 const s0s1_displacement_xy = _mm_movelh_ps(s0_displacement_xy, s1_displacement_xy); // First argument goes low
 
-        // Spring 3 displacement (s3_position.x, s3_position.y, *, *)
-        __m128 const s3pa_pos_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointPositionBuffer + endpointsBuffer[s + 3].PointAIndex)));
-        __m128 const s3pb_pos_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointPositionBuffer + endpointsBuffer[s + 3].PointBIndex)));
-        // s3_displacement.x, s3_displacement.y
-        __m128 const s3_displacement_xy = _mm_sub_ps(s3pb_pos_xy, s3pa_pos_xy);
+        ////// Spring 2 displacement (s2_position.x, s2_position.y, *, *)
+        ////__m128 const s2pa_pos_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointPositionBuffer + endpointsBuffer[s + 2].PointAIndex)));
+        ////__m128 const s2pb_pos_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointPositionBuffer + endpointsBuffer[s + 2].PointBIndex)));
+        ////// s2_displacement.x, s2_displacement.y
+        ////__m128 const s2_displacement_xy = _mm_sub_ps(s2pb_pos_xy, s2pa_pos_xy);
 
-        // s2_displacement.x, s2_displacement.y, s3_displacement.x, s3_displacement.y
-        __m128 const s2s3_displacement_xy = _mm_movelh_ps(s2_displacement_xy, s3_displacement_xy); // First argument goes low
+        ////// Spring 3 displacement (s3_position.x, s3_position.y, *, *)
+        ////__m128 const s3pa_pos_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointPositionBuffer + endpointsBuffer[s + 3].PointAIndex)));
+        ////__m128 const s3pb_pos_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointPositionBuffer + endpointsBuffer[s + 3].PointBIndex)));
+        ////// s3_displacement.x, s3_displacement.y
+        ////__m128 const s3_displacement_xy = _mm_sub_ps(s3pb_pos_xy, s3pa_pos_xy);
 
-        // Shuffle displacements:
-        // s0_displacement.x, s1_displacement.x, s2_displacement.x, s3_displacement.x
-        __m128 s0s1s2s3_displacement_x = _mm_shuffle_ps(s0s1_displacement_xy, s2s3_displacement_xy, 0x88);
-        // s0_displacement.y, s1_displacement.y, s2_displacement.y, s3_displacement.y
-        __m128 s0s1s2s3_displacement_y = _mm_shuffle_ps(s0s1_displacement_xy, s2s3_displacement_xy, 0xDD);
+        ////// s2_displacement.x, s2_displacement.y, s3_displacement.x, s3_displacement.y
+        ////__m128 const s2s3_displacement_xy = _mm_movelh_ps(s2_displacement_xy, s3_displacement_xy); // First argument goes low
 
-        // Calculate spring lengths
+        ////// Shuffle displacements:
+        ////// s0_displacement.x, s1_displacement.x, s2_displacement.x, s3_displacement.x
+        ////__m128 s0s1s2s3_displacement_x = _mm_shuffle_ps(s0s1_displacement_xy, s2s3_displacement_xy, 0x88);
+        ////// s0_displacement.y, s1_displacement.y, s2_displacement.y, s3_displacement.y
+        ////__m128 s0s1s2s3_displacement_y = _mm_shuffle_ps(s0s1_displacement_xy, s2s3_displacement_xy, 0xDD);
 
-        // s0_displacement.x^2, s1_displacement.x^2, s2_displacement.x^2, s3_displacement.x^2
-        __m128 const s0s1s2s3_displacement_x2 = _mm_mul_ps(s0s1s2s3_displacement_x, s0s1s2s3_displacement_x);
-        // s0_displacement.y^2, s1_displacement.y^2, s2_displacement.y^2, s3_displacement.y^2
-        __m128 const s0s1s2s3_displacement_y2 = _mm_mul_ps(s0s1s2s3_displacement_y, s0s1s2s3_displacement_y);
+        ////// Calculate spring lengths
 
-        // s0_displacement.x^2 + s0_displacement.y^2, s1_displacement.x^2 + s1_displacement.y^2, s2_displacement..., s3_displacement...
-        __m128 const s0s1s2s3_displacement_x2_p_y2 = _mm_add_ps(s0s1s2s3_displacement_x2, s0s1s2s3_displacement_y2);
+        ////// s0_displacement.x^2, s1_displacement.x^2, s2_displacement.x^2, s3_displacement.x^2
+        ////__m128 const s0s1s2s3_displacement_x2 = _mm_mul_ps(s0s1s2s3_displacement_x, s0s1s2s3_displacement_x);
+        ////// s0_displacement.y^2, s1_displacement.y^2, s2_displacement.y^2, s3_displacement.y^2
+        ////__m128 const s0s1s2s3_displacement_y2 = _mm_mul_ps(s0s1s2s3_displacement_y, s0s1s2s3_displacement_y);
 
-        __m128 const s0s1s2s3_springLength = _mm_sqrt_ps(s0s1s2s3_displacement_x2_p_y2); // sqrt
+        ////// s0_displacement.x^2 + s0_displacement.y^2, s1_displacement.x^2 + s1_displacement.y^2, s2_displacement..., s3_displacement...
+        ////__m128 const s0s1s2s3_displacement_x2_p_y2 = _mm_add_ps(s0s1s2s3_displacement_x2, s0s1s2s3_displacement_y2);
 
-        // Calculate spring directions
+        ////__m128 const s0s1s2s3_springLength = _mm_sqrt_ps(s0s1s2s3_displacement_x2_p_y2); // sqrt
 
-        __m128 const validMask = _mm_cmpneq_ps(s0s1s2s3_springLength, Zero);
+        ////// Calculate spring directions
 
-        __m128 s0s1s2s3_sdir_x = _mm_div_ps(s0s1s2s3_displacement_x, s0s1s2s3_springLength);
-        __m128 s0s1s2s3_sdir_y = _mm_div_ps(s0s1s2s3_displacement_y, s0s1s2s3_springLength);
-        // L==0 => 1/L == 0, to maintain normalized == (0, 0), as in vec2f
-        s0s1s2s3_sdir_x = _mm_and_ps(s0s1s2s3_sdir_x, validMask);
-        s0s1s2s3_sdir_y = _mm_and_ps(s0s1s2s3_sdir_y, validMask);
+        ////__m128 const validMask = _mm_cmpneq_ps(s0s1s2s3_springLength, Zero);
 
-        //////////////////////////////////////////////////////////////////////////////////////////////
+        ////__m128 s0s1s2s3_sdir_x = _mm_div_ps(s0s1s2s3_displacement_x, s0s1s2s3_springLength);
+        ////__m128 s0s1s2s3_sdir_y = _mm_div_ps(s0s1s2s3_displacement_y, s0s1s2s3_springLength);
+        ////// L==0 => 1/L == 0, to maintain normalized == (0, 0), as in vec2f
+        ////s0s1s2s3_sdir_x = _mm_and_ps(s0s1s2s3_sdir_x, validMask);
+        ////s0s1s2s3_sdir_y = _mm_and_ps(s0s1s2s3_sdir_y, validMask);
 
-        //
-        // 1. Hooke's law
-        //
+        //////////////////////////////////////////////////////////////////////////////////////////////////
 
-        // Calculate springs' forces' moduli - for endpoint A:
-        //    (displacementLength[s] - restLength[s]) * stiffness[s]
-        //
-        // Strategy:
-        //
-        // ( springLength[s0] - restLength[s0] ) * stiffness[s0]
-        // ( springLength[s1] - restLength[s1] ) * stiffness[s1]
-        // ( springLength[s2] - restLength[s2] ) * stiffness[s2]
-        // ( springLength[s3] - restLength[s3] ) * stiffness[s3]
-        //
+        //////
+        ////// 1. Hooke's law
+        //////
 
-        __m128 const s0s1s2s3_restLength = _mm_load_ps(restLengthBuffer + s);
-        __m128 const s0s1s2s3_stiffness = _mm_load_ps(stiffnessCoefficientBuffer + s);
+        ////// Calculate springs' forces' moduli - for endpoint A:
+        //////    (displacementLength[s] - restLength[s]) * stiffness[s]
+        //////
+        ////// Strategy:
+        //////
+        ////// ( springLength[s0] - restLength[s0] ) * stiffness[s0]
+        ////// ( springLength[s1] - restLength[s1] ) * stiffness[s1]
+        ////// ( springLength[s2] - restLength[s2] ) * stiffness[s2]
+        ////// ( springLength[s3] - restLength[s3] ) * stiffness[s3]
+        //////
 
-        __m128 const s0s1s2s3_hooke_forceModuli = _mm_mul_ps(
-            _mm_sub_ps(s0s1s2s3_springLength, s0s1s2s3_restLength),
-            s0s1s2s3_stiffness);
+        ////__m128 const s0s1s2s3_restLength = _mm_load_ps(restLengthBuffer + s);
+        ////__m128 const s0s1s2s3_stiffness = _mm_load_ps(stiffnessCoefficientBuffer + s);
 
-        //
-        // 2. Damper forces
-        //
-        // Damp the velocities of each endpoint pair, as if the points were also connected by a damper
-        // along the same direction as the spring, for endpoint A:
-        //      relVelocity.dot(springDir) * dampingCoeff[s]
-        //
-        // Strategy: 
-        //
-        // ( relV[s0].x * sprDir[s0].x  +  relV[s0].y * sprDir[s0].y )  *  dampCoeff[s0]
-        // ( relV[s1].x * sprDir[s1].x  +  relV[s1].y * sprDir[s1].y )  *  dampCoeff[s1]
-        // ( relV[s2].x * sprDir[s2].x  +  relV[s2].y * sprDir[s2].y )  *  dampCoeff[s2]
-        // ( relV[s3].x * sprDir[s3].x  +  relV[s3].y * sprDir[s3].y )  *  dampCoeff[s3]
-        //
+        ////__m128 const s0s1s2s3_hooke_forceModuli = _mm_mul_ps(
+        ////    _mm_sub_ps(s0s1s2s3_springLength, s0s1s2s3_restLength),
+        ////    s0s1s2s3_stiffness);
 
-        // Spring 0 rel vel (s0_vel.x, s0_vel.y, *, *)
-        __m128 const s0pa_vel_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointVelocityBuffer + endpointsBuffer[s + 0].PointAIndex)));
-        __m128 const s0pb_vel_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointVelocityBuffer + endpointsBuffer[s + 0].PointBIndex)));
-        // s0_relvel_x, s0_relvel_y, *, *
-        __m128 const s0_relvel_xy = _mm_sub_ps(s0pb_vel_xy, s0pa_vel_xy);
+        //////
+        ////// 2. Damper forces
+        //////
+        ////// Damp the velocities of each endpoint pair, as if the points were also connected by a damper
+        ////// along the same direction as the spring, for endpoint A:
+        //////      relVelocity.dot(springDir) * dampingCoeff[s]
+        //////
+        ////// Strategy: 
+        //////
+        ////// ( relV[s0].x * sprDir[s0].x  +  relV[s0].y * sprDir[s0].y )  *  dampCoeff[s0]
+        ////// ( relV[s1].x * sprDir[s1].x  +  relV[s1].y * sprDir[s1].y )  *  dampCoeff[s1]
+        ////// ( relV[s2].x * sprDir[s2].x  +  relV[s2].y * sprDir[s2].y )  *  dampCoeff[s2]
+        ////// ( relV[s3].x * sprDir[s3].x  +  relV[s3].y * sprDir[s3].y )  *  dampCoeff[s3]
+        //////
 
-        // Spring 1 rel vel (s1_vel.x, s1_vel.y, *, *)
-        __m128 const s1pa_vel_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointVelocityBuffer + endpointsBuffer[s + 1].PointAIndex)));
-        __m128 const s1pb_vel_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointVelocityBuffer + endpointsBuffer[s + 1].PointBIndex)));
-        // s1_relvel_x, s1_relvel_y, *, *
-        __m128 const s1_relvel_xy = _mm_sub_ps(s1pb_vel_xy, s1pa_vel_xy);
+        ////// Spring 0 rel vel (s0_vel.x, s0_vel.y, *, *)
+        ////__m128 const s0pa_vel_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointVelocityBuffer + endpointsBuffer[s + 0].PointAIndex)));
+        ////__m128 const s0pb_vel_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointVelocityBuffer + endpointsBuffer[s + 0].PointBIndex)));
+        ////// s0_relvel_x, s0_relvel_y, *, *
+        ////__m128 const s0_relvel_xy = _mm_sub_ps(s0pb_vel_xy, s0pa_vel_xy);
 
-        // s0_relvel.x, s0_relvel.y, s1_relvel.x, s1_relvel.y
-        __m128 const s0s1_relvel_xy = _mm_movelh_ps(s0_relvel_xy, s1_relvel_xy); // First argument goes low
+        ////// Spring 1 rel vel (s1_vel.x, s1_vel.y, *, *)
+        ////__m128 const s1pa_vel_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointVelocityBuffer + endpointsBuffer[s + 1].PointAIndex)));
+        ////__m128 const s1pb_vel_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointVelocityBuffer + endpointsBuffer[s + 1].PointBIndex)));
+        ////// s1_relvel_x, s1_relvel_y, *, *
+        ////__m128 const s1_relvel_xy = _mm_sub_ps(s1pb_vel_xy, s1pa_vel_xy);
 
-        // Spring 2 rel vel (s2_vel.x, s2_vel.y, *, *)
-        __m128 const s2pa_vel_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointVelocityBuffer + endpointsBuffer[s + 2].PointAIndex)));
-        __m128 const s2pb_vel_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointVelocityBuffer + endpointsBuffer[s + 2].PointBIndex)));
-        // s2_relvel_x, s2_relvel_y, *, *
-        __m128 const s2_relvel_xy = _mm_sub_ps(s2pb_vel_xy, s2pa_vel_xy);
+        ////// s0_relvel.x, s0_relvel.y, s1_relvel.x, s1_relvel.y
+        ////__m128 const s0s1_relvel_xy = _mm_movelh_ps(s0_relvel_xy, s1_relvel_xy); // First argument goes low
 
-        // Spring 3 rel vel (s3_vel.x, s3_vel.y, *, *)
-        __m128 const s3pa_vel_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointVelocityBuffer + endpointsBuffer[s + 3].PointAIndex)));
-        __m128 const s3pb_vel_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointVelocityBuffer + endpointsBuffer[s + 3].PointBIndex)));
-        // s3_relvel_x, s3_relvel_y, *, *
-        __m128 const s3_relvel_xy = _mm_sub_ps(s3pb_vel_xy, s3pa_vel_xy);
+        ////// Spring 2 rel vel (s2_vel.x, s2_vel.y, *, *)
+        ////__m128 const s2pa_vel_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointVelocityBuffer + endpointsBuffer[s + 2].PointAIndex)));
+        ////__m128 const s2pb_vel_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointVelocityBuffer + endpointsBuffer[s + 2].PointBIndex)));
+        ////// s2_relvel_x, s2_relvel_y, *, *
+        ////__m128 const s2_relvel_xy = _mm_sub_ps(s2pb_vel_xy, s2pa_vel_xy);
 
-        // s2_relvel.x, s2_relvel.y, s3_relvel.x, s3_relvel.y
-        __m128 const s2s3_relvel_xy = _mm_movelh_ps(s2_relvel_xy, s3_relvel_xy); // First argument goes low
+        ////// Spring 3 rel vel (s3_vel.x, s3_vel.y, *, *)
+        ////__m128 const s3pa_vel_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointVelocityBuffer + endpointsBuffer[s + 3].PointAIndex)));
+        ////__m128 const s3pb_vel_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointVelocityBuffer + endpointsBuffer[s + 3].PointBIndex)));
+        ////// s3_relvel_x, s3_relvel_y, *, *
+        ////__m128 const s3_relvel_xy = _mm_sub_ps(s3pb_vel_xy, s3pa_vel_xy);
 
-        // Shuffle rel vals:
-        // s0_relvel.x, s1_relvel.x, s2_relvel.x, s3_relvel.x
-        __m128 s0s1s2s3_relvel_x = _mm_shuffle_ps(s0s1_relvel_xy, s2s3_relvel_xy, 0x88);
-        // s0_relvel.y, s1_relvel.y, s2_relvel.y, s3_relvel.y
-        __m128 s0s1s2s3_relvel_y = _mm_shuffle_ps(s0s1_relvel_xy, s2s3_relvel_xy, 0xDD);
+        ////// s2_relvel.x, s2_relvel.y, s3_relvel.x, s3_relvel.y
+        ////__m128 const s2s3_relvel_xy = _mm_movelh_ps(s2_relvel_xy, s3_relvel_xy); // First argument goes low
 
-        // Damping coeffs
-        __m128 const s0s1s2s3_dampingCoeff = _mm_load_ps(dampingCoefficientBuffer + s);
+        ////// Shuffle rel vals:
+        ////// s0_relvel.x, s1_relvel.x, s2_relvel.x, s3_relvel.x
+        ////__m128 s0s1s2s3_relvel_x = _mm_shuffle_ps(s0s1_relvel_xy, s2s3_relvel_xy, 0x88);
+        ////// s0_relvel.y, s1_relvel.y, s2_relvel.y, s3_relvel.y
+        ////__m128 s0s1s2s3_relvel_y = _mm_shuffle_ps(s0s1_relvel_xy, s2s3_relvel_xy, 0xDD);
 
-        __m128 const s0s1s2s3_damping_forceModuli =
-            _mm_mul_ps(                
-                _mm_add_ps( // Dot product
-                    _mm_mul_ps(s0s1s2s3_relvel_x, s0s1s2s3_sdir_x),
-                    _mm_mul_ps(s0s1s2s3_relvel_y, s0s1s2s3_sdir_y)),
-                s0s1s2s3_dampingCoeff);
+        ////// Damping coeffs
+        ////__m128 const s0s1s2s3_dampingCoeff = _mm_load_ps(dampingCoefficientBuffer + s);
 
-        //
-        // 3. Apply forces: 
-        //      force A = springDir * (hookeForce + dampingForce)
-        //      force B = - forceA
-        //
-        // Strategy:
-        //
-        //  total_forceA[s0].x  =   springDir[s0].x  *  (  hookeForce[s0] + dampingForce[s0] ) 
-        //  total_forceA[s1].x  =   springDir[s1].x  *  (  hookeForce[s1] + dampingForce[s1] )
-        //  total_forceA[s2].x  =   springDir[s2].x  *  (  hookeForce[s2] + dampingForce[s2] )
-        //  total_forceA[s3].x  =   springDir[s3].x  *  (  hookeForce[s3] + dampingForce[s3] )
-        //
-        //  total_forceA[s0].y  =   springDir[s0].y  *  (  hookeForce[s0] + dampingForce[s0] ) 
-        //  total_forceA[s1].y  =   springDir[s1].y  *  (  hookeForce[s1] + dampingForce[s1] )
-        //  total_forceA[s2].y  =   springDir[s2].y  *  (  hookeForce[s2] + dampingForce[s2] )
-        //  total_forceA[s3].y  =   springDir[s3].y  *  (  hookeForce[s3] + dampingForce[s3] )
-        //
+        ////__m128 const s0s1s2s3_damping_forceModuli =
+        ////    _mm_mul_ps(                
+        ////        _mm_add_ps( // Dot product
+        ////            _mm_mul_ps(s0s1s2s3_relvel_x, s0s1s2s3_sdir_x),
+        ////            _mm_mul_ps(s0s1s2s3_relvel_y, s0s1s2s3_sdir_y)),
+        ////        s0s1s2s3_dampingCoeff);
 
-        __m128 const tForceModuli = _mm_add_ps(s0s1s2s3_hooke_forceModuli, s0s1s2s3_damping_forceModuli);
+        //////
+        ////// 3. Apply forces: 
+        //////      force A = springDir * (hookeForce + dampingForce)
+        //////      force B = - forceA
+        //////
+        ////// Strategy:
+        //////
+        //////  total_forceA[s0].x  =   springDir[s0].x  *  (  hookeForce[s0] + dampingForce[s0] ) 
+        //////  total_forceA[s1].x  =   springDir[s1].x  *  (  hookeForce[s1] + dampingForce[s1] )
+        //////  total_forceA[s2].x  =   springDir[s2].x  *  (  hookeForce[s2] + dampingForce[s2] )
+        //////  total_forceA[s3].x  =   springDir[s3].x  *  (  hookeForce[s3] + dampingForce[s3] )
+        //////
+        //////  total_forceA[s0].y  =   springDir[s0].y  *  (  hookeForce[s0] + dampingForce[s0] ) 
+        //////  total_forceA[s1].y  =   springDir[s1].y  *  (  hookeForce[s1] + dampingForce[s1] )
+        //////  total_forceA[s2].y  =   springDir[s2].y  *  (  hookeForce[s2] + dampingForce[s2] )
+        //////  total_forceA[s3].y  =   springDir[s3].y  *  (  hookeForce[s3] + dampingForce[s3] )
+        //////
 
-        __m128 const s0s1s2s3_tforceA_x =
-            _mm_mul_ps(
-                s0s1s2s3_sdir_x,
-                tForceModuli);
+        ////__m128 const tForceModuli = _mm_add_ps(s0s1s2s3_hooke_forceModuli, s0s1s2s3_damping_forceModuli);
 
-        __m128 const s0s1s2s3_tforceA_y =
-            _mm_mul_ps(
-                s0s1s2s3_sdir_y,
-                tForceModuli);
+        ////__m128 const s0s1s2s3_tforceA_x =
+        ////    _mm_mul_ps(
+        ////        s0s1s2s3_sdir_x,
+        ////        tForceModuli);
 
-        //
-        // Unpack and add forces:
-        //      pointSpringForceBuffer[pointAIndex] += total_forceA;
-        //      pointSpringForceBuffer[pointBIndex] -= total_forceA;
-        //
+        ////__m128 const s0s1s2s3_tforceA_y =
+        ////    _mm_mul_ps(
+        ////        s0s1s2s3_sdir_y,
+        ////        tForceModuli);
 
-        __m128 s0s1_tforceA_xy = _mm_unpacklo_ps(s0s1s2s3_tforceA_x, s0s1s2s3_tforceA_y); // a[0], b[0], a[1], b[1]
-        __m128 s2s3_tforceA_xy = _mm_unpackhi_ps(s0s1s2s3_tforceA_x, s0s1s2s3_tforceA_y); // a[2], b[2], a[3], b[3]
+        //////
+        ////// Unpack and add forces:
+        //////      pointSpringForceBuffer[pointAIndex] += total_forceA;
+        //////      pointSpringForceBuffer[pointBIndex] -= total_forceA;
+        //////
 
-        _mm_store_ps(reinterpret_cast<float *>(&(tmpSpringForces[0])), s0s1_tforceA_xy);
-        _mm_store_ps(reinterpret_cast<float *>(&(tmpSpringForces[2])), s2s3_tforceA_xy);
+        ////__m128 s0s1_tforceA_xy = _mm_unpacklo_ps(s0s1s2s3_tforceA_x, s0s1s2s3_tforceA_y); // a[0], b[0], a[1], b[1]
+        ////__m128 s2s3_tforceA_xy = _mm_unpackhi_ps(s0s1s2s3_tforceA_x, s0s1s2s3_tforceA_y); // a[2], b[2], a[3], b[3]
 
-        pointSpringForceBuffer[endpointsBuffer[s + 0].PointAIndex] += tmpSpringForces[0];
-        pointSpringForceBuffer[endpointsBuffer[s + 0].PointBIndex] -= tmpSpringForces[0];
-        pointSpringForceBuffer[endpointsBuffer[s + 1].PointAIndex] += tmpSpringForces[1];
-        pointSpringForceBuffer[endpointsBuffer[s + 1].PointBIndex] -= tmpSpringForces[1];
-        pointSpringForceBuffer[endpointsBuffer[s + 2].PointAIndex] += tmpSpringForces[2];
-        pointSpringForceBuffer[endpointsBuffer[s + 2].PointBIndex] -= tmpSpringForces[2];
-        pointSpringForceBuffer[endpointsBuffer[s + 3].PointAIndex] += tmpSpringForces[3];
-        pointSpringForceBuffer[endpointsBuffer[s + 3].PointBIndex] -= tmpSpringForces[3];
+        ////_mm_store_ps(reinterpret_cast<float *>(&(tmpSpringForces[0])), s0s1_tforceA_xy);
+        ////_mm_store_ps(reinterpret_cast<float *>(&(tmpSpringForces[2])), s2s3_tforceA_xy);
+
+        ////pointSpringForceBuffer[endpointsBuffer[s + 0].PointAIndex] += tmpSpringForces[0];
+        ////pointSpringForceBuffer[endpointsBuffer[s + 0].PointBIndex] -= tmpSpringForces[0];
+        ////pointSpringForceBuffer[endpointsBuffer[s + 1].PointAIndex] += tmpSpringForces[1];
+        ////pointSpringForceBuffer[endpointsBuffer[s + 1].PointBIndex] -= tmpSpringForces[1];
+        ////pointSpringForceBuffer[endpointsBuffer[s + 2].PointAIndex] += tmpSpringForces[2];
+        ////pointSpringForceBuffer[endpointsBuffer[s + 2].PointBIndex] -= tmpSpringForces[2];
+        ////pointSpringForceBuffer[endpointsBuffer[s + 3].PointAIndex] += tmpSpringForces[3];
+        ////pointSpringForceBuffer[endpointsBuffer[s + 3].PointBIndex] -= tmpSpringForces[3];
     }
 
     // One-by-one
@@ -544,22 +629,22 @@ ILayoutOptimizer::LayoutRemap FSBySpringStructuralIntrinsicsLayoutOptimizer::Rem
                 {
                     // Even: check AD, BC
 
-                    ElementIndex crossSpringADIndex;
+                    ElementIndex sideSpringADIndex;
                     if (auto const springIt = pointPairToOldSpringIndexMap.find({ a, d });
                         springIt != pointPairToOldSpringIndexMap.cend() && !remappedSpringMask[springIt->second])
                     {
-                        crossSpringADIndex = springIt->second;
+                        sideSpringADIndex = springIt->second;
                     }
                     else
                     {
                         continue;
                     }
 
-                    ElementIndex crossSpringBCIndex;
+                    ElementIndex sideSpringBCIndex;
                     if (auto const springIt = pointPairToOldSpringIndexMap.find({ b, c });
                         springIt != pointPairToOldSpringIndexMap.cend() && !remappedSpringMask[springIt->second])
                     {
-                        crossSpringBCIndex = springIt->second;
+                        sideSpringBCIndex = springIt->second;
                     }
                     else
                     {
@@ -568,7 +653,7 @@ ILayoutOptimizer::LayoutRemap FSBySpringStructuralIntrinsicsLayoutOptimizer::Rem
 
                     // It'a a perfect square
 
-                    // Re-order springs abd make sure they have the right directions:
+                    // Re-order springs and make sure they have the right directions:
                     //  A->C
                     //  B->D
                     //  A->D
@@ -590,42 +675,42 @@ ILayoutOptimizer::LayoutRemap FSBySpringStructuralIntrinsicsLayoutOptimizer::Rem
                         springFlipMask[crossSpringBDIndex] = true;
                     }
 
-                    optimalSpringRemap.AddOld(crossSpringADIndex);
-                    remappedSpringMask[crossSpringADIndex] = true;
-                    if (springs[crossSpringADIndex].PointBIndex != d)
+                    optimalSpringRemap.AddOld(sideSpringADIndex);
+                    remappedSpringMask[sideSpringADIndex] = true;
+                    if (springs[sideSpringADIndex].PointBIndex != d)
                     {
-                        assert(springs[crossSpringADIndex].PointBIndex == a);
-                        springFlipMask[crossSpringADIndex] = true;
+                        assert(springs[sideSpringADIndex].PointBIndex == a);
+                        springFlipMask[sideSpringADIndex] = true;
                     }
 
-                    optimalSpringRemap.AddOld(crossSpringBCIndex);
-                    remappedSpringMask[crossSpringBCIndex] = true;
-                    if (springs[crossSpringBCIndex].PointBIndex != c)
+                    optimalSpringRemap.AddOld(sideSpringBCIndex);
+                    remappedSpringMask[sideSpringBCIndex] = true;
+                    if (springs[sideSpringBCIndex].PointBIndex != c)
                     {
-                        assert(springs[crossSpringBCIndex].PointBIndex == b);
-                        springFlipMask[crossSpringBCIndex] = true;
+                        assert(springs[sideSpringBCIndex].PointBIndex == b);
+                        springFlipMask[sideSpringBCIndex] = true;
                     }
                 }
                 else
                 {
                     // Odd: check AB, CD
 
-                    ElementIndex crossSpringABIndex;
+                    ElementIndex sideSpringABIndex;
                     if (auto const springIt = pointPairToOldSpringIndexMap.find({ a, b });
                         springIt != pointPairToOldSpringIndexMap.cend() && !remappedSpringMask[springIt->second])
                     {
-                        crossSpringABIndex = springIt->second;
+                        sideSpringABIndex = springIt->second;
                     }
                     else
                     {
                         continue;
                     }
 
-                    ElementIndex crossSpringCDIndex;
+                    ElementIndex sideSpringCDIndex;
                     if (auto const springIt = pointPairToOldSpringIndexMap.find({ c, d });
                         springIt != pointPairToOldSpringIndexMap.cend() && !remappedSpringMask[springIt->second])
                     {
-                        crossSpringCDIndex = springIt->second;
+                        sideSpringCDIndex = springIt->second;
                     }
                     else
                     {
@@ -656,20 +741,20 @@ ILayoutOptimizer::LayoutRemap FSBySpringStructuralIntrinsicsLayoutOptimizer::Rem
                         springFlipMask[crossSpringBDIndex] = true;
                     }
 
-                    optimalSpringRemap.AddOld(crossSpringABIndex);
-                    remappedSpringMask[crossSpringABIndex] = true;
-                    if (springs[crossSpringABIndex].PointBIndex != b)
+                    optimalSpringRemap.AddOld(sideSpringABIndex);
+                    remappedSpringMask[sideSpringABIndex] = true;
+                    if (springs[sideSpringABIndex].PointBIndex != b)
                     {
-                        assert(springs[crossSpringABIndex].PointBIndex == a);
-                        springFlipMask[crossSpringABIndex] = true;
+                        assert(springs[sideSpringABIndex].PointBIndex == a);
+                        springFlipMask[sideSpringABIndex] = true;
                     }
 
-                    optimalSpringRemap.AddOld(crossSpringCDIndex);
-                    remappedSpringMask[crossSpringCDIndex] = true;
-                    if (springs[crossSpringCDIndex].PointBIndex != c)
+                    optimalSpringRemap.AddOld(sideSpringCDIndex);
+                    remappedSpringMask[sideSpringCDIndex] = true;
+                    if (springs[sideSpringCDIndex].PointBIndex != c)
                     {
-                        assert(springs[crossSpringCDIndex].PointBIndex == d);
-                        springFlipMask[crossSpringCDIndex] = true;
+                        assert(springs[sideSpringCDIndex].PointBIndex == d);
+                        springFlipMask[sideSpringCDIndex] = true;
                     }
                 }
 
@@ -729,5 +814,6 @@ ILayoutOptimizer::LayoutRemap FSBySpringStructuralIntrinsicsLayoutOptimizer::Rem
 
     return LayoutRemap(
         std::move(optimalPointRemap),
-        std::move(optimalSpringRemap));
+        std::move(optimalSpringRemap),
+        std::move(springFlipMask));
 }
