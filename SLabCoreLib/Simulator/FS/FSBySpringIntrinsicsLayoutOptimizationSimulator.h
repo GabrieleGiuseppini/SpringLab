@@ -9,6 +9,7 @@
 
 #include "Simulator/Common/ISimulator.h"
 
+#include "IndexRemapper.h"
 #include "ILayoutOptimizer.h"
 
 #include <memory>
@@ -58,8 +59,8 @@ private:
     float CalculateACMR(
         std::vector<ObjectBuildPoint> const & points,
         std::vector<ObjectBuildSpring> const & springs,
-        std::vector<ElementIndex> const & pointRemap,
-        std::vector<ElementIndex> const & springRemap) const;
+        IndexRemapper const & pointRemap,
+        IndexRemapper const & springRemap) const;
 
     LayoutRemap Optimize1(
         ObjectBuildPointIndexMatrix const & pointMatrix,

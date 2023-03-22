@@ -22,6 +22,7 @@ set  (SOURCES
 	ImageFileTools.cpp
 	ImageFileTools.h
 	ImageSize.h
+	IndexRemapper.h
 	ISimulationEventHandler.h
 	Log.cpp
 	Log.h

@@ -256,17 +256,19 @@ std::tuple<std::vector<ObjectBuildPoint>, std::vector<ObjectBuildSpring>> Object
 {
     auto const layoutRemap = layoutOptimizer.Remap(pointIndexMatrix, pointInfos, springInfos);
 
+    // remap[ @ newIndex ] = oldIndex
+
     // Remap point info's
 
     std::vector<ObjectBuildPoint> pointInfos2;
     pointInfos2.reserve(pointInfos.size());
-    for (ElementIndex oldP : layoutRemap.PointRemap)
+    for (ElementIndex oldP : layoutRemap.PointRemap.GetOldIndices())
     {
         pointInfos2.emplace_back(pointInfos[oldP]);
 
         for (size_t is = 0; is < pointInfos2.back().ConnectedSprings.size(); ++is)
         {
-            pointInfos2.back().ConnectedSprings[is] = layoutRemap.SpringRemap[pointInfos2.back().ConnectedSprings[is]];
+            pointInfos2.back().ConnectedSprings[is] = layoutRemap.SpringRemap.OldToNew(pointInfos2.back().ConnectedSprings[is]);
         }
     }
 
@@ -274,12 +276,12 @@ std::tuple<std::vector<ObjectBuildPoint>, std::vector<ObjectBuildSpring>> Object
 
     std::vector<ObjectBuildSpring> springInfos2;
     springInfos2.reserve(springInfos.size());
-    for (ElementIndex oldS : layoutRemap.SpringRemap)
+    for (ElementIndex oldS : layoutRemap.SpringRemap.GetOldIndices())
     {
         springInfos2.emplace_back(springInfos[oldS]);
 
-        springInfos2.back().PointAIndex = layoutRemap.PointRemap[springInfos2.back().PointAIndex];
-        springInfos2.back().PointBIndex = layoutRemap.PointRemap[springInfos2.back().PointBIndex];
+        springInfos2.back().PointAIndex = layoutRemap.PointRemap.OldToNew(springInfos2.back().PointAIndex);
+        springInfos2.back().PointBIndex = layoutRemap.PointRemap.OldToNew(springInfos2.back().PointBIndex);
     }
 
     return { pointInfos2, springInfos2 };

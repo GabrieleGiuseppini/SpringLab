@@ -100,8 +100,8 @@ ILayoutOptimizer::LayoutRemap FSBySpringIntrinsicsLayoutOptimizer::Remap(
     std::vector<ObjectBuildPoint> const & points,
     std::vector<ObjectBuildSpring> const & springs) const
 {
-    auto idempotentPointRemap = IdempotentLayoutOptimizer::MakePointRemap(points);
-    auto idempotentSpringRemap = IdempotentLayoutOptimizer::MakeSpringRemap(springs);
+    auto idempotentPointRemap = IndexRemapper::MakeIdempotent(points.size());
+    auto idempotentSpringRemap = IndexRemapper::MakeIdempotent(springs.size());
 
     //
     // Calculate initial ACMR
@@ -115,12 +115,13 @@ ILayoutOptimizer::LayoutRemap FSBySpringIntrinsicsLayoutOptimizer::Remap(
     //
 
     // TODOTEST
-    auto const optimalLayout = Optimize2(pointMatrix, points, springs);
+    auto const optimalLayout = Optimize1(pointMatrix, points, springs);
+    //auto const optimalLayout = Optimize1(pointMatrix, points, springs);
 
     // TODOTEST
-    for (size_t s  = 0; s < optimalLayout.SpringRemap.size() && s < 120; ++s)
+    for (ElementIndex s  = 0; s < springs.size() && s < 120; ++s)
     {
-        LogMessage(springs[s].PointAIndex, " <-> ", springs[s].PointBIndex);
+        LogMessage(springs[optimalLayout.SpringRemap.NewToOld(s)].PointAIndex, " <-> ", springs[optimalLayout.SpringRemap.NewToOld(s)].PointBIndex);
     }
 
     //
@@ -136,8 +137,8 @@ ILayoutOptimizer::LayoutRemap FSBySpringIntrinsicsLayoutOptimizer::Remap(
 float FSBySpringIntrinsicsLayoutOptimizer::CalculateACMR(
     std::vector<ObjectBuildPoint> const & /*points*/,
     std::vector<ObjectBuildSpring> const & springs,
-    std::vector<ElementIndex> const & pointRemap,
-    std::vector<ElementIndex> const & springRemap) const
+    IndexRemapper const & pointRemap,
+    IndexRemapper const & springRemap) const
 {
     //
     // Use the same access pattern as our algorithm: for each spring, access the two endpoints
@@ -148,14 +149,14 @@ float FSBySpringIntrinsicsLayoutOptimizer::CalculateACMR(
 
     size_t cacheHits = 0;
     size_t cacheMisses = 0;
-    for (ElementIndex oldS : springRemap)
+    for (ElementIndex oldS : springRemap.GetOldIndices())
     {
-        if (pointCache.Visit(pointRemap[springs[oldS].PointAIndex]))
+        if (pointCache.Visit(pointRemap.OldToNew(springs[oldS].PointAIndex)))
             ++cacheHits;
         else
             ++cacheMisses;
 
-        if (pointCache.Visit(pointRemap[springs[oldS].PointBIndex]))
+        if (pointCache.Visit(pointRemap.OldToNew(springs[oldS].PointBIndex)))
             ++cacheHits;
         else
             ++cacheMisses;
@@ -169,8 +170,8 @@ ILayoutOptimizer::LayoutRemap FSBySpringIntrinsicsLayoutOptimizer::Optimize1(
     std::vector<ObjectBuildPoint> const & points,
     std::vector<ObjectBuildSpring> const & springs) const
 {
-    std::vector<ElementIndex> optimalPointRemap = IdempotentLayoutOptimizer::MakePointRemap(points);
-    std::vector<ElementIndex> optimalSpringRemap;
+    IndexRemapper optimalPointRemap = IndexRemapper::MakeIdempotent(points.size());
+    IndexRemapper optimalSpringRemap(springs.size());
 
     MyCacheModel pointCache;
 
@@ -187,7 +188,7 @@ ILayoutOptimizer::LayoutRemap FSBySpringIntrinsicsLayoutOptimizer::Optimize1(
         assert(sIndex);
 
         // Store remap
-        optimalSpringRemap.emplace_back(*sIndex);
+        optimalSpringRemap.AddOld(*sIndex);
 
         // Visit spring
         pointCache.Visit(springs[*sIndex].PointAIndex);
@@ -206,35 +207,108 @@ ILayoutOptimizer::LayoutRemap FSBySpringIntrinsicsLayoutOptimizer::Optimize2(
     std::vector<ObjectBuildPoint> const & points,
     std::vector<ObjectBuildSpring> const & springs) const
 {
-    std::vector<ElementIndex> optimalPointRemap;
-    std::vector<ElementIndex> optimalSpringRemap;
+    IndexRemapper optimalPointRemap(points.size());
+    IndexRemapper optimalSpringRemap(springs.size());
 
-    std::vector<bool> remappedPoints(points.size(), false);
-    std::vector<bool> remappedSprings(springs.size(), false);
+    std::vector<bool> remappedPointMask(points.size(), false);
+    std::vector<bool> remappedSpringMask(springs.size(), false);
 
-    // TODOHERE
-    (void)pointMatrix;
+    // Build Point Pair -> Spring table
+    PointPairToIndexMap pointPairToSpringMap;
+    for (ElementIndex s = 0; s < springs.size(); ++s)
+    {
+        pointPairToSpringMap.emplace(
+            std::piecewise_construct,
+            std::forward_as_tuple(springs[s].PointAIndex, springs[s].PointBIndex),
+            std::forward_as_tuple(s));
+    }
+
+    //
+    // Find all squares from left-bottom
+    //
+
+    for (int y = 0; y < pointMatrix.height; ++y)
+    {
+        for (int x = 0; x < pointMatrix.width; ++x)
+        {
+            // Check if a square
+            if (pointMatrix[{x, y}] 
+                && x < pointMatrix.width - 1 && pointMatrix[{x + 1, y}]
+                && y < pointMatrix.height - 1 && pointMatrix[{x + 1, y + 1}]
+                && pointMatrix[{x, y + 1}])
+            {
+                // Do this square's points
+
+                ElementIndex const lb = *pointMatrix[{x, y}];
+                if (!remappedPointMask[lb])
+                {
+                    optimalPointRemap.AddOld(lb);
+                    remappedPointMask[lb] = true;
+                }
+
+                ElementIndex const rb = *pointMatrix[{x + 1, y}];
+                if (!remappedPointMask[rb])
+                {
+                    optimalPointRemap.AddOld(rb);
+                    remappedPointMask[rb] = true;
+                }
+
+                ElementIndex const rt = *pointMatrix[{x + 1, y + 1}];
+                if (!remappedPointMask[rt])
+                {
+                    optimalPointRemap.AddOld(rt);
+                    remappedPointMask[rt] = true;
+                }
+
+                ElementIndex const lt = *pointMatrix[{x, y + 1}];
+                if (!remappedPointMask[lt])
+                {
+                    optimalPointRemap.AddOld(lt);
+                    remappedPointMask[lt] = true;
+                }
+
+                // Do all springs across this square's points
+
+                for (auto const & pair : { 
+                    PointPair(lb, rb),  // _
+                    PointPair(lb, rt),  // /
+                    PointPair(lb, lt),  // |
+                    PointPair(lt, rb),  // \ 
+                    PointPair(rb, rt),  //  |
+                    PointPair(lt, rt)   // -
+                    })
+                {
+                    if (auto const springIt = pointPairToSpringMap.find(pair);
+                        springIt != pointPairToSpringMap.cend() && !remappedSpringMask[springIt->second])
+                    {
+                        optimalSpringRemap.AddOld(springIt->second);
+                        remappedSpringMask[springIt->second] = true;
+                    }
+                }
+            }
+        }
+    }
 
     //
     // Map leftovers now
     //
 
-    LogMessage("LayoutOptimizer: ", std::count(remappedPoints.cbegin(), remappedPoints.cend(), false), " leftover points, ",
-        std::count(remappedSprings.cbegin(), remappedSprings.cend(), false), " leftover springs");
+    LogMessage("LayoutOptimizer: ", std::count(remappedPointMask.cbegin(), remappedPointMask.cend(), false), " leftover points, ",
+        std::count(remappedSpringMask.cbegin(), remappedSpringMask.cend(), false), " leftover springs");
 
     for (ElementIndex p = 0; p < points.size(); ++p)
     {
-        if (!remappedPoints[p])
+        if (!remappedPointMask[p])
         {
-            optimalPointRemap.emplace_back(p);
+            optimalPointRemap.AddOld(p);
         }
     }
 
     for (ElementIndex s = 0; s < springs.size(); ++s)
     {
-        if (!remappedSprings[s])
+        if (!remappedSpringMask[s])
         {
-            optimalSpringRemap.emplace_back(s);
+            optimalSpringRemap.AddOld(s);
         }
     }
 

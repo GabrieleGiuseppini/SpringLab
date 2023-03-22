@@ -15,7 +15,10 @@ FS 20 - By Springs, With Intrinsics:
 	- CPU: 212us | 187us | 193us
 FS 21 - By Springs, With Intrinsics, Layout Optimized:
 	- Bending: 20
-	- CPU: 186us (when prev was 193us)
+	- Optimize 1:
+		- CPU: 195us (when prev was 198us)
+	- Optimize 2:
+		- CPU: 191 (when prev was 197)
 
 ##########################################################
 
@@ -39,9 +42,11 @@ FS 21 - By Springs, With Intrinsics, Layout Optimized:
 		+ Reorderings done by ObjectBuilder, with new ILayoutOptimizer framework
 		+ initial ACMR = 0.515219 (CacheModel<1, 64, vec2f>)
 		+ Optimize
-		+ Lookahead=0 CacheModel<1, 64, vec2f> : final ACMR = 0.385300666
-		+ Lookahead=1 CacheModel<1, 64, vec2f> : final ACMR = 0.395694137
-			
+		+ Lookahead=0 CacheModel<1, 64, vec2f> : final ACMR = 0.385301
+		= New algo: final ACMR = 0.58686
+		- Re-test both algos
+	- 22. By Spring, With Structural Intrinsics
+	
 	- Notes:
 		- When integration is...integrated, it might fare worse because we do double the number of fp operations
 

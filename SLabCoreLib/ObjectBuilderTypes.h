@@ -12,6 +12,7 @@
 #include "Vectors.h"
 
 #include <memory>
+#include <unordered_map>
 #include <vector>
 
 /*
@@ -70,3 +71,35 @@ struct ObjectBuildSpring
     {
     }
 };
+
+// Utilities for navigating object's structure
+
+struct PointPair
+{
+    ElementIndex Endpoint1Index;
+    ElementIndex Endpoint2Index;
+
+    PointPair(
+        ElementIndex endpoint1Index,
+        ElementIndex endpoint2Index)
+        : Endpoint1Index(std::min(endpoint1Index, endpoint2Index))
+        , Endpoint2Index(std::max(endpoint1Index, endpoint2Index))
+    {}
+
+    bool operator==(PointPair const & other) const
+    {
+        return this->Endpoint1Index == other.Endpoint1Index
+            && this->Endpoint2Index == other.Endpoint2Index;
+    }
+
+    struct Hasher
+    {
+        size_t operator()(PointPair const & p) const
+        {
+            return p.Endpoint1Index * 23
+                + p.Endpoint2Index;
+        }
+    };
+};
+
+using PointPairToIndexMap = std::unordered_map<PointPair, ElementIndex, PointPair::Hasher>;
