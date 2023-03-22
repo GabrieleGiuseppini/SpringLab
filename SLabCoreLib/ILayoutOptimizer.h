@@ -5,7 +5,7 @@
 ***************************************************************************************/
 #pragma once
 
-#include "IndexRemapper.h"
+#include "IndexRemap.h"
 #include "ObjectBuilderTypes.h"
 #include "SLabTypes.h"
 
@@ -20,12 +20,12 @@ public:
 
     struct LayoutRemap
     {
-        IndexRemapper PointRemap;
-        IndexRemapper SpringRemap;
+        IndexRemap PointRemap;
+        IndexRemap SpringRemap;
 
         LayoutRemap(
-            IndexRemapper && pointRemap,
-            IndexRemapper && springRemap)
+            IndexRemap && pointRemap,
+            IndexRemap && springRemap)
             : PointRemap(std::move(pointRemap))
             , SpringRemap(std::move(springRemap))
         {}
@@ -51,7 +51,7 @@ public:
         std::vector<ObjectBuildSpring> const & springs) const override
     {
         return LayoutRemap(
-            IndexRemapper::MakeIdempotent(points.size()),
-            IndexRemapper::MakeIdempotent(springs.size()));
+            IndexRemap::MakeIdempotent(points.size()),
+            IndexRemap::MakeIdempotent(springs.size()));
     }
 };

@@ -10,26 +10,26 @@
 #include <cassert>
 #include <vector>
 
-class IndexRemapper final
+class IndexRemap final
 {
 public:
 
-	explicit IndexRemapper(size_t elementCount)
+	explicit IndexRemap(size_t elementCount)
 		: mOldToNew(elementCount, NoneElementIndex)
 	{
 		mNewToOld.reserve(elementCount);
 	}
 
-	static IndexRemapper MakeIdempotent(size_t elementCount)
+	static IndexRemap MakeIdempotent(size_t elementCount)
 	{
-		IndexRemapper remapper(elementCount);
+		IndexRemap remap(elementCount);
 		for (size_t i = 0; i < elementCount; ++i)
 		{
-			remapper.mNewToOld.emplace_back(static_cast<ElementIndex>(i));
-			remapper.mOldToNew[i] = static_cast<ElementIndex>(i);
+			remap.mNewToOld.emplace_back(static_cast<ElementIndex>(i));
+			remap.mOldToNew[i] = static_cast<ElementIndex>(i);
 		}
 
-		return remapper;
+		return remap;
 	}
 
 	auto const & GetOldIndices() const

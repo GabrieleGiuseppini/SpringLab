@@ -100,8 +100,8 @@ ILayoutOptimizer::LayoutRemap FSBySpringIntrinsicsLayoutOptimizer::Remap(
     std::vector<ObjectBuildPoint> const & points,
     std::vector<ObjectBuildSpring> const & springs) const
 {
-    auto idempotentPointRemap = IndexRemapper::MakeIdempotent(points.size());
-    auto idempotentSpringRemap = IndexRemapper::MakeIdempotent(springs.size());
+    auto idempotentPointRemap = IndexRemap::MakeIdempotent(points.size());
+    auto idempotentSpringRemap = IndexRemap::MakeIdempotent(springs.size());
 
     //
     // Calculate initial ACMR
@@ -137,8 +137,8 @@ ILayoutOptimizer::LayoutRemap FSBySpringIntrinsicsLayoutOptimizer::Remap(
 float FSBySpringIntrinsicsLayoutOptimizer::CalculateACMR(
     std::vector<ObjectBuildPoint> const & /*points*/,
     std::vector<ObjectBuildSpring> const & springs,
-    IndexRemapper const & pointRemap,
-    IndexRemapper const & springRemap) const
+    IndexRemap const & pointRemap,
+    IndexRemap const & springRemap) const
 {
     //
     // Use the same access pattern as our algorithm: for each spring, access the two endpoints
@@ -170,8 +170,8 @@ ILayoutOptimizer::LayoutRemap FSBySpringIntrinsicsLayoutOptimizer::Optimize1(
     std::vector<ObjectBuildPoint> const & points,
     std::vector<ObjectBuildSpring> const & springs) const
 {
-    IndexRemapper optimalPointRemap = IndexRemapper::MakeIdempotent(points.size());
-    IndexRemapper optimalSpringRemap(springs.size());
+    IndexRemap optimalPointRemap = IndexRemap::MakeIdempotent(points.size());
+    IndexRemap optimalSpringRemap(springs.size());
 
     MyCacheModel pointCache;
 
@@ -207,8 +207,8 @@ ILayoutOptimizer::LayoutRemap FSBySpringIntrinsicsLayoutOptimizer::Optimize2(
     std::vector<ObjectBuildPoint> const & points,
     std::vector<ObjectBuildSpring> const & springs) const
 {
-    IndexRemapper optimalPointRemap(points.size());
-    IndexRemapper optimalSpringRemap(springs.size());
+    IndexRemap optimalPointRemap(points.size());
+    IndexRemap optimalSpringRemap(springs.size());
 
     std::vector<bool> remappedPointMask(points.size(), false);
     std::vector<bool> remappedSpringMask(springs.size(), false);
