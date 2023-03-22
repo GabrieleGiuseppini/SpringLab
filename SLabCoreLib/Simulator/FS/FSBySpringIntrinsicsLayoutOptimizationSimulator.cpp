@@ -114,15 +114,7 @@ ILayoutOptimizer::LayoutRemap FSBySpringIntrinsicsLayoutOptimizer::Remap(
     // Optimize
     //
 
-    // TODOTEST
     auto const optimalLayout = Optimize1(pointMatrix, points, springs);
-    //auto const optimalLayout = Optimize1(pointMatrix, points, springs);
-
-    // TODOTEST
-    for (ElementIndex s  = 0; s < springs.size() && s < 120; ++s)
-    {
-        LogMessage(springs[optimalLayout.SpringRemap.NewToOld(s)].PointAIndex, " <-> ", springs[optimalLayout.SpringRemap.NewToOld(s)].PointBIndex);
-    }
 
     //
     // Recalculate ACMR
@@ -202,6 +194,7 @@ ILayoutOptimizer::LayoutRemap FSBySpringIntrinsicsLayoutOptimizer::Optimize1(
         std::move(optimalSpringRemap));
 }
 
+// Note: this has a worse performance than Optimize1
 ILayoutOptimizer::LayoutRemap FSBySpringIntrinsicsLayoutOptimizer::Optimize2(
     ObjectBuildPointIndexMatrix const & pointMatrix,
     std::vector<ObjectBuildPoint> const & points,

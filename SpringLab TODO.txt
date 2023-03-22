@@ -18,7 +18,7 @@ FS 21 - By Springs, With Intrinsics, Layout Optimized:
 	- Optimize 1:
 		- CPU: 195us (when prev was 198us)
 	- Optimize 2:
-		- CPU: 191 (when prev was 197)
+		- CPU: 189us (when prev was 194)
 
 ##########################################################
 
@@ -37,14 +37,13 @@ FS 21 - By Springs, With Intrinsics, Layout Optimized:
 	- 24. By Point, With Intrinsics, Layout Optimized
 	- 25. By Point, With Intrinsics, Layout Optimized, Multi-threaded
 	+ 10. By Spring, With Intrinsics
-	= 11. By Spring, With Intrinsics, Layout Optimized
+	+ 11. By Spring, With Intrinsics, Layout Optimized
 		+ SCoreLib::CacheModel class
 		+ Reorderings done by ObjectBuilder, with new ILayoutOptimizer framework
 		+ initial ACMR = 0.515219 (CacheModel<1, 64, vec2f>)
 		+ Optimize
 		+ Lookahead=0 CacheModel<1, 64, vec2f> : final ACMR = 0.385301
-		= New algo: final ACMR = 0.58686
-		- Re-test both algos
+		+ New algo: final ACMR = 0.58686
 	= 12. By Spring, With Structural Intrinsics
 		+ Layout
 		- Intrinsics structure

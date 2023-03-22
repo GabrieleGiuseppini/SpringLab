@@ -171,6 +171,8 @@ void FSBySpringStructuralIntrinsicsSimulator::ApplySpringsForces(Object const & 
         // springDir[s3].y  =  displacement[s3].y  /  springLength[s3]
         //
 
+        // TODOHERE
+
         // Spring 0 displacement (s0_position.x, s0_position.y, *, *)
         __m128 const s0pa_pos_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointPositionBuffer + endpointsBuffer[s + 0].PointAIndex)));
         __m128 const s0pb_pos_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointPositionBuffer + endpointsBuffer[s + 0].PointBIndex)));
