@@ -282,6 +282,11 @@ std::tuple<std::vector<ObjectBuildPoint>, std::vector<ObjectBuildSpring>> Object
 
         springInfos2.back().PointAIndex = layoutRemap.PointRemap.OldToNew(springInfos2.back().PointAIndex);
         springInfos2.back().PointBIndex = layoutRemap.PointRemap.OldToNew(springInfos2.back().PointBIndex);
+
+        if (layoutRemap.SpringEndpointFlipMask[oldS])
+        {
+            std::swap(springInfos2.back().PointAIndex, springInfos2.back().PointBIndex);
+        }
     }
 
     return { pointInfos2, springInfos2 };

@@ -16,13 +16,14 @@
 #include <string>
 #include <utility>
 
-class FSBySpringIntrinsicsLayoutOptimizer;
-
 /*
  * Simulator implementing the same spring relaxation algorithm
  * as in the "By Spring" - "With Intrinsics" simulator, but with layout optimization
  * to minimize cache misses
  */
+
+class FSBySpringIntrinsicsLayoutOptimizer;
+
 class FSBySpringIntrinsicsLayoutOptimizationSimulator : public FSBySpringIntrinsicsSimulator
 {
 public:

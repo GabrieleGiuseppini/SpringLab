@@ -9,7 +9,6 @@
 #include "ObjectBuilderTypes.h"
 #include "SLabTypes.h"
 
-#include <numeric>
 #include <vector>
 
 class ILayoutOptimizer
@@ -22,12 +21,23 @@ public:
     {
         IndexRemap PointRemap;
         IndexRemap SpringRemap;
+        std::vector<bool> SpringEndpointFlipMask; // Indexed by OLD
 
         LayoutRemap(
             IndexRemap && pointRemap,
             IndexRemap && springRemap)
             : PointRemap(std::move(pointRemap))
             , SpringRemap(std::move(springRemap))
+            , SpringEndpointFlipMask(std::vector<bool>(SpringRemap.GetOldIndices().size(), false))
+        {}
+
+        LayoutRemap(
+            IndexRemap && pointRemap,
+            IndexRemap && springRemap,
+            std::vector<bool> && springEndpointFlipMask)
+            : PointRemap(std::move(pointRemap))
+            , SpringRemap(std::move(springRemap))
+            , SpringEndpointFlipMask(std::move(springEndpointFlipMask))
         {}
     };
 

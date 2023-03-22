@@ -28,16 +28,16 @@ FS 21 - By Springs, With Intrinsics, Layout Optimized:
 		+ Fix move
 		+ Bending measurement
 		+ New object (very long), with fixed and probe
-	+ 1.  By Point
-	+ 2.  By Point, Compact metadata
-	+ 3.  By Point, Compact metadata, With integration
+	+ 20. By Point
+	+ 21. By Point, Compact metadata
+	+ 22. By Point, Compact metadata, With integration
 		+ a. PositionBased
 		+ b. With integration (requires new buffer & swap)
-	- 4.  By Point, With Intrinsics
-	- 5.  By Point, With Intrinsics, Layout Optimized
-	- 6.  By Point, With Intrinsics, Layout Optimized, Multi-threaded
-	+ 20. By Spring, With Intrinsics
-	= 21. By Spring, With Intrinsics, Layout Optimized
+	- 23. By Point, With Intrinsics
+	- 24. By Point, With Intrinsics, Layout Optimized
+	- 25. By Point, With Intrinsics, Layout Optimized, Multi-threaded
+	+ 10. By Spring, With Intrinsics
+	= 11. By Spring, With Intrinsics, Layout Optimized
 		+ SCoreLib::CacheModel class
 		+ Reorderings done by ObjectBuilder, with new ILayoutOptimizer framework
 		+ initial ACMR = 0.515219 (CacheModel<1, 64, vec2f>)
@@ -45,7 +45,9 @@ FS 21 - By Springs, With Intrinsics, Layout Optimized:
 		+ Lookahead=0 CacheModel<1, 64, vec2f> : final ACMR = 0.385301
 		= New algo: final ACMR = 0.58686
 		- Re-test both algos
-	- 22. By Spring, With Structural Intrinsics
+	= 12. By Spring, With Structural Intrinsics
+		+ Layout
+		- Intrinsics structure
 	
 	- Notes:
 		- When integration is...integrated, it might fare worse because we do double the number of fp operations

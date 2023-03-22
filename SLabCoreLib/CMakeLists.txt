@@ -85,8 +85,8 @@ set  (SIMULATOR_COMMON_SOURCES
 set  (SIMULATOR_CLASSIC_SOURCES
 	Simulator/Classic/ClassicSimulator.cpp
 	Simulator/Classic/ClassicSimulator.h
-	Simulator/Classic/ClassicSimulatorParameters.h
 	Simulator/Classic/ClassicSimulatorParameters.cpp
+	Simulator/Classic/ClassicSimulatorParameters.h
 )
 
 set  (SIMULATOR_FS_SOURCES
@@ -102,8 +102,10 @@ set  (SIMULATOR_FS_SOURCES
 	Simulator/FS/FSBySpringIntrinsicsSimulator.h
 	Simulator/FS/FSBySpringIntrinsicsLayoutOptimizationSimulator.cpp
 	Simulator/FS/FSBySpringIntrinsicsLayoutOptimizationSimulator.h
-	Simulator/FS/FSCommonSimulatorParameters.h
+	Simulator/FS/FSBySpringStructuralIntrinsicsSimulator.cpp
+	Simulator/FS/FSBySpringStructuralIntrinsicsSimulator.h
 	Simulator/FS/FSCommonSimulatorParameters.cpp
+	Simulator/FS/FSCommonSimulatorParameters.h
 )
 
 set  (GLAD_SOURCES

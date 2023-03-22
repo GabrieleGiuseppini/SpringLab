@@ -79,6 +79,11 @@ struct PointPair
     ElementIndex Endpoint1Index;
     ElementIndex Endpoint2Index;
 
+    PointPair()
+        : Endpoint1Index(NoneElementIndex)
+        , Endpoint2Index(NoneElementIndex)
+    {}
+
     PointPair(
         ElementIndex endpoint1Index,
         ElementIndex endpoint2Index)
