@@ -350,20 +350,26 @@ void FSBySpringStructuralIntrinsicsSimulator::ApplySpringsForces(Object const & 
         //      pointSpringForceBuffer[pointBIndex] -= total_forceA;
         //
         // j_sforce += s0_a_tforce + s2_a_tforce
-        // k_sforce += -s1_a_tforce - s2_a_tforce
-        // l_sforce += -s0_a_tforce - s3_a_tforce
         // m_sforce += s1_a_tforce + s3_a_tforce
-
+        // 
+        // l_sforce -= s0_a_tforce + s3_a_tforce
+        // k_sforce -= s1_a_tforce + s2_a_tforce
+        
+        
         __m128 s0s1_tforceA_xy = _mm_unpacklo_ps(s0s1s2s3_tforceA_x, s0s1s2s3_tforceA_y); // a[0], b[0], a[1], b[1]
         __m128 s2s3_tforceA_xy = _mm_unpackhi_ps(s0s1s2s3_tforceA_x, s0s1s2s3_tforceA_y); // a[2], b[2], a[3], b[3]
 
-        _mm_store_ps(reinterpret_cast<float *>(&(tmpSpringForces[0])), s0s1_tforceA_xy);
-        _mm_store_ps(reinterpret_cast<float *>(&(tmpSpringForces[2])), s2s3_tforceA_xy);
+        __m128 const jm_sforce_xy = _mm_add_ps(s0s1_tforceA_xy, s2s3_tforceA_xy);
+        s2s3_tforceA_xy = _mm_shuffle_ps(s2s3_tforceA_xy, s2s3_tforceA_xy, _MM_SHUFFLE(1, 0, 3, 2));
+        __m128 const lk_sforce_xy = _mm_add_ps(s0s1_tforceA_xy, s2s3_tforceA_xy);
 
-        pointSpringForceBuffer[pointJIndex] += tmpSpringForces[0] + tmpSpringForces[2];        
-        pointSpringForceBuffer[pointKIndex] -= tmpSpringForces[1] + tmpSpringForces[2];
-        pointSpringForceBuffer[pointLIndex] -= tmpSpringForces[0] + tmpSpringForces[3];
-        pointSpringForceBuffer[pointMIndex] += tmpSpringForces[1] + tmpSpringForces[3];
+        _mm_store_ps(reinterpret_cast<float *>(&(tmpSpringForces[0])), jm_sforce_xy);
+        _mm_store_ps(reinterpret_cast<float *>(&(tmpSpringForces[2])), lk_sforce_xy);
+
+        pointSpringForceBuffer[pointJIndex] += tmpSpringForces[0];
+        pointSpringForceBuffer[pointMIndex] += tmpSpringForces[1];
+        pointSpringForceBuffer[pointLIndex] -= tmpSpringForces[2];
+        pointSpringForceBuffer[pointKIndex] -= tmpSpringForces[3];
     }
 
     //
