@@ -162,8 +162,7 @@ void FSBySpringStructuralIntrinsicsSimulator::ApplySpringsForces(Object const & 
         //   low (left, or top) -> height (right, or bottom)
 
         //
-        //    J          M
-        //  s0(2).a     s1(3).a
+        //    J          M   ---  a
         //    |\        /|
         //    | \s0  s1/ |
         //    |  \    /  |
@@ -174,8 +173,8 @@ void FSBySpringStructuralIntrinsicsSimulator::ApplySpringsForces(Object const & 
         //    |  /    \  |
         //    | /      \ |
         //    |/        \|
-        //  s1(2).b     s0(3).b
-        //    K          L
+        //    K          L  ---  b
+        //
 
         //
         // Calculate displacements, string lengths, and spring directions
@@ -367,9 +366,9 @@ void FSBySpringStructuralIntrinsicsSimulator::ApplySpringsForces(Object const & 
         _mm_store_ps(reinterpret_cast<float *>(&(tmpSpringForces[0])), s0s1_tforceA_xy);
         _mm_store_ps(reinterpret_cast<float *>(&(tmpSpringForces[2])), s2s3_tforceA_xy);
 
-        pointSpringForceBuffer[endpointsBuffer[s + 0].PointAIndex] += tmpSpringForces[0] + tmpSpringForces[2];
-        pointSpringForceBuffer[endpointsBuffer[s + 0].PointBIndex] -= tmpSpringForces[0] + tmpSpringForces[3];
+        pointSpringForceBuffer[endpointsBuffer[s + 0].PointAIndex] += tmpSpringForces[0] + tmpSpringForces[2];        
         pointSpringForceBuffer[endpointsBuffer[s + 1].PointAIndex] += tmpSpringForces[1] + tmpSpringForces[3];
+        pointSpringForceBuffer[endpointsBuffer[s + 0].PointBIndex] -= tmpSpringForces[0] + tmpSpringForces[3];
         pointSpringForceBuffer[endpointsBuffer[s + 1].PointBIndex] -= tmpSpringForces[1] + tmpSpringForces[2];
     }
 
