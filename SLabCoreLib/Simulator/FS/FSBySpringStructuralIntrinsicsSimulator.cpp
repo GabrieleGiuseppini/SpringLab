@@ -360,10 +360,10 @@ void FSBySpringStructuralIntrinsicsSimulator::ApplySpringsForces(Object const & 
         _mm_store_ps(reinterpret_cast<float *>(&(tmpSpringForces[0])), s0s1_tforceA_xy);
         _mm_store_ps(reinterpret_cast<float *>(&(tmpSpringForces[2])), s2s3_tforceA_xy);
 
-        pointSpringForceBuffer[endpointsBuffer[s + 0].PointAIndex] += tmpSpringForces[0] + tmpSpringForces[2];        
-        pointSpringForceBuffer[endpointsBuffer[s + 1].PointAIndex] += tmpSpringForces[1] + tmpSpringForces[3];
-        pointSpringForceBuffer[endpointsBuffer[s + 0].PointBIndex] -= tmpSpringForces[0] + tmpSpringForces[3];
-        pointSpringForceBuffer[endpointsBuffer[s + 1].PointBIndex] -= tmpSpringForces[1] + tmpSpringForces[2];
+        pointSpringForceBuffer[pointJIndex] += tmpSpringForces[0] + tmpSpringForces[2];        
+        pointSpringForceBuffer[pointKIndex] -= tmpSpringForces[1] + tmpSpringForces[2];
+        pointSpringForceBuffer[pointLIndex] -= tmpSpringForces[0] + tmpSpringForces[3];
+        pointSpringForceBuffer[pointMIndex] += tmpSpringForces[1] + tmpSpringForces[3];
     }
 
     //
