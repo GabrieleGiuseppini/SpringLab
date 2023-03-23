@@ -228,7 +228,7 @@ void FSBySpringStructuralIntrinsicsSimulator::ApplySpringsForces(Object const & 
         __m128 s0s1s2s3_dis_x = _mm_shuffle_ps(s0s1_dis_xy, s2s3_dis_xy, 0x88);
         __m128 s0s1s2s3_dis_y = _mm_shuffle_ps(s0s1_dis_xy, s2s3_dis_xy, 0xDD);
 
-        // Calculate spring lengths
+        // Calculate spring lengths: sqrt( x*x + y*y )
         __m128 const s0s1s2s3_springLength = 
             _mm_sqrt_ps(
                 _mm_add_ps(
