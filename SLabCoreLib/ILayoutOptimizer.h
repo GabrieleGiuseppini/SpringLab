@@ -7,6 +7,7 @@
 
 #include "IndexRemap.h"
 #include "ObjectBuilderTypes.h"
+#include "ObjectSimulatorSpecificStructure.h"
 #include "SLabTypes.h"
 
 #include <vector>
@@ -22,6 +23,7 @@ public:
         IndexRemap PointRemap;
         IndexRemap SpringRemap;
         std::vector<bool> SpringEndpointFlipMask; // Indexed by OLD
+        ObjectSimulatorSpecificStructure SimulatorSpecificStructure;
 
         LayoutRemap(
             IndexRemap && pointRemap,
@@ -29,15 +31,18 @@ public:
             : PointRemap(std::move(pointRemap))
             , SpringRemap(std::move(springRemap))
             , SpringEndpointFlipMask(std::vector<bool>(SpringRemap.GetOldIndices().size(), false))
+            , SimulatorSpecificStructure()
         {}
 
         LayoutRemap(
             IndexRemap && pointRemap,
             IndexRemap && springRemap,
-            std::vector<bool> && springEndpointFlipMask)
+            std::vector<bool> && springEndpointFlipMask,
+            ObjectSimulatorSpecificStructure && simulatorSpecificStructure)
             : PointRemap(std::move(pointRemap))
             , SpringRemap(std::move(springRemap))
             , SpringEndpointFlipMask(std::move(springEndpointFlipMask))
+            , SimulatorSpecificStructure(std::move(simulatorSpecificStructure))
         {}
     };
 

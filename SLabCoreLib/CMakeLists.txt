@@ -33,6 +33,7 @@ set  (SOURCES
 	ObjectBuilderTypes.h
 	ObjectDefinition.cpp
 	ObjectDefinition.h
+	ObjectSimulatorSpecificStructure.h
 	PerfStats.h
 	Points.cpp
 	Points.h

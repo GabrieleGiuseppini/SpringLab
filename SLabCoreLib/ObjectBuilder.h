@@ -10,6 +10,7 @@
 #include "Object.h"
 #include "ObjectBuilderTypes.h"
 #include "ObjectDefinition.h"
+#include "ObjectSimulatorSpecificStructure.h"
 #include "Points.h"
 #include "SLabTypes.h"
 #include "Springs.h"
@@ -51,7 +52,7 @@ private:
         std::vector<ObjectBuildSpring> const & springInfos,
         Points & points);
 
-    static std::tuple<std::vector<ObjectBuildPoint>, std::vector<ObjectBuildSpring>> Remap(
+    static std::tuple<std::vector<ObjectBuildPoint>, std::vector<ObjectBuildSpring>, ObjectSimulatorSpecificStructure> Remap(
         ObjectBuildPointIndexMatrix const & pointIndexMatrix,
         std::vector<ObjectBuildPoint> const & pointInfos,
         std::vector<ObjectBuildSpring> const & springInfos,

@@ -84,7 +84,7 @@ Object ObjectBuilder::Create(
     // Remap
     //
 
-    auto const [pointInfos2, springInfos2] = Remap(
+    auto [pointInfos2, springInfos2, simulatorSpecificStructure] = Remap(
         pointIndexMatrix,
         pointInfos,
         springInfos,
@@ -116,7 +116,8 @@ Object ObjectBuilder::Create(
 
     return Object(
         std::move(points),
-        std::move(springs));
+        std::move(springs),
+        std::move(simulatorSpecificStructure));
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -248,13 +249,13 @@ Springs ObjectBuilder::CreateSprings(
     return springs;
 }
 
-std::tuple<std::vector<ObjectBuildPoint>, std::vector<ObjectBuildSpring>> ObjectBuilder::Remap(
+std::tuple<std::vector<ObjectBuildPoint>, std::vector<ObjectBuildSpring>, ObjectSimulatorSpecificStructure> ObjectBuilder::Remap(
     ObjectBuildPointIndexMatrix const & pointIndexMatrix,
     std::vector<ObjectBuildPoint> const & pointInfos,
     std::vector<ObjectBuildSpring> const & springInfos,
     ILayoutOptimizer const & layoutOptimizer)
 {
-    auto const layoutRemap = layoutOptimizer.Remap(pointIndexMatrix, pointInfos, springInfos);
+    auto layoutRemap = layoutOptimizer.Remap(pointIndexMatrix, pointInfos, springInfos);
 
     // remap[ @ newIndex ] = oldIndex
 
@@ -289,5 +290,5 @@ std::tuple<std::vector<ObjectBuildPoint>, std::vector<ObjectBuildSpring>> Object
         }
     }
 
-    return { pointInfos2, springInfos2 };
+    return { pointInfos2, springInfos2, layoutRemap.SimulatorSpecificStructure };
 }

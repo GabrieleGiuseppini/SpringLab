@@ -5,6 +5,7 @@
  ***************************************************************************************/
 #pragma once
 
+#include "ObjectSimulatorSpecificStructure.h"
 #include "Points.h"
 #include "Springs.h"
 
@@ -14,9 +15,11 @@ public:
 
     Object(
         Points && points,
-        Springs && springs)
+        Springs && springs,
+        ObjectSimulatorSpecificStructure && simulatorSpecificStructure)
         : mPoints(std::move(points))
         , mSprings(std::move(springs))
+        , mSimulatorSpecificStructure(std::move(simulatorSpecificStructure))
     {}
 
 
@@ -40,8 +43,14 @@ public:
         return mSprings;
     }
 
+    ObjectSimulatorSpecificStructure const & GetSimulatorSpecificStructure() const
+    {
+        return mSimulatorSpecificStructure;
+    }
+
 private:
 
     Points mPoints;
     Springs mSprings;
+    ObjectSimulatorSpecificStructure mSimulatorSpecificStructure;
 };

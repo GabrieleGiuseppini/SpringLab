@@ -48,7 +48,10 @@ FS 21 - By Springs, With Intrinsics, Layout Optimized:
 		- If reciprocal sqrt above is faster, also here
 	= 12. By Spring, With Structural Intrinsics
 		+ Layout
-		- Intrinsics structure
+		+ Intrinsics structure
+			+ Result: 184
+		- Redo with another strategy
+			- Result:
 		- If reciprocal sqrt above is faster, also here
 	
 	- Notes:

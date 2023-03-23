@@ -80,6 +80,9 @@ private:
 
     Buffer<float> mSpringStiffnessCoefficientBuffer;
     Buffer<float> mSpringDampingCoefficientBuffer;
+
+    // Structure
+    ElementCount mSpringPerfectSquareCount;
 };
 
 class FSBySpringStructuralIntrinsicsLayoutOptimizer : public ILayoutOptimizer
