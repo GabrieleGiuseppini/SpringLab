@@ -349,10 +349,10 @@ void FSBySpringStructuralIntrinsicsSimulator::ApplySpringsForces(Object const & 
         //      pointSpringForceBuffer[pointAIndex] += total_forceA;
         //      pointSpringForceBuffer[pointBIndex] -= total_forceA;
         //
-        // s0_a_sforce += s0_a_tforce + s2_a_tforce
-        // s1_a_sforce += s1_a_tforce + s3_a_tforce
-        // s0_b_sforce += -s0_a_tforce - s3_a_tforce
-        // s1_b_sforce += -s1_a_tforce - s2_a_tforce
+        // j_sforce += s0_a_tforce + s2_a_tforce
+        // k_sforce += -s1_a_tforce - s2_a_tforce
+        // l_sforce += -s0_a_tforce - s3_a_tforce
+        // m_sforce += s1_a_tforce + s3_a_tforce
 
         __m128 s0s1_tforceA_xy = _mm_unpacklo_ps(s0s1s2s3_tforceA_x, s0s1s2s3_tforceA_y); // a[0], b[0], a[1], b[1]
         __m128 s2s3_tforceA_xy = _mm_unpackhi_ps(s0s1s2s3_tforceA_x, s0s1s2s3_tforceA_y); // a[2], b[2], a[3], b[3]
