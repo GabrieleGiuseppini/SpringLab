@@ -181,51 +181,50 @@ void FSBySpringStructuralIntrinsicsSimulator::ApplySpringsForces(Object const & 
         //
         // Steps:
         // 
-        // s0_b_pos_x   -   s0_pos_a.x   =  s0_dis_x
-        // s0_b_pos_y   -   s0_pos_a.y   =  s0_dis_y
-        // s1_b_pos_x   -   s1_pos_a.x   =  s1_dis_x
-        // s1_b_pos_y   -   s1_pos_a.y   =  s1_dis_y
+        // l_pos_x   -   j_pos_x   =  s0_dis_x
+        // l_pos_y   -   j_pos_y   =  s0_dis_y
+        // k_pos_x   -   m_pos_x   =  s1_dis_x
+        // k_pos_y   -   m_pos_y   =  s1_dis_y
         // 
         // Swap 2H with 2L in first register, then:
         // 
-        // s1_pos_b_x   -   s0_pos_a.x   =  s2_dis_x
-        // s1_pos_b_y   -   s0_pos_a.y   =  s2_dis_y
-        // s0_pos_b_x   -   s1_pos_a.x   =  s3_dis_x
-        // s0_pos_b_y   -   s1_pos_a.y   =  s3_dis_y
+        // k_pos_x   -   j_pos_x   =  s2_dis_x
+        // k_pos_y   -   j_pos_y   =  s2_dis_y
+        // l_pos_x   -   m_pos_x   =  s3_dis_x
+        // l_pos_y   -   m_pos_y   =  s3_dis_y
         // 
-        // Shuffle:
-        //
-        // s0_dis_x     s0_dis_y
-        // s1_dis_x     s1_dis_y
-        // s2_dis_x     s2_dis_y
-        // s3_dis_x     s3_dis_y
-        //
 
         ElementIndex const pointJIndex = endpointsBuffer[s + 0].PointAIndex;
         ElementIndex const pointKIndex = endpointsBuffer[s + 1].PointBIndex;
         ElementIndex const pointLIndex = endpointsBuffer[s + 0].PointBIndex;
         ElementIndex const pointMIndex = endpointsBuffer[s + 1].PointAIndex;
 
-        // s0/1_a/b_pos_x
-        // s0/1_a/b_pos_y
-        // *
-        // *
-        __m128 const s0_a_pos_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointPositionBuffer + endpointsBuffer[s + 0].PointAIndex)));
-        __m128 const s0_b_pos_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointPositionBuffer + endpointsBuffer[s + 0].PointBIndex)));
-        __m128 const s1_a_pos_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointPositionBuffer + endpointsBuffer[s + 1].PointAIndex)));
-        __m128 const s1_b_pos_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointPositionBuffer + endpointsBuffer[s + 1].PointBIndex)));
+        assert(pointJIndex == endpointsBuffer[s + 2].PointAIndex);
+        assert(pointKIndex == endpointsBuffer[s + 2].PointBIndex);
+        assert(pointLIndex == endpointsBuffer[s + 3].PointBIndex);
+        assert(pointMIndex == endpointsBuffer[s + 3].PointAIndex);
 
-        assert(pointPositionBuffer[endpointsBuffer[s + 2].PointAIndex] == pointPositionBuffer[endpointsBuffer[s + 0].PointAIndex]);
-        assert(pointPositionBuffer[endpointsBuffer[s + 2].PointBIndex] == pointPositionBuffer[endpointsBuffer[s + 1].PointBIndex]);
-        assert(pointPositionBuffer[endpointsBuffer[s + 3].PointAIndex] == pointPositionBuffer[endpointsBuffer[s + 1].PointAIndex]);
-        assert(pointPositionBuffer[endpointsBuffer[s + 3].PointBIndex] == pointPositionBuffer[endpointsBuffer[s + 0].PointBIndex]);
+        // ?_pos_x
+        // ?_pos_y
+        // *
+        // *
+        __m128 const j_pos_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointPositionBuffer + pointJIndex)));
+        __m128 const k_pos_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointPositionBuffer + pointKIndex)));
+        __m128 const l_pos_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointPositionBuffer + pointLIndex)));
+        __m128 const m_pos_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointPositionBuffer + pointMIndex)));
         
-        __m128 const s0s1_a_pos_xy = _mm_movelh_ps(s0_a_pos_xy, s1_a_pos_xy); // First argument goes low
-        __m128 s0s1_b_pos_xy = _mm_movelh_ps(s0_b_pos_xy, s1_b_pos_xy); // First argument goes low
-        __m128 const s0s1_dis_xy = _mm_sub_ps(s0s1_b_pos_xy, s0s1_a_pos_xy);
-        s0s1_b_pos_xy = _mm_shuffle_ps(s0s1_b_pos_xy, s0s1_b_pos_xy, _MM_SHUFFLE(1, 0, 3, 2));
-        __m128 const s2s3_dis_xy = _mm_sub_ps(s0s1_b_pos_xy, s0s1_a_pos_xy);
+        __m128 const jm_pos_xy = _mm_movelh_ps(j_pos_xy, m_pos_xy); // First argument goes low
+        __m128 lk_pos_xy = _mm_movelh_ps(l_pos_xy, k_pos_xy); // First argument goes low
+        __m128 const s0s1_dis_xy = _mm_sub_ps(lk_pos_xy, jm_pos_xy);
+        lk_pos_xy = _mm_shuffle_ps(lk_pos_xy, lk_pos_xy, _MM_SHUFFLE(1, 0, 3, 2));
+        __m128 const s2s3_dis_xy = _mm_sub_ps(lk_pos_xy, jm_pos_xy);
 
+        // Shuffle:
+        //
+        // s0_dis_x     s0_dis_y
+        // s1_dis_x     s1_dis_y
+        // s2_dis_x     s2_dis_y
+        // s3_dis_x     s3_dis_y
         __m128 s0s1s2s3_dis_x = _mm_shuffle_ps(s0s1_dis_xy, s2s3_dis_xy, 0x88);
         __m128 s0s1s2s3_dis_y = _mm_shuffle_ps(s0s1_dis_xy, s2s3_dis_xy, 0xDD);
 
@@ -290,25 +289,20 @@ void FSBySpringStructuralIntrinsicsSimulator::ApplySpringsForces(Object const & 
         // (s3_relv_x * s3_sdir_x  +  s3_relv_y * s3_sdir_y) * dampCoeff[s3]
         //
 
-        // s0/1_a/b_vel_x
-        // s0/1_a/b_vel_y
+        // ?_vel_x
+        // ?_vel_y
         // *
         // *
-        __m128 const s0_a_vel_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointVelocityBuffer + endpointsBuffer[s + 0].PointAIndex)));
-        __m128 const s0_b_vel_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointVelocityBuffer + endpointsBuffer[s + 0].PointBIndex)));
-        __m128 const s1_a_vel_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointVelocityBuffer + endpointsBuffer[s + 1].PointAIndex)));
-        __m128 const s1_b_vel_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointVelocityBuffer + endpointsBuffer[s + 1].PointBIndex)));
+        __m128 const j_vel_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointVelocityBuffer + pointJIndex)));
+        __m128 const k_vel_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointVelocityBuffer + pointKIndex)));
+        __m128 const l_vel_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointVelocityBuffer + pointLIndex)));
+        __m128 const m_vel_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointVelocityBuffer + pointMIndex)));
 
-        assert(pointVelocityBuffer[endpointsBuffer[s + 2].PointAIndex] == pointVelocityBuffer[endpointsBuffer[s + 0].PointAIndex]);
-        assert(pointVelocityBuffer[endpointsBuffer[s + 2].PointBIndex] == pointVelocityBuffer[endpointsBuffer[s + 1].PointBIndex]);
-        assert(pointVelocityBuffer[endpointsBuffer[s + 3].PointAIndex] == pointVelocityBuffer[endpointsBuffer[s + 1].PointAIndex]);
-        assert(pointVelocityBuffer[endpointsBuffer[s + 3].PointBIndex] == pointVelocityBuffer[endpointsBuffer[s + 0].PointBIndex]);
-
-        __m128 const s0s1_a_vel_xy = _mm_movelh_ps(s0_a_vel_xy, s1_a_vel_xy); // First argument goes low
-        __m128 s0s1_b_vel_xy = _mm_movelh_ps(s0_b_vel_xy, s1_b_vel_xy); // First argument goes low
-        __m128 const s0s1_rvel_xy = _mm_sub_ps(s0s1_b_vel_xy, s0s1_a_vel_xy);
-        s0s1_b_vel_xy = _mm_shuffle_ps(s0s1_b_vel_xy, s0s1_b_vel_xy, _MM_SHUFFLE(1, 0, 3, 2));
-        __m128 const s2s3_rvel_xy = _mm_sub_ps(s0s1_b_vel_xy, s0s1_a_vel_xy);
+        __m128 const jm_vel_xy = _mm_movelh_ps(j_vel_xy, m_vel_xy); // First argument goes low
+        __m128 lk_vel_xy = _mm_movelh_ps(l_vel_xy, k_vel_xy); // First argument goes low
+        __m128 const s0s1_rvel_xy = _mm_sub_ps(lk_vel_xy, jm_vel_xy);
+        lk_vel_xy = _mm_shuffle_ps(lk_vel_xy, lk_vel_xy, _MM_SHUFFLE(1, 0, 3, 2));
+        __m128 const s2s3_rvel_xy = _mm_sub_ps(lk_vel_xy, jm_vel_xy);
 
         __m128 s0s1s2s3_rvel_x = _mm_shuffle_ps(s0s1_rvel_xy, s2s3_rvel_xy, 0x88);
         __m128 s0s1s2s3_rvel_y = _mm_shuffle_ps(s0s1_rvel_xy, s2s3_rvel_xy, 0xDD);
