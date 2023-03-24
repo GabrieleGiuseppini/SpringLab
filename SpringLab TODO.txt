@@ -57,9 +57,9 @@ FS 22 - By Point, Compact, Integrating:
 	- 24. By Point, With Intrinsics, Layout Optimized
 	- 25. By Point, With Intrinsics, Layout Optimized, Multi-threaded
 
-	- 30. Position-Based, Naive (Muller)
+	= Position-Based, Basic (Muller)
 
-	- 40. TODO/with Eigen
+	- TODO/with Eigen
 	
 	- Notes:
 		- When integration is...integrated, it might fare worse because we do double the number of fp operations

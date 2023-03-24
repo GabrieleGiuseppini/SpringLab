@@ -109,6 +109,13 @@ set  (SIMULATOR_FS_SOURCES
 	Simulator/FS/FSCommonSimulatorParameters.h
 )
 
+set  (SIMULATOR_POSITION_BASED_SOURCES
+	Simulator/PositionBased/PositionBasedBasicSimulator.cpp
+	Simulator/PositionBased/PositionBasedBasicSimulator.h
+	Simulator/PositionBased/PositionBasedCommonSimulatorParameters.cpp
+	Simulator/PositionBased/PositionBasedCommonSimulatorParameters.h
+)
+
 set  (GLAD_SOURCES
 	glad/glad.c
 	glad/glad.h
@@ -121,13 +128,15 @@ source_group("glad" FILES ${GLAD_SOURCES})
 source_group("Simulator/Common" FILES ${SIMULATOR_COMMON_SOURCES})
 source_group("Simulator/Classic" FILES ${SIMULATOR_CLASSIC_SOURCES})
 source_group("Simulator/FS" FILES ${SIMULATOR_FS_SOURCES})
+source_group("Simulator/PositionBased" FILES ${SIMULATOR_POSITION_BASED_SOURCES})
 
 add_library (SLabCoreLib 
 	${SOURCES} 
 	${GLAD_SOURCES} 
 	${SIMULATOR_COMMON_SOURCES}
 	${SIMULATOR_CLASSIC_SOURCES}
-	${SIMULATOR_FS_SOURCES})
+	${SIMULATOR_FS_SOURCES}
+	${SIMULATOR_POSITION_BASED_SOURCES})
 
 target_include_directories(SLabCoreLib PRIVATE ${IL_INCLUDE_DIR})
 target_include_directories(SLabCoreLib PUBLIC ${PICOJSON_INCLUDE_DIRS})

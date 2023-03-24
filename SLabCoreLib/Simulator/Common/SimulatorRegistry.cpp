@@ -13,6 +13,7 @@
 #include "Simulator/FS/FSBySpringIntrinsicsSimulator.h"
 #include "Simulator/FS/FSBySpringIntrinsicsLayoutOptimizationSimulator.h"
 #include "Simulator/FS/FSBySpringStructuralIntrinsicsSimulator.h"
+#include "Simulator/PositionBased/PositionBasedBasicSimulator.h"
 
 #include <type_traits>
 
@@ -32,6 +33,7 @@ SimulatorRegistry::SimulatorRegistry()
     RegisterSimulatorType<FSByPointSimulator>();
     RegisterSimulatorType<FSByPointCompactSimulator>();
     RegisterSimulatorType<FSByPointCompactIntegratingSimulator>();    
+    RegisterSimulatorType<PositionBasedBasicSimulator>();
 }
 
 /////////////////////////////////////

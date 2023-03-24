@@ -10,6 +10,7 @@
 #include "Simulator/Common/CommonSimulatorParameters.h"
 #include "Simulator/Classic/ClassicSimulatorParameters.h"
 #include "Simulator/FS/FSCommonSimulatorParameters.h"
+#include "Simulator/PositionBased/PositionBasedCommonSimulatorParameters.h"
 
 /*
  * Parameters that affect the simulation.
@@ -34,6 +35,7 @@ struct SimulationParameters
     CommonSimulatorParameters Common;
     ClassicSimulatorParameters ClassicSimulator;
     FSCommonSimulatorParameters FSCommonSimulator;
+    PositionBasedCommonSimulatorParameters PositionBasedCommonSimulator;
 
     //
     // Structural constants

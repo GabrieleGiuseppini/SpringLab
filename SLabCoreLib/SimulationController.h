@@ -198,6 +198,26 @@ public:
     float GetFSSimulatorMinGlobalDamping() const { return FSCommonSimulatorParameters::MinGlobalDamping; }
     float GetFSSimulatorMaxGlobalDamping() const { return FSCommonSimulatorParameters::MaxGlobalDamping; }
 
+    size_t GetPositionBasedSimulatorNumMechanicalDynamicsIterations() const { return mSimulationParameters.PositionBasedCommonSimulator.NumMechanicalDynamicsIterations; }
+    void SetPositionBasedSimulatorNumMechanicalDynamicsIterations(size_t value) { mSimulationParameters.PositionBasedCommonSimulator.NumMechanicalDynamicsIterations = value; mIsSimulationStateDirty = true; }
+    size_t GetPositionBasedSimulatorMinNumMechanicalDynamicsIterations() const { return PositionBasedCommonSimulatorParameters::MinNumMechanicalDynamicsIterations; }
+    size_t GetPositionBasedSimulatorMaxNumMechanicalDynamicsIterations() const { return PositionBasedCommonSimulatorParameters::MaxNumMechanicalDynamicsIterations; }
+
+    float GetPositionBasedSimulatorSpringReductionFraction() const { return mSimulationParameters.PositionBasedCommonSimulator.SpringReductionFraction; }
+    void SetPositionBasedSimulatorSpringReductionFraction(float value) { mSimulationParameters.PositionBasedCommonSimulator.SpringReductionFraction = value; mIsSimulationStateDirty = true; }
+    float GetPositionBasedSimulatorMinSpringReductionFraction() const { return PositionBasedCommonSimulatorParameters::MinSpringReductionFraction; }
+    float GetPositionBasedSimulatorMaxSpringReductionFraction() const { return PositionBasedCommonSimulatorParameters::MaxSpringReductionFraction; }
+
+    float GetPositionBasedSimulatorSpringDampingCoefficient() const { return mSimulationParameters.PositionBasedCommonSimulator.SpringDampingCoefficient; }
+    void SetPositionBasedSimulatorSpringDampingCoefficient(float value) { mSimulationParameters.PositionBasedCommonSimulator.SpringDampingCoefficient = value; mIsSimulationStateDirty = true; }
+    float GetPositionBasedSimulatorMinSpringDampingCoefficient() const { return PositionBasedCommonSimulatorParameters::MinSpringDampingCoefficient; }
+    float GetPositionBasedSimulatorMaxSpringDampingCoefficient() const { return PositionBasedCommonSimulatorParameters::MaxSpringDampingCoefficient; }
+
+    float GetPositionBasedSimulatorGlobalDamping() const { return mSimulationParameters.PositionBasedCommonSimulator.GlobalDamping; }
+    void SetPositionBasedSimulatorGlobalDamping(float value) { mSimulationParameters.PositionBasedCommonSimulator.GlobalDamping = value; mIsSimulationStateDirty = true; }
+    float GetPositionBasedSimulatorMinGlobalDamping() const { return PositionBasedCommonSimulatorParameters::MinGlobalDamping; }
+    float GetPositionBasedSimulatorMaxGlobalDamping() const { return PositionBasedCommonSimulatorParameters::MaxGlobalDamping; }
+
     //
     // Own parameters
     //

@@ -23,6 +23,11 @@ enum class SLabSettings : size_t
     FSSimulatorSpringDampingCoefficient,
     FSSimulatorGlobalDamping,
 
+    PositionBasedSimulatorNumMechanicalDynamicsIterations,
+    PositionBasedSimulatorSpringReductionFraction,
+    PositionBasedSimulatorSpringDampingCoefficient,
+    PositionBasedSimulatorGlobalDamping,
+
     DoRenderAssignedParticleForces,
 
     _Last = DoRenderAssignedParticleForces
