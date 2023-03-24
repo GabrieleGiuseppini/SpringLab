@@ -225,30 +225,36 @@ void FSBySpringStructuralIntrinsicsSimulator::ApplySpringsForces(Object const & 
         // s1_dis_x     s1_dis_y
         // s2_dis_x     s2_dis_y
         // s3_dis_x     s3_dis_y
-        __m128 s0s1s2s3_dis_x = _mm_shuffle_ps(s0s1_dis_xy, s2s3_dis_xy, 0x88);
-        __m128 s0s1s2s3_dis_y = _mm_shuffle_ps(s0s1_dis_xy, s2s3_dis_xy, 0xDD);
+        __m128 const s0s1s2s3_dis_x = _mm_shuffle_ps(s0s1_dis_xy, s2s3_dis_xy, 0x88);
+        __m128 const s0s1s2s3_dis_y = _mm_shuffle_ps(s0s1_dis_xy, s2s3_dis_xy, 0xDD);
 
         // Calculate spring lengths: sqrt( x*x + y*y )
-        __m128 const s0s1s2s3_springLength = 
-            _mm_sqrt_ps(
-                _mm_add_ps(
-                    _mm_mul_ps(s0s1s2s3_dis_x, s0s1s2s3_dis_x),
-                    _mm_mul_ps(s0s1s2s3_dis_y, s0s1s2s3_dis_y)));
+        //
+        // Note: the kung-fu below (reciprocal square, then reciprocal, etc.) should be faster:
+        //
+        //  Standard: sqrt 12, (div 11, and 1), (div 11, and 1) = 5instrs/36cycles
+        //  This one: rsqrt 4, and 1, (mul 4), (mul 4), rec 4, and 1 = 6instrs/18cycles
 
-        // Calculate spring directions
-        __m128 const validMask = _mm_cmpneq_ps(s0s1s2s3_springLength, Zero); // SL==0 => 1/SL==0, to maintain "normalized == (0, 0)", as in vec2f        
-        __m128 const s0s1s2s3_sdir_x = 
+        __m128 const sq_len = 
+            _mm_add_ps(
+                _mm_mul_ps(s0s1s2s3_dis_x, s0s1s2s3_dis_x),
+                _mm_mul_ps(s0s1s2s3_dis_y, s0s1s2s3_dis_y));
+
+        __m128 const validMask = _mm_cmpneq_ps(sq_len, Zero); // SL==0 => 1/SL==0, to maintain "normalized == (0, 0)", as in vec2f        
+
+        __m128 const s0s1s2s3_springLength_inv =
             _mm_and_ps(
-                _mm_div_ps(
-                    s0s1s2s3_dis_x, 
-                    s0s1s2s3_springLength),
-            validMask);
-        __m128 const s0s1s2s3_sdir_y = 
+                _mm_rsqrt_ps(sq_len),
+                validMask);
+
+        __m128 const s0s1s2s3_springLength =
             _mm_and_ps(
-                _mm_div_ps(
-                    s0s1s2s3_dis_y, 
-                    s0s1s2s3_springLength),
-            validMask);
+                _mm_rcp_ps(s0s1s2s3_springLength_inv),
+                validMask); 
+
+        // Calculate spring directions        
+        __m128 const s0s1s2s3_sdir_x = _mm_mul_ps(s0s1s2s3_dis_x, s0s1s2s3_springLength_inv);
+        __m128 const s0s1s2s3_sdir_y = _mm_mul_ps(s0s1s2s3_dis_y, s0s1s2s3_springLength_inv);
 
         //////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -424,17 +430,21 @@ void FSBySpringStructuralIntrinsicsSimulator::ApplySpringsForces(Object const & 
         // s0_displacement.x^2 + s0_displacement.y^2, s1_displacement.x^2 + s1_displacement.y^2, s2_displacement..., s3_displacement...
         __m128 const s0s1s2s3_displacement_x2_p_y2 = _mm_add_ps(s0s1s2s3_displacement_x2, s0s1s2s3_displacement_y2);
 
-        __m128 const s0s1s2s3_springLength = _mm_sqrt_ps(s0s1s2s3_displacement_x2_p_y2); // sqrt
+        __m128 const validMask = _mm_cmpneq_ps(s0s1s2s3_displacement_x2_p_y2, Zero);
+
+        __m128 const s0s1s2s3_springLength_inv =
+            _mm_and_ps(
+                _mm_rsqrt_ps(s0s1s2s3_displacement_x2_p_y2),
+                validMask);
+
+        __m128 const s0s1s2s3_springLength =
+            _mm_and_ps(
+                _mm_rcp_ps(s0s1s2s3_springLength_inv),
+                validMask);
 
         // Calculate spring directions
-
-        __m128 const validMask = _mm_cmpneq_ps(s0s1s2s3_springLength, Zero);
-
-        __m128 s0s1s2s3_sdir_x = _mm_div_ps(s0s1s2s3_displacement_x, s0s1s2s3_springLength);
-        __m128 s0s1s2s3_sdir_y = _mm_div_ps(s0s1s2s3_displacement_y, s0s1s2s3_springLength);
-        // L==0 => 1/L == 0, to maintain normalized == (0, 0), as in vec2f
-        s0s1s2s3_sdir_x = _mm_and_ps(s0s1s2s3_sdir_x, validMask);
-        s0s1s2s3_sdir_y = _mm_and_ps(s0s1s2s3_sdir_y, validMask);
+        __m128 const s0s1s2s3_sdir_x = _mm_mul_ps(s0s1s2s3_displacement_x, s0s1s2s3_springLength_inv);
+        __m128 const s0s1s2s3_sdir_y = _mm_mul_ps(s0s1s2s3_displacement_y, s0s1s2s3_springLength_inv);
 
         //////////////////////////////////////////////////////////////////////////////////////////////
 

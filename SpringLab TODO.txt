@@ -1,24 +1,26 @@
 FS 0 - Base:
 	- Bending: 20
-	- CPU: 260us | 233us
-FS 1 - By Point:
+	- CPU: 240us (260us | 233us | 240us)
+FS 10 - By Springs, With Intrinsics:
 	- Bending: 20
-	- CPU: 396us | 352
-FS 2 - By Point, Compact:
-	- Bending: 20
-	- CPU: 375us | 332
-FS 3 - By Point, Compact, Integrating:
-	- Bending: 20
-	- CPU: 380us | 342
-FS 20 - By Springs, With Intrinsics:
-	- Bending: 20
-	- CPU: 212us | 187us | 193us
-FS 21 - By Springs, With Intrinsics, Layout Optimized:
+	- CPU: 195us (212us | 187us | 193us )
+FS 11 - By Springs, With Intrinsics, Layout Optimized:
 	- Bending: 20
 	- Optimize 1:
 		- CPU: 195us (when prev was 198us)
 	- Optimize 2:
-		- CPU: 189us (when prev was 194)
+		- CPU: 193us (189us)
+FS 12 - By Springs, Structural Intrinsics
+	- CPU: 164us (176us)
+FS 20 - By Point:
+	- Bending: 20
+	- CPU: 396us | 352us |
+FS 21 - By Point, Compact:
+	- Bending: 20
+	- CPU: 375us | 332
+FS 22 - By Point, Compact, Integrating:
+	- Bending: 20
+	- CPU: 380us | 342
 
 ##########################################################
 
@@ -28,6 +30,24 @@ FS 21 - By Springs, With Intrinsics, Layout Optimized:
 		+ Fix move
 		+ Bending measurement
 		+ New object (very long), with fixed and probe
+	+ 10. By Spring, With Intrinsics
+	+ 11. By Spring, With Intrinsics, Layout Optimized
+		+ SCoreLib::CacheModel class
+		+ Reorderings done by ObjectBuilder, with new ILayoutOptimizer framework
+		+ initial ACMR = 0.515219 (CacheModel<1, 64, vec2f>)
+		+ Optimize
+		+ Lookahead=0 CacheModel<1, 64, vec2f> : final ACMR = 0.385301
+		+ New algo: final ACMR = 0.58686
+	+ 12. By Spring, With Structural Intrinsics
+		+ Layout
+		+ Intrinsics structure
+			+ Result: 184
+		+ Redo with another strategy
+			+ Result: 176/185
+		+ Redo with reciprocals
+			! sqrt 12, (div 11, and 1), (div 11, and 1), sub 4 = 6/40
+			! rsqrt 4, and 1, (mul 4), (mul 4), rec 4, and 1, sub 4 = 7/22 
+	- 13. By Spring, With Structural Intrinsics, Multi-threaded
 	+ 20. By Point
 	+ 21. By Point, Compact metadata
 	+ 22. By Point, Compact metadata, With integration
@@ -36,31 +56,14 @@ FS 21 - By Springs, With Intrinsics, Layout Optimized:
 	- 23. By Point, With Intrinsics
 	- 24. By Point, With Intrinsics, Layout Optimized
 	- 25. By Point, With Intrinsics, Layout Optimized, Multi-threaded
-	= 10. By Spring, With Intrinsics
-		- Test with reciprocal sqrt
-	= 11. By Spring, With Intrinsics, Layout Optimized
-		+ SCoreLib::CacheModel class
-		+ Reorderings done by ObjectBuilder, with new ILayoutOptimizer framework
-		+ initial ACMR = 0.515219 (CacheModel<1, 64, vec2f>)
-		+ Optimize
-		+ Lookahead=0 CacheModel<1, 64, vec2f> : final ACMR = 0.385301
-		+ New algo: final ACMR = 0.58686
-		- If reciprocal sqrt above is faster, also here
-	= 12. By Spring, With Structural Intrinsics
-		+ Layout
-		+ Intrinsics structure
-			+ Result: 184
-		- Redo with another strategy
-			- Result: 176
-		- If reciprocal sqrt above is faster, also here
+
+	- 30. Position-Based, Naive (Muller)
+
+	- 40. TODO/with Eigen
 	
 	- Notes:
 		- When integration is...integrated, it might fare worse because we do double the number of fp operations
 
-
-- Others:
-	- Position Based (Muller)
-	- Paper, with Eigen
 
 ####################################################################################################
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
