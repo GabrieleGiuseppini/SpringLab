@@ -11,7 +11,9 @@ PositionBasedBasicSimulator::PositionBasedBasicSimulator(
     Object const & object,
     SimulationParameters const & simulationParameters)
     // Point buffers
-    : mPointExternalForceBuffer(object.GetPoints().GetBufferElementCount(), 0, vec2f::zero())
+    : mPointMassBuffer(object.GetPoints().GetBufferElementCount(), 0, 0.0f)
+    , mPointExternalForceBuffer(object.GetPoints().GetBufferElementCount(), 0, vec2f::zero())
+    , mPointPositionPredictionBuffer(object.GetPoints().GetBufferElementCount(), 0, vec2f::zero())
     // Spring buffers
     , mSpringStiffnessCoefficientBuffer(object.GetSprings().GetBufferElementCount(), 0, 0.0f)
     , mSpringDampingCoefficientBuffer(object.GetSprings().GetBufferElementCount(), 0, 0.0f)
@@ -31,9 +33,9 @@ void PositionBasedBasicSimulator::Update(
     float /*currentSimulationTime*/,
     SimulationParameters const & simulationParameters)
 {
-    // TODOHERE
-    (void)object;
-    (void)simulationParameters;
+    IntegrateInitialDynamics(object, simulationParameters);
+    ProjectConstraints(object, simulationParameters);
+    FinalizeDynamics(object, simulationParameters);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -42,7 +44,8 @@ void PositionBasedBasicSimulator::CreateState(
     Object const & object,
     SimulationParameters const & simulationParameters)
 {
-    // TODO
+    // TODOHERE
+
     float const dt = simulationParameters.Common.SimulationTimeStepDuration;
 
     float const dtSquared = dt * dt;
@@ -55,8 +58,10 @@ void PositionBasedBasicSimulator::CreateState(
 
     for (auto pointIndex : points)
     {
+        mPointMassBuffer[pointIndex] = points.GetMass(pointIndex) * simulationParameters.Common.MassAdjustment;
+
         mPointExternalForceBuffer[pointIndex] =
-            simulationParameters.Common.AssignedGravity * points.GetMass(pointIndex) * simulationParameters.Common.MassAdjustment
+            simulationParameters.Common.AssignedGravity * mPointMassBuffer[pointIndex]
             + points.GetAssignedForce(pointIndex);
     }
 
@@ -93,5 +98,53 @@ void PositionBasedBasicSimulator::CreateState(
             simulationParameters.FSCommonSimulator.SpringDampingCoefficient
             * massFactor
             / dt;
+    }
+}
+
+void PositionBasedBasicSimulator::IntegrateInitialDynamics(
+    Object & object,
+    SimulationParameters const & simulationParameters)
+{
+    float const dt = simulationParameters.Common.SimulationTimeStepDuration / static_cast<float>(simulationParameters.PositionBasedCommonSimulator.NumMechanicalDynamicsIterations);
+
+    vec2f const * restrict const pointPositionBuffer = object.GetPoints().GetPositionBuffer();
+    vec2f * restrict const pointVelocityBuffer = object.GetPoints().GetVelocityBuffer();
+    float const * restrict const pointMassBuffer = mPointMassBuffer.data();
+    float const * restrict const pointFrozenCoefficientBuffer = object.GetPoints().GetFrozenCoefficientBuffer();
+    vec2f const * restrict const pointExternalForceBuffer = mPointExternalForceBuffer.data();
+    vec2f * restrict const pointPositionPredictionBuffer = mPointPositionPredictionBuffer.data();
+
+    for (ElementIndex p : object.GetPoints())
+    {
+        pointVelocityBuffer[p] += pointExternalForceBuffer[p] * dt / pointMassBuffer[p] * pointFrozenCoefficientBuffer[p];
+        pointPositionPredictionBuffer[p] = pointPositionBuffer[p] + pointVelocityBuffer[p] * dt;
+    }
+
+    // TODO: velocity damping
+}
+
+void PositionBasedBasicSimulator::ProjectConstraints(
+    Object const & object,
+    SimulationParameters const & simulationParameters)
+{
+    // TODOHERE
+    (void)object;
+    (void)simulationParameters;
+}
+
+void PositionBasedBasicSimulator::FinalizeDynamics(
+    Object & object,
+    SimulationParameters const & simulationParameters)
+{
+    float const dt = simulationParameters.Common.SimulationTimeStepDuration / static_cast<float>(simulationParameters.PositionBasedCommonSimulator.NumMechanicalDynamicsIterations);
+
+    vec2f * restrict const pointPositionBuffer = object.GetPoints().GetPositionBuffer();
+    vec2f * restrict const pointVelocityBuffer = object.GetPoints().GetVelocityBuffer();
+    vec2f const * restrict const pointPositionPredictionBuffer = mPointPositionPredictionBuffer.data();
+
+    for (ElementIndex p : object.GetPoints())
+    {
+        pointVelocityBuffer[p] = (pointPositionPredictionBuffer[p] - pointPositionBuffer[p]) / dt;
+        pointPositionBuffer[p] = pointPositionPredictionBuffer[p];
     }
 }

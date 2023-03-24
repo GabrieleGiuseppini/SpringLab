@@ -48,13 +48,27 @@ private:
         Object const & object,
         SimulationParameters const & simulationParameters);
 
+    void IntegrateInitialDynamics(
+        Object & object,
+        SimulationParameters const & simulationParameters);
+
+    void ProjectConstraints(
+        Object const & object,
+        SimulationParameters const & simulationParameters);
+
+    void FinalizeDynamics(
+        Object & object,
+        SimulationParameters const & simulationParameters);
+
 private:
 
     //
     // Point buffers
     //
-
+    
+    Buffer<float> mPointMassBuffer;
     Buffer<vec2f> mPointExternalForceBuffer;
+    Buffer<vec2f> mPointPositionPredictionBuffer;
 
 
     //
