@@ -75,6 +75,23 @@ private:
     // Spring buffers
     //
 
-    Buffer<float> mSpringStiffnessCoefficientBuffer;
-    Buffer<float> mSpringDampingCoefficientBuffer;
+    struct SpringScalingFactors
+    {
+        float EndpointA;
+        float EndpointB;
+
+        SpringScalingFactors()
+            : EndpointA(0.0f)
+            , EndpointB(0.0f)
+        {}
+
+        SpringScalingFactors(
+            float endpointA,
+            float endpointB)
+            : EndpointA(endpointA)
+            , EndpointB(endpointB)
+        {}
+    };
+
+    Buffer<SpringScalingFactors> mSpringScalingFactorsBuffer;
 };

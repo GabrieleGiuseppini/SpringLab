@@ -15,8 +15,7 @@ PositionBasedBasicSimulator::PositionBasedBasicSimulator(
     , mPointExternalForceBuffer(object.GetPoints().GetBufferElementCount(), 0, vec2f::zero())
     , mPointPositionPredictionBuffer(object.GetPoints().GetBufferElementCount(), 0, vec2f::zero())
     // Spring buffers
-    , mSpringStiffnessCoefficientBuffer(object.GetSprings().GetBufferElementCount(), 0, 0.0f)
-    , mSpringDampingCoefficientBuffer(object.GetSprings().GetBufferElementCount(), 0, 0.0f)
+    , mSpringScalingFactorsBuffer(object.GetSprings().GetBufferElementCount(), 0, SpringScalingFactors())
 {
     CreateState(object, simulationParameters);
 }
@@ -34,7 +33,12 @@ void PositionBasedBasicSimulator::Update(
     SimulationParameters const & simulationParameters)
 {
     IntegrateInitialDynamics(object, simulationParameters);
-    ProjectConstraints(object, simulationParameters);
+
+    for (size_t i = 0; i < simulationParameters.PositionBasedCommonSimulator.NumMechanicalDynamicsIterations; ++i)
+    {
+        ProjectConstraints(object, simulationParameters);
+    }
+
     FinalizeDynamics(object, simulationParameters);
 }
 
@@ -65,7 +69,6 @@ void PositionBasedBasicSimulator::CreateState(
             + points.GetAssignedForce(pointIndex);
     }
 
-
     //
     // Initialize spring buffers
     //
@@ -77,27 +80,21 @@ void PositionBasedBasicSimulator::CreateState(
         auto const endpointAIndex = springs.GetEndpointAIndex(springIndex);
         auto const endpointBIndex = springs.GetEndpointBIndex(springIndex);
 
-        float const endpointAMass = points.GetMass(endpointAIndex) * simulationParameters.Common.MassAdjustment;
-        float const endpointBMass = points.GetMass(endpointBIndex) * simulationParameters.Common.MassAdjustment;
+        float const endpointAMass = mPointMassBuffer[endpointAIndex];
+        float const endpointBMass = mPointMassBuffer[endpointBIndex];
 
-        float const massFactor =
-            (endpointAMass * endpointBMass)
-            / (endpointAMass + endpointBMass);
+        // TODO: figure out how the factors really look like when one point is frozen
+        // TODO: one zero and the other one 1.0?
 
-        // The "stiffness coefficient" is the factor which, once multiplied with the spring displacement,
-        // yields the spring force, according to Hooke's law.
-        mSpringStiffnessCoefficientBuffer[springIndex] =
-            simulationParameters.FSCommonSimulator.SpringReductionFraction
-            * springs.GetMaterialStiffness(springIndex)
-            * massFactor
-            / dtSquared;
+        mSpringScalingFactorsBuffer[springIndex].EndpointA =
+            (1.0f / endpointAMass)
+            / ((1.0f / endpointAMass) + (1.0f / endpointBMass))
+            * points.GetFrozenCoefficient(endpointAIndex);
 
-        // Damping coefficient
-        // Magnitude of the drag force on the relative velocity component along the spring.
-        mSpringDampingCoefficientBuffer[springIndex] =
-            simulationParameters.FSCommonSimulator.SpringDampingCoefficient
-            * massFactor
-            / dt;
+        mSpringScalingFactorsBuffer[springIndex].EndpointB =
+            (1.0f / endpointBMass)
+            / ((1.0f / endpointAMass) + (1.0f / endpointBMass))
+            * points.GetFrozenCoefficient(endpointBIndex);
     }
 }
 
@@ -105,7 +102,7 @@ void PositionBasedBasicSimulator::IntegrateInitialDynamics(
     Object & object,
     SimulationParameters const & simulationParameters)
 {
-    float const dt = simulationParameters.Common.SimulationTimeStepDuration / static_cast<float>(simulationParameters.PositionBasedCommonSimulator.NumMechanicalDynamicsIterations);
+    float const dt = simulationParameters.Common.SimulationTimeStepDuration;
 
     vec2f const * restrict const pointPositionBuffer = object.GetPoints().GetPositionBuffer();
     vec2f * restrict const pointVelocityBuffer = object.GetPoints().GetVelocityBuffer();
@@ -125,18 +122,40 @@ void PositionBasedBasicSimulator::IntegrateInitialDynamics(
 
 void PositionBasedBasicSimulator::ProjectConstraints(
     Object const & object,
-    SimulationParameters const & simulationParameters)
+    SimulationParameters const & /*simulationParameters*/)
 {
-    // TODOHERE
-    (void)object;
-    (void)simulationParameters;
+    vec2f const * restrict const pointPositionBuffer = object.GetPoints().GetPositionBuffer();
+    float const * restrict const pointMassBuffer = mPointMassBuffer.data();
+    vec2f * restrict const pointPositionPredictionBuffer = mPointPositionPredictionBuffer.data();
+
+    Springs::Endpoints const * restrict const endpointsBuffer = object.GetSprings().GetEndpointsBuffer();
+    float const * restrict const restLengthBuffer = object.GetSprings().GetRestLengthBuffer();
+    SpringScalingFactors const * restrict const springScalingFactorsBuffer = mSpringScalingFactorsBuffer.data();
+
+    for (ElementIndex s : object.GetSprings())
+    {
+        auto const endpointAIndex = endpointsBuffer[s].PointAIndex;
+        auto const endpointBIndex = endpointsBuffer[s].PointBIndex;
+
+        vec2f const displacement = pointPositionBuffer[endpointAIndex] - pointPositionBuffer[endpointBIndex];
+        float const displacementLength = displacement.length();
+        vec2f const springDir = displacement.normalise(displacementLength);
+
+        float const strain = displacementLength - restLengthBuffer[s];
+
+        vec2f const deltaPredictedPosA = -springDir * springScalingFactorsBuffer[s].EndpointA * strain;
+        vec2f const deltaPredictedPosB = springDir * springScalingFactorsBuffer[s].EndpointB * strain;
+
+        pointPositionPredictionBuffer[endpointAIndex] += deltaPredictedPosA;
+        pointPositionPredictionBuffer[endpointBIndex] += deltaPredictedPosB;
+    }
 }
 
 void PositionBasedBasicSimulator::FinalizeDynamics(
     Object & object,
     SimulationParameters const & simulationParameters)
 {
-    float const dt = simulationParameters.Common.SimulationTimeStepDuration / static_cast<float>(simulationParameters.PositionBasedCommonSimulator.NumMechanicalDynamicsIterations);
+    float const dt = simulationParameters.Common.SimulationTimeStepDuration;
 
     vec2f * restrict const pointPositionBuffer = object.GetPoints().GetPositionBuffer();
     vec2f * restrict const pointVelocityBuffer = object.GetPoints().GetVelocityBuffer();
