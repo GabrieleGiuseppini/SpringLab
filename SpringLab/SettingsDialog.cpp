@@ -449,14 +449,17 @@ void SettingsDialog::PopulateCommonSimulatorPanel(wxPanel * panel)
             mechanicsBox,
             wxGBPosition(0, 0),
             wxGBSpan(1, 3),
-            wxEXPAND | wxALL,
+            wxEXPAND | wxALL | wxALIGN_CENTER_HORIZONTAL,
             CellBorder);
     }
 
 
     // Finalize panel
 
-    panel->SetSizerAndFit(gridSizer);
+    for (int c = 0; c < gridSizer->GetCols(); ++c)
+        gridSizer->AddGrowableCol(c);
+
+    panel->SetSizer(gridSizer);
 }
 
 void SettingsDialog::PopulateClassicSimulatorPanel(wxPanel * panel)
@@ -557,14 +560,16 @@ void SettingsDialog::PopulateClassicSimulatorPanel(wxPanel * panel)
             mechanicsBox,
             wxGBPosition(0, 0),
             wxGBSpan(1, 3),
-            wxEXPAND | wxALL,
+            wxEXPAND | wxALL | wxALIGN_CENTER_HORIZONTAL,
             CellBorder);
     }
 
-
     // Finalize panel
 
-    panel->SetSizerAndFit(gridSizer);
+    for (int c = 0; c < gridSizer->GetCols(); ++c)
+        gridSizer->AddGrowableCol(c);
+
+    panel->SetSizer(gridSizer);
 }
 
 void SettingsDialog::PopulateFSSimulatorPanel(wxPanel * panel)
@@ -690,14 +695,17 @@ void SettingsDialog::PopulateFSSimulatorPanel(wxPanel * panel)
             mechanicsBox,
             wxGBPosition(0, 0),
             wxGBSpan(1, 4),
-            wxEXPAND | wxALL,
+            wxEXPAND | wxALL | wxALIGN_CENTER_HORIZONTAL,
             CellBorder);
     }
 
 
     // Finalize panel
 
-    panel->SetSizerAndFit(gridSizer);
+    for (int c = 0; c < gridSizer->GetCols(); ++c)
+        gridSizer->AddGrowableCol(c);
+
+    panel->SetSizer(gridSizer);
 }
 
 void SettingsDialog::PopulatePositionBasedSimulatorPanel(wxPanel * panel)
@@ -848,13 +856,16 @@ void SettingsDialog::PopulatePositionBasedSimulatorPanel(wxPanel * panel)
             mechanicsBox,
             wxGBPosition(0, 0),
             wxGBSpan(1, 5),
-            wxEXPAND | wxALL,
+            wxEXPAND | wxALL | wxALIGN_CENTER_HORIZONTAL,
             CellBorder);
     }
 
     // Finalize panel
 
-    panel->SetSizerAndFit(gridSizer);
+    for (int c = 0; c < gridSizer->GetCols(); ++c)
+        gridSizer->AddGrowableCol(c);
+
+    panel->SetSizer(gridSizer);
 }
 
 void SettingsDialog::PopulateRenderingPanel(wxPanel * panel)
@@ -901,7 +912,7 @@ void SettingsDialog::PopulateRenderingPanel(wxPanel * panel)
 
     // Finalize panel
 
-    panel->SetSizerAndFit(gridSizer);
+    panel->SetSizer(gridSizer);
 }
 
 void SettingsDialog::SyncControlsWithSettings(Settings<SLabSettings> const & settings)

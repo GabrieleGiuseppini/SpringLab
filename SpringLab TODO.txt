@@ -60,7 +60,7 @@ FS 22 - By Point, Compact, Integrating:
 	= Position-Based, Basic (Muller)
 		+ Fix frozen
 		+ See infinite oscillations
-		- Smaller dt also for newton, hence two num_iterations
+		- Nail down params for better rigidity
 
 	- TODO/with Eigen
 	
