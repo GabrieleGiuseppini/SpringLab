@@ -97,6 +97,8 @@ void PositionBasedBasicSimulator::IntegrateInitialDynamics(
 {
     float const dt = simulationParameters.Common.SimulationTimeStepDuration;
 
+    float const globalDampingCoefficient = 1.0f - pow((1.0f - simulationParameters.PositionBasedCommonSimulator.GlobalDamping), 0.4f);
+
     vec2f const * restrict const pointPositionBuffer = object.GetPoints().GetPositionBuffer();
     vec2f * restrict const pointVelocityBuffer = object.GetPoints().GetVelocityBuffer();
     float const * restrict const pointMassBuffer = mPointMassBuffer.data();
@@ -106,11 +108,11 @@ void PositionBasedBasicSimulator::IntegrateInitialDynamics(
 
     for (ElementIndex p : object.GetPoints())
     {
-        pointVelocityBuffer[p] += pointExternalForceBuffer[p] * dt / pointMassBuffer[p] * pointFrozenCoefficientBuffer[p];
+        pointVelocityBuffer[p] =
+            (pointVelocityBuffer[p] + pointExternalForceBuffer[p] * dt / pointMassBuffer[p] * pointFrozenCoefficientBuffer[p])
+            * globalDampingCoefficient;
         pointPositionPredictionBuffer[p] = pointPositionBuffer[p] + pointVelocityBuffer[p] * dt;
     }
-
-    // TODO: velocity damping
 }
 
 void PositionBasedBasicSimulator::ProjectConstraints(
