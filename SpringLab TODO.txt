@@ -62,7 +62,7 @@ FS 22 - By Point, Compact, Integrating:
 		+ See infinite oscillations
 		- Nail down params for better rigidity
 
-	- TODO/with Eigen
+	- ProjectiveTODO/with Eigen
 	
 	- Notes:
 		- When integration is...integrated, it might fare worse because we do double the number of fp operations
