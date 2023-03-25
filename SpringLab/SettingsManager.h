@@ -24,6 +24,7 @@ enum class SLabSettings : size_t
     FSSimulatorGlobalDamping,
 
     PositionBasedSimulatorNumMechanicalDynamicsIterations,
+    PositionBasedSimulatorNumSolverIterations,
     PositionBasedSimulatorSpringReductionFraction,
     PositionBasedSimulatorSpringDampingCoefficient,
     PositionBasedSimulatorGlobalDamping,

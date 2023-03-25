@@ -59,7 +59,7 @@ FS 22 - By Point, Compact, Integrating:
 
 	= Position-Based, Basic (Muller)
 		+ Fix frozen
-		- See infinite oscillations
+		+ See infinite oscillations
 		- Smaller dt also for newton, hence two num_iterations
 
 	- TODO/with Eigen

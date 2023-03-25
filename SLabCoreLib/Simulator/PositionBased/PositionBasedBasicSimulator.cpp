@@ -32,14 +32,17 @@ void PositionBasedBasicSimulator::Update(
     float /*currentSimulationTime*/,
     SimulationParameters const & simulationParameters)
 {
-    IntegrateInitialDynamics(object, simulationParameters);
-
     for (size_t i = 0; i < simulationParameters.PositionBasedCommonSimulator.NumMechanicalDynamicsIterations; ++i)
     {
-        ProjectConstraints(object, simulationParameters);
-    }
+        IntegrateInitialDynamics(object, simulationParameters);
 
-    FinalizeDynamics(object, simulationParameters);
+        for (size_t j = 0; j < simulationParameters.PositionBasedCommonSimulator.NumSolverIterations; ++j)
+        {
+            ProjectConstraints(object, simulationParameters);
+        }
+
+        FinalizeDynamics(object, simulationParameters);
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -48,12 +51,6 @@ void PositionBasedBasicSimulator::CreateState(
     Object const & object,
     SimulationParameters const & simulationParameters)
 {
-    // TODOHERE
-
-    float const dt = simulationParameters.Common.SimulationTimeStepDuration;
-
-    float const dtSquared = dt * dt;
-
     //
     // Initialize point buffers
     //
@@ -132,7 +129,7 @@ void PositionBasedBasicSimulator::ProjectConstraints(
         auto const endpointAIndex = endpointsBuffer[s].PointAIndex;
         auto const endpointBIndex = endpointsBuffer[s].PointBIndex;
 
-        vec2f const displacement = pointPositionBuffer[endpointAIndex] - pointPositionBuffer[endpointBIndex];
+        vec2f const displacement = pointPositionPredictionBuffer[endpointAIndex] - pointPositionPredictionBuffer[endpointBIndex];
         float const displacementLength = displacement.length();
         vec2f const springDir = displacement.normalise(displacementLength);
 

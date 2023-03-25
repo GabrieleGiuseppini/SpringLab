@@ -721,11 +721,11 @@ void SettingsDialog::PopulatePositionBasedSimulatorPanel(wxPanel * panel)
                     SliderWidth,
                     SliderHeight,
                     "Num Iterations",
-                    "Adjusts the number of iterations of the spring relaxation algorithm.",
+                    "Adjusts the number of simulation iterations per step.",
                     [this](size_t value)
                     {
                         this->mLiveSettings.SetValue(SLabSettings::PositionBasedSimulatorNumMechanicalDynamicsIterations, value);
-                this->OnLiveSettingsChanged();
+                        this->OnLiveSettingsChanged();
                     },
                     std::make_unique<IntegralLinearSliderCore<size_t>>(
                         mSimulationController->GetPositionBasedSimulatorMinNumMechanicalDynamicsIterations(),
@@ -734,6 +734,31 @@ void SettingsDialog::PopulatePositionBasedSimulatorPanel(wxPanel * panel)
                 mechanicsSizer->Add(
                     mPositionBasedSimulatorNumMechanicalDynamicsIterationsSlider,
                     wxGBPosition(0, 0),
+                    wxGBSpan(1, 1),
+                    wxEXPAND | wxALL,
+                    CellBorder);
+            }
+
+            // Num Solver Iterations
+            {
+                mPositionBasedSimulatorNumSolverIterationsSlider = new SliderControl<size_t>(
+                    mechanicsBox,
+                    SliderWidth,
+                    SliderHeight,
+                    "Num Solver Iterations",
+                    "Adjusts the number of solver iterations.",
+                    [this](size_t value)
+                    {
+                        this->mLiveSettings.SetValue(SLabSettings::PositionBasedSimulatorNumSolverIterations, value);
+                        this->OnLiveSettingsChanged();
+                    },
+                    std::make_unique<IntegralLinearSliderCore<size_t>>(
+                        mSimulationController->GetPositionBasedSimulatorMinNumSolverIterations(),
+                        mSimulationController->GetPositionBasedSimulatorMaxNumSolverIterations()));
+
+                mechanicsSizer->Add(
+                    mPositionBasedSimulatorNumSolverIterationsSlider,
+                    wxGBPosition(0, 1),
                     wxGBSpan(1, 1),
                     wxEXPAND | wxALL,
                     CellBorder);
@@ -758,7 +783,7 @@ void SettingsDialog::PopulatePositionBasedSimulatorPanel(wxPanel * panel)
 
                 mechanicsSizer->Add(
                     mPositionBasedSimulatorSpringReductionFraction,
-                    wxGBPosition(0, 1),
+                    wxGBPosition(0, 2),
                     wxGBSpan(1, 1),
                     wxEXPAND | wxALL,
                     CellBorder);
@@ -783,7 +808,7 @@ void SettingsDialog::PopulatePositionBasedSimulatorPanel(wxPanel * panel)
 
                 mechanicsSizer->Add(
                     mPositionBasedSimulatorSpringDampingSlider,
-                    wxGBPosition(0, 2),
+                    wxGBPosition(0, 3),
                     wxGBSpan(1, 1),
                     wxEXPAND | wxALL,
                     CellBorder);
@@ -808,7 +833,7 @@ void SettingsDialog::PopulatePositionBasedSimulatorPanel(wxPanel * panel)
 
                 mechanicsSizer->Add(
                     mPositionBasedSimulatorGlobalDampingSlider,
-                    wxGBPosition(0, 3),
+                    wxGBPosition(0, 4),
                     wxGBSpan(1, 1),
                     wxEXPAND | wxALL,
                     CellBorder);
@@ -822,11 +847,10 @@ void SettingsDialog::PopulatePositionBasedSimulatorPanel(wxPanel * panel)
         gridSizer->Add(
             mechanicsBox,
             wxGBPosition(0, 0),
-            wxGBSpan(1, 4),
+            wxGBSpan(1, 5),
             wxEXPAND | wxALL,
             CellBorder);
     }
-
 
     // Finalize panel
 
@@ -900,6 +924,7 @@ void SettingsDialog::SyncControlsWithSettings(Settings<SLabSettings> const & set
 
     // Position-Based
     mPositionBasedSimulatorNumMechanicalDynamicsIterationsSlider->SetValue(settings.GetValue<size_t>(SLabSettings::PositionBasedSimulatorNumMechanicalDynamicsIterations));
+    mPositionBasedSimulatorNumSolverIterationsSlider->SetValue(settings.GetValue<size_t>(SLabSettings::PositionBasedSimulatorNumSolverIterations));
     mPositionBasedSimulatorSpringReductionFraction->SetValue(settings.GetValue<float>(SLabSettings::PositionBasedSimulatorSpringReductionFraction));
     mPositionBasedSimulatorSpringDampingSlider->SetValue(settings.GetValue<float>(SLabSettings::PositionBasedSimulatorSpringDampingCoefficient));
     mPositionBasedSimulatorGlobalDampingSlider->SetValue(settings.GetValue<float>(SLabSettings::PositionBasedSimulatorGlobalDamping));

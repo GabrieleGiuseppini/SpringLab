@@ -67,6 +67,7 @@ private:
 
     // FS
     SliderControl<size_t> * mPositionBasedSimulatorNumMechanicalDynamicsIterationsSlider;
+    SliderControl<size_t> * mPositionBasedSimulatorNumSolverIterationsSlider;
     SliderControl<float> * mPositionBasedSimulatorSpringReductionFraction;
     SliderControl<float> * mPositionBasedSimulatorSpringDampingSlider;
     SliderControl<float> * mPositionBasedSimulatorGlobalDampingSlider;

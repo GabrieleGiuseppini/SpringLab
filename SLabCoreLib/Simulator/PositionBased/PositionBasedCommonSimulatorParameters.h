@@ -14,6 +14,11 @@ struct PositionBasedCommonSimulatorParameters
     static size_t constexpr MinNumMechanicalDynamicsIterations = 1;
     static size_t constexpr MaxNumMechanicalDynamicsIterations = 100;
 
+    // The number of solver iterations per iterations
+    size_t NumSolverIterations;
+    static size_t constexpr MinNumSolverIterations = 1;
+    static size_t constexpr MaxNumSolverIterations = 100;
+
     // The fraction of a spring's over-length that it gets reduced to in a simulation step
     float SpringReductionFraction;
     static float constexpr MinSpringReductionFraction = 0.0f;

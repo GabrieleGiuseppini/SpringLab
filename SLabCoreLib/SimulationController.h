@@ -203,6 +203,11 @@ public:
     size_t GetPositionBasedSimulatorMinNumMechanicalDynamicsIterations() const { return PositionBasedCommonSimulatorParameters::MinNumMechanicalDynamicsIterations; }
     size_t GetPositionBasedSimulatorMaxNumMechanicalDynamicsIterations() const { return PositionBasedCommonSimulatorParameters::MaxNumMechanicalDynamicsIterations; }
 
+    size_t GetPositionBasedSimulatorNumSolverIterations() const { return mSimulationParameters.PositionBasedCommonSimulator.NumSolverIterations; }
+    void SetPositionBasedSimulatorNumSolverIterations(size_t value) { mSimulationParameters.PositionBasedCommonSimulator.NumSolverIterations = value; mIsSimulationStateDirty = true; }
+    size_t GetPositionBasedSimulatorMinNumSolverIterations() const { return PositionBasedCommonSimulatorParameters::MinNumSolverIterations; }
+    size_t GetPositionBasedSimulatorMaxNumSolverIterations() const { return PositionBasedCommonSimulatorParameters::MaxNumSolverIterations; }
+
     float GetPositionBasedSimulatorSpringReductionFraction() const { return mSimulationParameters.PositionBasedCommonSimulator.SpringReductionFraction; }
     void SetPositionBasedSimulatorSpringReductionFraction(float value) { mSimulationParameters.PositionBasedCommonSimulator.SpringReductionFraction = value; mIsSimulationStateDirty = true; }
     float GetPositionBasedSimulatorMinSpringReductionFraction() const { return PositionBasedCommonSimulatorParameters::MinSpringReductionFraction; }

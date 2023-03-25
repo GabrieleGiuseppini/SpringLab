@@ -7,6 +7,7 @@
 
 PositionBasedCommonSimulatorParameters::PositionBasedCommonSimulatorParameters()
     : NumMechanicalDynamicsIterations(1)
+    , NumSolverIterations(1)
     , SpringReductionFraction(0.5f)
     , SpringDampingCoefficient(0.03f)
     , GlobalDamping(0.99983998f)
