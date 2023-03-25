@@ -58,6 +58,9 @@ FS 22 - By Point, Compact, Integrating:
 	- 25. By Point, With Intrinsics, Layout Optimized, Multi-threaded
 
 	= Position-Based, Basic (Muller)
+		+ Fix frozen
+		- See infinite oscillations
+		- Smaller dt also for newton, hence two num_iterations
 
 	- TODO/with Eigen
 	

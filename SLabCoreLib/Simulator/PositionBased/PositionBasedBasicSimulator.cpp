@@ -81,20 +81,13 @@ void PositionBasedBasicSimulator::CreateState(
         auto const endpointBIndex = springs.GetEndpointBIndex(springIndex);
 
         float const endpointAMass = mPointMassBuffer[endpointAIndex];
+        float const endpointAMassInv = 1.0f / mPointMassBuffer[endpointAIndex] * points.GetFrozenCoefficient(endpointAIndex);
         float const endpointBMass = mPointMassBuffer[endpointBIndex];
-
-        // TODO: figure out how the factors really look like when one point is frozen
-        // TODO: one zero and the other one 1.0?
-
-        mSpringScalingFactorsBuffer[springIndex].EndpointA =
-            (1.0f / endpointAMass)
-            / ((1.0f / endpointAMass) + (1.0f / endpointBMass))
-            * points.GetFrozenCoefficient(endpointAIndex);
-
-        mSpringScalingFactorsBuffer[springIndex].EndpointB =
-            (1.0f / endpointBMass)
-            / ((1.0f / endpointAMass) + (1.0f / endpointBMass))
-            * points.GetFrozenCoefficient(endpointBIndex);
+        float const endpointBMassInv = 1.0f / mPointMassBuffer[endpointBIndex] * points.GetFrozenCoefficient(endpointBIndex);
+        
+        float const den = (endpointAMassInv + endpointBMassInv);
+        mSpringScalingFactorsBuffer[springIndex].EndpointA = endpointAMassInv / (den == 0.0f ? 1.0f : den);
+        mSpringScalingFactorsBuffer[springIndex].EndpointB = endpointBMassInv / (den == 0.0f ? 1.0f : den);
     }
 }
 
