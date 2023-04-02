@@ -57,7 +57,11 @@ private:
         Object const & object,
         SimulationParameters const & simulationParameters);
 
-    void ApplySpringsForces(Object const & object);
+    void ApplySpringsForces(
+        Object const & object,
+        vec2f * restrict pointSpringForceBuffer,
+        ElementIndex startSpringIndex,
+        ElementCount endSpringIndex);  // Excluded
 
     void IntegrateAndResetSpringForces(
         Object & object,

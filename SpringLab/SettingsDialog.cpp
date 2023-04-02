@@ -453,6 +453,54 @@ void SettingsDialog::PopulateCommonSimulatorPanel(wxPanel * panel)
             CellBorder);
     }
 
+    // Misc
+    {
+        wxStaticBox * miscBox = new wxStaticBox(panel, wxID_ANY, _("Misc"));
+
+        wxBoxSizer * miscBoxSizer = new wxBoxSizer(wxVERTICAL);
+        miscBoxSizer->AddSpacer(StaticBoxTopMargin);
+
+        {
+            wxGridBagSizer * miscSizer = new wxGridBagSizer(0, 0);
+
+            // NumberOfThreads
+            {
+                mCommonNumberOfThreadsSlider = new SliderControl<size_t>(
+                    miscBox,
+                    SliderWidth,
+                    SliderHeight,
+                    "Number of Threads",
+                    "The number of threads that multi-threaded simulators may use.",
+                    [this](size_t value)
+                    {
+                        this->mLiveSettings.SetValue(SLabSettings::CommonNumberOfThreads, value);
+                        this->OnLiveSettingsChanged();
+                    },
+                    std::make_unique<IntegralLinearSliderCore<size_t>>(
+                        mSimulationController->GetCommonMinNumberOfThreads(),
+                        mSimulationController->GetCommonMaxNumberOfThreads()));
+
+                miscSizer->Add(
+                    mCommonNumberOfThreadsSlider,
+                    wxGBPosition(0, 0),
+                    wxGBSpan(1, 1),
+                    wxEXPAND | wxALL,
+                    CellBorder);
+            }
+
+            miscBoxSizer->Add(miscSizer, 0, wxALL, StaticBoxInsetMargin);
+        }
+
+        miscBox->SetSizerAndFit(miscBoxSizer);
+
+        gridSizer->Add(
+            miscBox,
+            wxGBPosition(0, 0),
+            wxGBSpan(1, 1),
+            wxEXPAND | wxALL | wxALIGN_CENTER_HORIZONTAL,
+            CellBorder);
+    }
+
 
     // Finalize panel
 
@@ -921,6 +969,7 @@ void SettingsDialog::SyncControlsWithSettings(Settings<SLabSettings> const & set
     mCommonSimulationTimeStepDurationSlider->SetValue(settings.GetValue<float>(SLabSettings::CommonSimulationTimeStepDuration));
     mCommonMassAdjustmentSlider->SetValue(settings.GetValue<float>(SLabSettings::CommonMassAdjustment));
     mCommonGravityAdjustmentSlider->SetValue(settings.GetValue<float>(SLabSettings::CommonGravityAdjustment));    
+    mCommonNumberOfThreadsSlider->SetValue(settings.GetValue<size_t>(SLabSettings::CommonNumberOfThreads));
 
     // Classic
     mClassicSimulatorSpringStiffnessSlider->SetValue(settings.GetValue<float>(SLabSettings::ClassicSimulatorSpringStiffnessCoefficient));

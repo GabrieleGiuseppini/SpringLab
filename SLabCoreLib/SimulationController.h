@@ -163,6 +163,11 @@ public:
     bool GetCommonDoApplyGravity() const { return mSimulationParameters.Common.AssignedGravity != vec2f::zero(); }
     void SetCommonDoApplyGravity(bool value);
 
+    size_t GetCommonNumberOfThreads() const { return mSimulationParameters.Common.NumberOfThreads; }
+    void SetCommonNumberOfThreads(size_t value) { mSimulationParameters.Common.NumberOfThreads = value; mIsSimulationStateDirty = true; }
+    size_t GetCommonMinNumberOfThreads() const { return CommonSimulatorParameters::MinNumberOfThreads; }
+    size_t GetCommonMaxNumberOfThreads() const { return mSimulationParameters.Common.MaxNumberOfThreads; }
+
     float GetClassicSimulatorSpringStiffnessCoefficient() const { return mSimulationParameters.ClassicSimulator.SpringStiffnessCoefficient; }
     void SetClassicSimulatorSpringStiffnessCoefficient(float value) { mSimulationParameters.ClassicSimulator.SpringStiffnessCoefficient = value; mIsSimulationStateDirty = true; }
     float GetClassicSimulatorMinSpringStiffnessCoefficient() const { return ClassicSimulatorParameters::MinSpringStiffnessCoefficient; }

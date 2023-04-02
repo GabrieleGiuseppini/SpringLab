@@ -52,7 +52,8 @@ private:
     // Common
     SliderControl<float> * mCommonSimulationTimeStepDurationSlider;
     SliderControl<float> * mCommonMassAdjustmentSlider;
-    SliderControl<float> * mCommonGravityAdjustmentSlider;    
+    SliderControl<float> * mCommonGravityAdjustmentSlider;
+    SliderControl<size_t> * mCommonNumberOfThreadsSlider;
 
     // Classic
     SliderControl<float> * mClassicSimulatorSpringStiffnessSlider;

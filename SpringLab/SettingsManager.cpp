@@ -26,6 +26,7 @@ BaseSettingsManager<SLabSettings>::BaseSettingsManagerFactory SettingsManager::M
     ADD_SETTING(float, CommonSimulationTimeStepDuration);
     ADD_SETTING(float, CommonMassAdjustment);
     ADD_SETTING(float, CommonGravityAdjustment);
+    ADD_SETTING(size_t, CommonNumberOfThreads);
 
     ADD_SETTING(float, ClassicSimulatorSpringStiffnessCoefficient);
     ADD_SETTING(float, ClassicSimulatorSpringDampingCoefficient);

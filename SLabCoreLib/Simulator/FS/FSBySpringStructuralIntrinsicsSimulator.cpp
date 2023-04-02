@@ -54,7 +54,11 @@ void FSBySpringStructuralIntrinsicsSimulator::Update(
     for (size_t i = 0; i < simulationParameters.FSCommonSimulator.NumMechanicalDynamicsIterations; ++i)
     {
         // Apply spring forces
-        ApplySpringsForces(object);
+        ApplySpringsForces(
+            object,
+            mPointSpringForceBuffer.data(),
+            0,
+            object.GetSprings().GetElementCount());
 
         // Integrate spring and external forces,
         // and reset spring forces
@@ -127,7 +131,11 @@ void FSBySpringStructuralIntrinsicsSimulator::CreateState(
     }
 }
 
-void FSBySpringStructuralIntrinsicsSimulator::ApplySpringsForces(Object const & object)
+void FSBySpringStructuralIntrinsicsSimulator::ApplySpringsForces(
+    Object const & object,
+    vec2f * restrict pointSpringForceBuffer,
+    ElementIndex startSpringIndex,
+    ElementCount endSpringIndex)  // Excluded
 {
     // This implementation is for 4-float SSE
 #if !FS_IS_ARCHITECTURE_X86_32() && !FS_IS_ARCHITECTURE_X86_64()
@@ -137,7 +145,6 @@ void FSBySpringStructuralIntrinsicsSimulator::ApplySpringsForces(Object const & 
 
     vec2f const * restrict const pointPositionBuffer = object.GetPoints().GetPositionBuffer();
     vec2f const * restrict const pointVelocityBuffer = object.GetPoints().GetVelocityBuffer();
-    vec2f * restrict const pointSpringForceBuffer = mPointSpringForceBuffer.data();
 
     Springs::Endpoints const * restrict const endpointsBuffer = object.GetSprings().GetEndpointsBuffer();
     float const * restrict const restLengthBuffer = object.GetSprings().GetRestLengthBuffer();
@@ -145,18 +152,17 @@ void FSBySpringStructuralIntrinsicsSimulator::ApplySpringsForces(Object const & 
     float const * restrict const dampingCoefficientBuffer = mSpringDampingCoefficientBuffer.data();
 
     __m128 const Zero = _mm_setzero_ps();
-
-    ElementCount const springCount = object.GetSprings().GetElementCount();
-    ElementCount const springVectorizedCount = springCount - (springCount % 4);
-    ElementIndex s = 0;
-
     aligned_to_vword vec2f tmpSpringForces[4];
+
+    ElementIndex s = startSpringIndex;
 
     //
     // 1. Perfect squares
     //
+
+    ElementCount const endSpringIndexPerfectSquare = std::min(endSpringIndex, mSpringPerfectSquareCount);
     
-    for (; s < mSpringPerfectSquareCount; s += 4)
+    for (; s < endSpringIndexPerfectSquare; s += 4)
     {
         // XMM register notation:
         //   low (left, or top) -> height (right, or bottom)
@@ -382,7 +388,9 @@ void FSBySpringStructuralIntrinsicsSimulator::ApplySpringsForces(Object const & 
     // 2. Remaining four-by-four's
     //
 
-    for (; s < springVectorizedCount; s += 4)
+    ElementCount const endSpringIndexVectorized = endSpringIndex - (endSpringIndex % 4);
+
+    for (; s < endSpringIndexVectorized; s += 4)
     {
         // Spring 0 displacement (s0_position.x, s0_position.y, *, *)
         __m128 const s0pa_pos_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointPositionBuffer + endpointsBuffer[s + 0].PointAIndex)));
@@ -587,7 +595,7 @@ void FSBySpringStructuralIntrinsicsSimulator::ApplySpringsForces(Object const & 
     // 3. One-by-one
     //
 
-    for (; s < springCount; ++s)
+    for (; s < endSpringIndex; ++s)
     {
         auto const pointAIndex = endpointsBuffer[s].PointAIndex;
         auto const pointBIndex = endpointsBuffer[s].PointBIndex;

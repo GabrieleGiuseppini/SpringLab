@@ -103,6 +103,8 @@ set  (SIMULATOR_FS_SOURCES
 	Simulator/FS/FSBySpringIntrinsicsSimulator.h
 	Simulator/FS/FSBySpringIntrinsicsLayoutOptimizationSimulator.cpp
 	Simulator/FS/FSBySpringIntrinsicsLayoutOptimizationSimulator.h
+	Simulator/FS/FSBySpringStructuralIntrinsicsMTSimulator.cpp
+	Simulator/FS/FSBySpringStructuralIntrinsicsMTSimulator.h
 	Simulator/FS/FSBySpringStructuralIntrinsicsSimulator.cpp
 	Simulator/FS/FSBySpringStructuralIntrinsicsSimulator.h
 	Simulator/FS/FSCommonSimulatorParameters.cpp
