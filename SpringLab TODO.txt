@@ -47,9 +47,7 @@ FS 22 - By Point, Compact, Integrating:
 		+ Redo with reciprocals
 			! sqrt 12, (div 11, and 1), (div 11, and 1), sub 4 = 6/40
 			! rsqrt 4, and 1, (mul 4), (mul 4), rec 4, and 1, sub 4 = 7/22 
-	- 13. By Spring, With Structural Intrinsics, Multi-threaded
-		- Move NumThreads to root SimulationParameters
-			- SettingsDialog
+	= 13. By Spring, With Structural Intrinsics, Multi-threaded
 	+ 20. By Point
 	+ 21. By Point, Compact metadata
 	+ 22. By Point, Compact metadata, With integration

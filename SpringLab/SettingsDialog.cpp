@@ -453,20 +453,20 @@ void SettingsDialog::PopulateCommonSimulatorPanel(wxPanel * panel)
             CellBorder);
     }
 
-    // Misc
+    // Computation
     {
-        wxStaticBox * miscBox = new wxStaticBox(panel, wxID_ANY, _("Misc"));
+        wxStaticBox * computationBox = new wxStaticBox(panel, wxID_ANY, _("Computation"));
 
-        wxBoxSizer * miscBoxSizer = new wxBoxSizer(wxVERTICAL);
-        miscBoxSizer->AddSpacer(StaticBoxTopMargin);
+        wxBoxSizer * computationBoxSizer = new wxBoxSizer(wxVERTICAL);
+        computationBoxSizer->AddSpacer(StaticBoxTopMargin);
 
         {
-            wxGridBagSizer * miscSizer = new wxGridBagSizer(0, 0);
+            wxGridBagSizer * computationSizer = new wxGridBagSizer(0, 0);
 
             // NumberOfThreads
             {
                 mCommonNumberOfThreadsSlider = new SliderControl<size_t>(
-                    miscBox,
+                    computationBox,
                     SliderWidth,
                     SliderHeight,
                     "Number of Threads",
@@ -480,7 +480,7 @@ void SettingsDialog::PopulateCommonSimulatorPanel(wxPanel * panel)
                         mSimulationController->GetCommonMinNumberOfThreads(),
                         mSimulationController->GetCommonMaxNumberOfThreads()));
 
-                miscSizer->Add(
+                computationSizer->Add(
                     mCommonNumberOfThreadsSlider,
                     wxGBPosition(0, 0),
                     wxGBSpan(1, 1),
@@ -488,13 +488,13 @@ void SettingsDialog::PopulateCommonSimulatorPanel(wxPanel * panel)
                     CellBorder);
             }
 
-            miscBoxSizer->Add(miscSizer, 0, wxALL, StaticBoxInsetMargin);
+            computationBoxSizer->Add(computationSizer, 0, wxALL, StaticBoxInsetMargin);
         }
 
-        miscBox->SetSizerAndFit(miscBoxSizer);
+        computationBox->SetSizerAndFit(computationBoxSizer);
 
         gridSizer->Add(
-            miscBox,
+            computationBox,
             wxGBPosition(0, 4),
             wxGBSpan(1, 1),
             wxEXPAND | wxALL | wxALIGN_CENTER_HORIZONTAL,

@@ -32,7 +32,7 @@ struct CommonSimulatorParameters
     static float constexpr MinGravityAdjustment = 0.0f;
     static float constexpr MaxGravityAdjustment = 1000.0f;
 
-    // Multi-threading
+    // Computation
 
     size_t NumberOfThreads;
     static size_t constexpr MinNumberOfThreads = 1;
