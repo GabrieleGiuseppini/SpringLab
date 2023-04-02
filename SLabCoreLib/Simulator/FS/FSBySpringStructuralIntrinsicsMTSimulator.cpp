@@ -29,6 +29,7 @@ void FSBySpringStructuralIntrinsicsMTSimulator::CreateState(
     // Clear threading state
     mThreadPool.reset();
     mSpringSpansPerThread.clear();
+    mAdditionalPointSpringForceBuffers.clear();
 
     // Number of 4-spring blocks per thread
     assert(simulationParameters.Common.NumberOfThreads > 0);
@@ -44,6 +45,7 @@ void FSBySpringStructuralIntrinsicsMTSimulator::CreateState(
         for (size_t t = 0; t < numThreads - 1; ++t)
         {
             mSpringSpansPerThread.emplace_back(consumedSprings, consumedSprings + numberOfFourSpringsPerThread * 4);
+            mAdditionalPointSpringForceBuffers.emplace_back(object.GetPoints().GetBufferElementCount(), 0, vec2f::zero()); // Note: in theory this is for the next thread
             consumedSprings += numberOfFourSpringsPerThread * 4;
         }
 
@@ -71,10 +73,44 @@ void FSBySpringStructuralIntrinsicsMTSimulator::CreateState(
 void FSBySpringStructuralIntrinsicsMTSimulator::ApplySpringsForces(
     Object const & object)
 {
+    //
+    // Run algo
+    //
+
+    std::vector<TaskThreadPool::Task> tasks;
+
+    for (size_t t = 0; t < mThreadPool->GetNumberOfThreads(); ++t)
+    {
+        vec2f * restrict pointSpringForceBuffer = (t == 0)
+            ? mPointSpringForceBuffer.data()
+            : mAdditionalPointSpringForceBuffers[t - 1].data();
+
+        tasks.emplace_back(
+            [this, &object, pointSpringForceBuffer, springStart = std::get<0>(mSpringSpansPerThread[t]), springEnd = std::get<1>(mSpringSpansPerThread[t])]()
+            {
+                FSBySpringStructuralIntrinsicsSimulator::ApplySpringsForces(
+                    object,
+                    pointSpringForceBuffer,
+                    springStart,
+                    springEnd);
+            }
+        );
+    }
+
+    mThreadPool->Run(tasks);
+
+    //
+    // Add additional spring forces to main spring force buffer
+    //
+
     // TODOHERE
-    FSBySpringStructuralIntrinsicsSimulator::ApplySpringsForces(
-        object,
-        mPointSpringForceBuffer.data(),
-        0,
-        object.GetSprings().GetElementCount());
+
+    //
+    // Clear additional spring force buffers
+    //
+
+    for (auto & buf : mAdditionalPointSpringForceBuffers)
+    {
+        buf.fill(vec2f::zero());
+    }
 }

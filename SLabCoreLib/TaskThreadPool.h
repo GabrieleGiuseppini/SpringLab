@@ -29,6 +29,11 @@ public:
 
     ~TaskThreadPool();
 
+    size_t GetNumberOfThreads() const
+    {
+        return mThreads.size() + 1;
+    }
+
     /*
      * The first task is guaranteed to run on the main thread.
      */
