@@ -44,7 +44,7 @@ in float pointFrozen;
 void main()
 {
     float d1 = distance(vertexSpacePosition, vec2(.0, .0));
-    float alpha = 1.0 - smoothstep(0.85, 1.0, d1);
+    float alpha = 1.0 - smoothstep(0.9, 1.0, d1);
 
     float d2 = distance(vertexSpacePosition, vec2(-0.3, 0.3));
     float reflectionRegion = 1.0 - smoothstep(0.0, 0.5, d2);

@@ -148,7 +148,8 @@ void RenderContext::RenderStart()
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
     // Clear canvas - and depth buffer
-    vec3f constexpr ClearColor = rgbColor(0xca, 0xf4, 0xf4).toVec3f();
+    //vec3f constexpr ClearColor = rgbColor(0xca, 0xf4, 0xf4).toVec3f();
+    vec3f constexpr ClearColor = rgbColor(0xff, 0xff, 0xff).toVec3f();
     glClearColor(ClearColor.x, ClearColor.y, ClearColor.z, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 

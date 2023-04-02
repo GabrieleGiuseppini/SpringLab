@@ -61,6 +61,9 @@ FS 22 - By Point, Compact, Integrating:
 		+ Fix frozen
 		+ See infinite oscillations
 		- Nail down params for better rigidity
+		- Add bending constraints
+			- Or not: after all they seems to only be useful in 3D when there are no springs constraining the bend...
+			- But could still try and come up with constraints on the angles between each pair of springs incident to the same vertex
 
 	- ProjectiveTODO/with Eigen
 	
