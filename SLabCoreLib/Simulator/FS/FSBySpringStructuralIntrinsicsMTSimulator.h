@@ -7,11 +7,14 @@
 
 #include "FSBySpringStructuralIntrinsicsSimulator.h"
 
+#include "Buffer.h"
 #include "Simulator/Common/ISimulator.h"
+#include "TaskThreadPool.h"
+#include "Vectors.h"
 
 #include <memory>
 #include <string>
-#include <utility>
+#include <vector>
 
 /*
  * Simulator implementing the same spring relaxation algorithm
@@ -39,4 +42,18 @@ public:
             object,
             simulationParameters)
     {}
+
+    void OnStateChanged(
+        Object const & object,
+        SimulationParameters const & simulationParameters) override;
+
+private:
+
+    void ApplySpringsForces(
+        Object const & object) override;
+
+private:
+
+    std::unique_ptr<TaskThreadPool> mThreadPool;
+    std::vector<Buffer<vec2f>> mAdditionalPointSpringForceBuffers;
 };

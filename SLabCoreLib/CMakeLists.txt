@@ -67,6 +67,8 @@ set  (SOURCES
 	StructuralMaterialDatabase.h
 	StructuralMaterial.cpp
 	SysSpecifics.h
+	TaskThreadPool.cpp
+	TaskThreadPool.h
 	Utils.cpp
 	Utils.h	
 	Vectors.cpp

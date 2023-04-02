@@ -51,11 +51,14 @@ public:
         float currentSimulationTime,
         SimulationParameters const & simulationParameters) override;
 
-private:
+protected:
 
     void CreateState(
         Object const & object,
         SimulationParameters const & simulationParameters);
+
+    virtual void ApplySpringsForces(
+        Object const & object);
 
     void ApplySpringsForces(
         Object const & object,
@@ -67,7 +70,7 @@ private:
         Object & object,
         SimulationParameters const & simulationParameters);
 
-private:
+protected:
 
     //
     // Point buffers

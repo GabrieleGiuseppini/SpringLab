@@ -6,3 +6,23 @@
 #include "FSBySpringStructuralIntrinsicsMTSimulator.h"
 
 #include "Log.h"
+
+void FSBySpringStructuralIntrinsicsMTSimulator::OnStateChanged(
+    Object const & object,
+    SimulationParameters const & simulationParameters)
+{
+    FSBySpringStructuralIntrinsicsSimulator::OnStateChanged(object, simulationParameters);
+
+    // TODOHERE
+}
+
+void FSBySpringStructuralIntrinsicsMTSimulator::ApplySpringsForces(
+    Object const & object)
+{
+    // TODOHERE
+    FSBySpringStructuralIntrinsicsSimulator::ApplySpringsForces(
+        object,
+        mPointSpringForceBuffer.data(),
+        0,
+        object.GetSprings().GetElementCount());
+}

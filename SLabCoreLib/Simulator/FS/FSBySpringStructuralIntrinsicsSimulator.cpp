@@ -54,11 +54,7 @@ void FSBySpringStructuralIntrinsicsSimulator::Update(
     for (size_t i = 0; i < simulationParameters.FSCommonSimulator.NumMechanicalDynamicsIterations; ++i)
     {
         // Apply spring forces
-        ApplySpringsForces(
-            object,
-            mPointSpringForceBuffer.data(),
-            0,
-            object.GetSprings().GetElementCount());
+        ApplySpringsForces(object);
 
         // Integrate spring and external forces,
         // and reset spring forces
@@ -129,6 +125,16 @@ void FSBySpringStructuralIntrinsicsSimulator::CreateState(
             * massFactor
             / dt;
     }
+}
+
+void FSBySpringStructuralIntrinsicsSimulator::ApplySpringsForces(
+    Object const & object)
+{
+    ApplySpringsForces(
+        object,
+        mPointSpringForceBuffer.data(),
+        0,
+        object.GetSprings().GetElementCount());
 }
 
 void FSBySpringStructuralIntrinsicsSimulator::ApplySpringsForces(
