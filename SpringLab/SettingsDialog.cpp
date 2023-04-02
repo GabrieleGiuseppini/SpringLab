@@ -495,7 +495,7 @@ void SettingsDialog::PopulateCommonSimulatorPanel(wxPanel * panel)
 
         gridSizer->Add(
             miscBox,
-            wxGBPosition(0, 0),
+            wxGBPosition(0, 4),
             wxGBSpan(1, 1),
             wxEXPAND | wxALL | wxALIGN_CENTER_HORIZONTAL,
             CellBorder);

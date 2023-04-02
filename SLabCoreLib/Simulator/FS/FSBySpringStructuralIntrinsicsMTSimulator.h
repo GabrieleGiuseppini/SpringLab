@@ -37,17 +37,13 @@ public:
 
     FSBySpringStructuralIntrinsicsMTSimulator(
         Object const & object,
-        SimulationParameters const & simulationParameters)
-        : FSBySpringStructuralIntrinsicsSimulator(
-            object,
-            simulationParameters)
-    {}
-
-    void OnStateChanged(
-        Object const & object,
-        SimulationParameters const & simulationParameters) override;
+        SimulationParameters const & simulationParameters);
 
 private:
+
+    virtual void CreateState(
+        Object const & object,
+        SimulationParameters const & simulationParameters) override;
 
     void ApplySpringsForces(
         Object const & object) override;
@@ -55,5 +51,7 @@ private:
 private:
 
     std::unique_ptr<TaskThreadPool> mThreadPool;
+    std::vector<std::tuple<ElementIndex, ElementCount>> mSpringSpansPerThread;
+
     std::vector<Buffer<vec2f>> mAdditionalPointSpringForceBuffers;
 };

@@ -53,7 +53,7 @@ public:
 
 protected:
 
-    void CreateState(
+    virtual void CreateState(
         Object const & object,
         SimulationParameters const & simulationParameters);
 

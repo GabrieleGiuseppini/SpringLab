@@ -48,6 +48,8 @@ FS 22 - By Point, Compact, Integrating:
 			! sqrt 12, (div 11, and 1), (div 11, and 1), sub 4 = 6/40
 			! rsqrt 4, and 1, (mul 4), (mul 4), rec 4, and 1, sub 4 = 7/22 
 	- 13. By Spring, With Structural Intrinsics, Multi-threaded
+		- Move NumThreads to root SimulationParameters
+			- SettingsDialog
 	+ 20. By Point
 	+ 21. By Point, Compact metadata
 	+ 22. By Point, Compact metadata, With integration
@@ -61,6 +63,7 @@ FS 22 - By Point, Compact, Integrating:
 		+ Fix frozen
 		+ See infinite oscillations
 		- Nail down params for better rigidity
+		- See if correctly re-using output of earlier iteration
 		- Add bending constraints
 			- Or not: after all they seems to only be useful in 3D when there are no springs constraining the bend...
 			- But could still try and come up with constraints on the angles between each pair of springs incident to the same vertex
