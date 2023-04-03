@@ -111,20 +111,18 @@ void FSBySpringStructuralIntrinsicsMTSimulator::ApplySpringsForces(
     // Add additional spring forces to main spring force buffer
     //
 
-    (void)object;
+    vec2f * restrict pointSpringForceBuffer = mPointSpringForceBuffer.data();
+    ElementCount const pointCount = object.GetPoints().GetElementCount();
+    for (ElementIndex p = 0; p < pointCount; ++p)
+    {
+        vec2f springForce = pointSpringForceBuffer[p];
+        for (size_t a = 0; a < mAdditionalPointSpringForceBuffers.size(); ++a)
+        {
+            springForce += mAdditionalPointSpringForceBuffers[a][p];
+        }
 
-    //vec2f * restrict pointSpringForceBuffer = mPointSpringForceBuffer.data();
-    //ElementCount const pointCount = object.GetPoints().GetElementCount();
-    //for (ElementIndex p = 0; p < pointCount; ++p)
-    //{
-    //    vec2f springForce = pointSpringForceBuffer[p];
-    //    for (size_t a = 0; a < mAdditionalPointSpringForceBuffers.size(); ++a)
-    //    {
-    //        springForce += mAdditionalPointSpringForceBuffers[a][p];
-    //    }
-
-    //    pointSpringForceBuffer[p] = springForce;
-    //}
+        pointSpringForceBuffer[p] = springForce;
+    }
 
     //
     // Clear additional spring force buffers

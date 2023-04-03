@@ -48,8 +48,11 @@ FS 22 - By Point, Compact, Integrating:
 			! sqrt 12, (div 11, and 1), (div 11, and 1), sub 4 = 6/40
 			! rsqrt 4, and 1, (mul 4), (mul 4), rec 4, and 1, sub 4 = 7/22 
 	= 13. By Spring, With Structural Intrinsics, Multi-threaded
-		- Add large ship
+		+ Add large ship
+			+ Add fixed and bending			
+		- Make bar of similar # of springs as Hesleden (38229 points, 150019 springs), with fixed and bending
 		- Check assembly of adding back spring forces - try to make it 4 at a time
+		- Redo all measurements with large ship or bar
 	+ 20. By Point
 	+ 21. By Point, Compact metadata
 	+ 22. By Point, Compact metadata, With integration
