@@ -175,14 +175,16 @@ void ProbeToolbar::OnSimulationReset()
     {
         p.second->Reset();
     }
+
+    mSimulationDurationRunningAverage.Reset(0.0f);
 }
 
 void ProbeToolbar::OnMeasurement(
     float totalKineticEnergy,
     float totalPotentialEnergy,
     std::optional<float> bending,
-    std::chrono::nanoseconds /*lastSimulationDuration*/,
-    std::chrono::nanoseconds avgSimulationDuration)
+    std::chrono::nanoseconds lastSimulationDuration,
+    std::chrono::nanoseconds /*avgSimulationDuration*/)
 {
     // Bending
     if (bending)
@@ -200,13 +202,15 @@ void ProbeToolbar::OnMeasurement(
     
     // Simulation time
     {
-        float const avgSimulationDurationMicroSeconds =
-            static_cast<float>(std::chrono::duration_cast<std::chrono::nanoseconds>(avgSimulationDuration).count())
+        float const lastSimulationDurationMicroSeconds =
+            static_cast<float>(std::chrono::duration_cast<std::chrono::nanoseconds>(lastSimulationDuration).count())
             / 1000.0f;
+
+        mSimulationDurationRunningAverage.Update(lastSimulationDurationMicroSeconds);
 
         std::ostringstream ss;
         ss.fill('0');
-        ss << std::fixed << std::setprecision(2) << avgSimulationDurationMicroSeconds;
+        ss << std::fixed << std::setprecision(2) << mSimulationDurationRunningAverage.GetCurrentAverage();
 
         mLastSimulationDurationTextCtrl->SetValue(ss.str());
     }

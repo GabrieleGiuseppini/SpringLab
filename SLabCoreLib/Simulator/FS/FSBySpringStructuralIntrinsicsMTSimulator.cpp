@@ -28,7 +28,7 @@ void FSBySpringStructuralIntrinsicsMTSimulator::CreateState(
 
     // Clear threading state
     mThreadPool.reset();
-    mSpringSpansPerThread.clear();
+    mSpringRelaxationTasks.clear();
     mAdditionalPointSpringForceBuffers.clear();
 
     // Number of 4-spring blocks per thread
@@ -41,31 +41,59 @@ void FSBySpringStructuralIntrinsicsMTSimulator::CreateState(
     {
         numThreads = simulationParameters.Common.NumberOfThreads;
 
-        ElementCount consumedSprings = 0;
-        for (size_t t = 0; t < numThreads - 1; ++t)
+        ElementIndex springStart = 0;
+        for (size_t t = 0; t < numThreads; ++t)
         {
-            mSpringSpansPerThread.emplace_back(consumedSprings, consumedSprings + numberOfFourSpringsPerThread * 4);
-            mAdditionalPointSpringForceBuffers.emplace_back(object.GetPoints().GetBufferElementCount(), 0, vec2f::zero()); // Note: in theory this is for the next thread
-            consumedSprings += numberOfFourSpringsPerThread * 4;
-        }
+            vec2f * restrict pointSpringForceBuffer;
+            if (t == 0)
+            {
+                // Use the "official" buffer for the first thread
+                pointSpringForceBuffer = mPointSpringForceBuffer.data();
+            }
+            else
+            {
+                // Create helper buffer for this thread
+                mAdditionalPointSpringForceBuffers.emplace_back(object.GetPoints().GetBufferElementCount(), 0, vec2f::zero());
+                pointSpringForceBuffer = mAdditionalPointSpringForceBuffers.back().data();
+            }
 
-        assert(consumedSprings < numberOfSprings);
-        mSpringSpansPerThread.emplace_back(consumedSprings, consumedSprings + (numberOfSprings - consumedSprings));
+            ElementIndex springEnd = (t < numThreads - 1)
+                ? springStart + numberOfFourSpringsPerThread * 4
+                : numberOfSprings;
+
+            mSpringRelaxationTasks.emplace_back(
+                [this, &object, pointSpringForceBuffer, springStart, springEnd]()
+                {
+                    FSBySpringStructuralIntrinsicsSimulator::ApplySpringsForces(
+                        object,
+                        pointSpringForceBuffer,
+                        springStart,
+                        springEnd);
+                });
+            
+            springStart = springEnd;
+        }
     }
     else
     {
         // Not enough, use one thread
         numThreads = 1;
 
-        mSpringSpansPerThread.emplace_back(0, numberOfSprings);
+        vec2f * restrict pointSpringForceBuffer = mPointSpringForceBuffer.data();
+
+        mSpringRelaxationTasks.emplace_back(
+            [this, &object, pointSpringForceBuffer, springStart = 0, springEnd = numberOfSprings]()
+            {
+                FSBySpringStructuralIntrinsicsSimulator::ApplySpringsForces(
+                    object,
+                    pointSpringForceBuffer,
+                    springStart,
+                    springEnd);
+            });
     }
 
     LogMessage("FSBySpringStructuralIntrinsicsMTSimulator: numSprings=", object.GetSprings().GetElementCount(), " springPerfectSquareCount=", mSpringPerfectSquareCount,
         " numberOfFourSpringsPerThread=", numberOfFourSpringsPerThread, " numThreads=", numThreads);
-    for (size_t t = 0; t < numThreads; ++t)
-    {
-        LogMessage("     Thread ", t, ": ", std::get<0>(mSpringSpansPerThread[t]), " -> ", std::get<1>(mSpringSpansPerThread[t]));
-    }
 
     mThreadPool = std::make_unique<TaskThreadPool>(numThreads);
 }
@@ -77,33 +105,26 @@ void FSBySpringStructuralIntrinsicsMTSimulator::ApplySpringsForces(
     // Run algo
     //
 
-    std::vector<TaskThreadPool::Task> tasks;
-
-    for (size_t t = 0; t < mThreadPool->GetNumberOfThreads(); ++t)
-    {
-        vec2f * restrict pointSpringForceBuffer = (t == 0)
-            ? mPointSpringForceBuffer.data()
-            : mAdditionalPointSpringForceBuffers[t - 1].data();
-
-        tasks.emplace_back(
-            [this, &object, pointSpringForceBuffer, springStart = std::get<0>(mSpringSpansPerThread[t]), springEnd = std::get<1>(mSpringSpansPerThread[t])]()
-            {
-                FSBySpringStructuralIntrinsicsSimulator::ApplySpringsForces(
-                    object,
-                    pointSpringForceBuffer,
-                    springStart,
-                    springEnd);
-            }
-        );
-    }
-
-    mThreadPool->Run(tasks);
+    mThreadPool->Run(mSpringRelaxationTasks);
 
     //
     // Add additional spring forces to main spring force buffer
     //
 
-    // TODOHERE
+    (void)object;
+
+    //vec2f * restrict pointSpringForceBuffer = mPointSpringForceBuffer.data();
+    //ElementCount const pointCount = object.GetPoints().GetElementCount();
+    //for (ElementIndex p = 0; p < pointCount; ++p)
+    //{
+    //    vec2f springForce = pointSpringForceBuffer[p];
+    //    for (size_t a = 0; a < mAdditionalPointSpringForceBuffers.size(); ++a)
+    //    {
+    //        springForce += mAdditionalPointSpringForceBuffers[a][p];
+    //    }
+
+    //    pointSpringForceBuffer[p] = springForce;
+    //}
 
     //
     // Clear additional spring force buffers

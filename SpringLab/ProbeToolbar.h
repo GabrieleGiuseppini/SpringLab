@@ -8,6 +8,7 @@
 #include "UIControls/ScalarTimeSeriesProbeControl.h"
 
 #include <SLabCoreLib/ISimulationEventHandler.h>
+#include <SLabCoreLib/RunningAverage.h>
 
 #include <wx/sizer.h>
 #include <wx/textctrl.h>
@@ -73,4 +74,6 @@ private:
     std::unique_ptr<ScalarTimeSeriesProbeControl> mKineticEnergyProbe;
     std::unique_ptr<ScalarTimeSeriesProbeControl> mPotentialEnergyProbe;
     std::unordered_map<std::string, std::unique_ptr<ScalarTimeSeriesProbeControl>> mCustomProbes;
+
+    RunningAverage<64> mSimulationDurationRunningAverage;
 };

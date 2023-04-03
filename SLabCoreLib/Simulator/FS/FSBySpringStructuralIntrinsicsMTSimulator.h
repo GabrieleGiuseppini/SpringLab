@@ -51,7 +51,7 @@ private:
 private:
 
     std::unique_ptr<TaskThreadPool> mThreadPool;
-    std::vector<std::tuple<ElementIndex, ElementCount>> mSpringSpansPerThread;
+    std::vector<TaskThreadPool::Task> mSpringRelaxationTasks;
 
     std::vector<Buffer<vec2f>> mAdditionalPointSpringForceBuffers; // One less the number of threads
 };

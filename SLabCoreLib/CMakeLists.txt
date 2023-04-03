@@ -40,6 +40,7 @@ set  (SOURCES
 	RenderContext.cpp
 	RenderContext.h
 	ResourceLocator.h
+	RunningAverage.h
 	Settings.cpp
 	Settings.h
 	ShaderManager.cpp
