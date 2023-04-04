@@ -60,7 +60,7 @@ void TaskThreadPool::Run(std::vector<Task> const & tasks)
 
         for (size_t t = 1; t < tasks.size(); ++t)
         {
-            mRemainingTasks.push_back(tasks[t]);
+            mRemainingTasks.push_back(&(tasks[t]));
         }
 
         mTasksToComplete = mRemainingTasks.size();
@@ -159,18 +159,18 @@ void TaskThreadPool::RunRemainingTasksLoop()
         // De-queue a task
         //
 
-        Task task;
+        Task const * task = nullptr;
         {
             std::unique_lock const lock{ mLock };
 
             if (!mRemainingTasks.empty())
             {
-                task = std::move(mRemainingTasks.front());
+                task = mRemainingTasks.front();
                 mRemainingTasks.pop_front();
             }
         }
 
-        if (!task)
+        if (task == nullptr)
         {
             // No more tasks
             return;
@@ -180,7 +180,7 @@ void TaskThreadPool::RunRemainingTasksLoop()
         // Run the task
         //
 
-        RunTask(task);
+        RunTask(*task);
 
         //
         // Signal task completion

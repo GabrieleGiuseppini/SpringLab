@@ -52,6 +52,14 @@ FS 22 - By Point, Compact, Integrating:
 			+ Add fixed and bending			
 		- Make bar of similar # of springs as Hesleden (38229 points, 150019 springs), with fixed and bending
 		- Check assembly of adding back spring forces - try to make it 4 at a time
+		- TaskThreadPool:
+			+ Pass *pointers* to tasks
+			- Different locking: threads access own task without locking?
+			- Test with original, small bar
+				+ Start:
+					- 1t: 160-170
+					- 2t: 210-220
+					- 4t: 280-290
 		- Redo all measurements with large ship or bar
 	+ 20. By Point
 	+ 21. By Point, Compact metadata

@@ -72,7 +72,7 @@ private:
 
     // The tasks currently awaiting to be picked up;
     // expected to be empty at each Run invocation
-    std::deque<Task> mRemainingTasks;
+    std::deque<Task const *> mRemainingTasks;
 
     // The number of tasks awaiting for completion
     size_t mTasksToComplete;
