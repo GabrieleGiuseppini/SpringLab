@@ -125,9 +125,7 @@ void FSBySpringStructuralIntrinsicsMTSimulator::ApplySpringsForces(
 #endif    
     static_assert(vectorization_float_count<int> == 4);
 
-    // TODOHERE
-
-    vec2f * restrict pointSpringForceBuffer = mPointSpringForceBuffer.data();
+    vec2f * const restrict pointSpringForceBuffer = mPointSpringForceBuffer.data();
     ElementCount const pointCount = object.GetPoints().GetElementCount();
     assert(pointCount % vectorization_float_count<ElementCount> == 0);
     for (ElementIndex p = 0; p < pointCount; p += 2)
