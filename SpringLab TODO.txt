@@ -57,7 +57,7 @@ FS 12 - By Springs, Structural Intrinsics, MT
 		- 3 threads:
 			- CPU: 10,700us
 		- 4 threads:
-			- CPU:	9,900us	
+			- CPU:	9,900us	- 9,500us (4 forces at a time)
 		- 8 threads:
 			- CPU: 10,600us
 FS 20 - By Point:
@@ -112,10 +112,12 @@ FS 22 - By Point, Compact, Integrating:
 			+ Add fixed and bending			
 		+ Make bar of similar # of springs as Hesleden (38229 points, 150019 springs), with fixed and bending
 			+ 544x68(8)
-		- Check assembly of adding back spring forces - try to make it 4 at a time
+		= Check assembly of adding back spring forces - try to make it 4 at a time
+			- Test all force buffers interleaved in same buffer
 		- TaskThreadPool:
 			+ Pass *pointers* to tasks
 			- Different locking: threads access own task without locking?
+				- TODOHERE
 			- Test with original, small bar
 				+ Start:
 					- 1t: 160-170
@@ -127,10 +129,6 @@ FS 22 - By Point, Compact, Integrating:
 	+ 22. By Point, Compact metadata, With integration
 		+ a. PositionBased
 		+ b. With integration (requires new buffer & swap)
-	- 23. By Point, With Intrinsics
-	- 24. By Point, With Intrinsics, Layout Optimized
-	- 25. By Point, With Intrinsics, Layout Optimized, Multi-threaded
-
 	= Position-Based, Basic (Muller)
 		+ Fix frozen
 		+ See infinite oscillations
@@ -142,8 +140,8 @@ FS 22 - By Point, Compact, Integrating:
 
 	- ProjectiveTODO/with Eigen
 	
-	- Notes:
-		- When integration is...integrated, it might fare worse because we do double the number of fp operations
+	! Notes:
+		! When integration is...integrated, it might fare worse because we do double the number of fp operations
 
 
 ####################################################################################################

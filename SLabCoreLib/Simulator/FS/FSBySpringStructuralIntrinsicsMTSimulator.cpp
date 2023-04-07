@@ -128,15 +128,19 @@ void FSBySpringStructuralIntrinsicsMTSimulator::ApplySpringsForces(
     vec2f * const restrict pointSpringForceBuffer = mPointSpringForceBuffer.data();
     ElementCount const pointCount = object.GetPoints().GetElementCount();
     assert(pointCount % vectorization_float_count<ElementCount> == 0);
-    for (ElementIndex p = 0; p < pointCount; p += 2)
+    for (ElementIndex p = 0; p < pointCount; p += 4)
     {
-        __m128 pointForce = _mm_load_ps(reinterpret_cast<float const * restrict>(pointSpringForceBuffer + p));
+        __m128 pointForce1 = _mm_load_ps(reinterpret_cast<float const * restrict>(pointSpringForceBuffer + p));
+        __m128 pointForce2 = _mm_load_ps(reinterpret_cast<float const * restrict>(pointSpringForceBuffer + p + 2));
         for (size_t a = 0; a < mAdditionalPointSpringForceBuffers.size(); ++a)
         {
-            __m128 const addlForce = _mm_load_ps(reinterpret_cast<float const * restrict>(&(mAdditionalPointSpringForceBuffers[a][p])));
-            pointForce = _mm_add_ps(pointForce, addlForce);
+            __m128 const addlForce1 = _mm_load_ps(reinterpret_cast<float const * restrict>(&(mAdditionalPointSpringForceBuffers[a][p])));
+            __m128 const addlForce2 = _mm_load_ps(reinterpret_cast<float const * restrict>(&(mAdditionalPointSpringForceBuffers[a][p + 2])));
+            pointForce1 = _mm_add_ps(pointForce1, addlForce1);
+            pointForce2 = _mm_add_ps(pointForce2, addlForce2);
         }
 
-        _mm_store_ps(reinterpret_cast<float * restrict>(pointSpringForceBuffer + p), pointForce);
+        _mm_store_ps(reinterpret_cast<float * restrict>(pointSpringForceBuffer + p), pointForce1);
+        _mm_store_ps(reinterpret_cast<float * restrict>(pointSpringForceBuffer + p + 2), pointForce2);
     }
 }
