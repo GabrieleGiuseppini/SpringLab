@@ -9,7 +9,8 @@
 
 #include "Buffer.h"
 #include "Simulator/Common/ISimulator.h"
-#include "TaskThreadPool.h"
+// TODOTEST
+#include "ParallelThreadPool.h"
 #include "Vectors.h"
 
 #include <memory>
@@ -50,8 +51,8 @@ private:
 
 private:
 
-    std::unique_ptr<TaskThreadPool> mThreadPool;
-    std::vector<TaskThreadPool::Task> mSpringRelaxationTasks;
+    std::unique_ptr<ParallelThreadPool> mThreadPool;
+    std::vector<ParallelThreadPool::Task> mSpringRelaxationTasks;
 
     std::vector<Buffer<vec2f>> mAdditionalPointSpringForceBuffers; // One less the number of threads
 };

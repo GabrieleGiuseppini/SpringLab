@@ -34,6 +34,8 @@ set  (SOURCES
 	ObjectDefinition.cpp
 	ObjectDefinition.h
 	ObjectSimulatorSpecificStructure.h
+	ParallelThreadPool.cpp
+	ParallelThreadPool.h
 	PerfStats.h
 	Points.cpp
 	Points.h

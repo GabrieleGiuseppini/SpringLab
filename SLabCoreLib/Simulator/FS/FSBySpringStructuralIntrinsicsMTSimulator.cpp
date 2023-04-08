@@ -104,7 +104,7 @@ void FSBySpringStructuralIntrinsicsMTSimulator::CreateState(
     LogMessage("FSBySpringStructuralIntrinsicsMTSimulator: numSprings=", object.GetSprings().GetElementCount(), " springPerfectSquareCount=", mSpringPerfectSquareCount,
         " numberOfFourSpringsPerThread=", numberOfFourSpringsPerThread, " numThreads=", numThreads);
 
-    mThreadPool = std::make_unique<TaskThreadPool>(numThreads);
+    mThreadPool = std::make_unique<ParallelThreadPool>(numThreads);
 }
 
 void FSBySpringStructuralIntrinsicsMTSimulator::ApplySpringsForces(
