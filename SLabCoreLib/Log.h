@@ -20,6 +20,12 @@
 #include <sstream>
 #include <string>
 
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
+#include <Windows.h>
+#endif
+
 namespace /* anonymous */ {
 
 	template<typename T>
@@ -123,6 +129,11 @@ public:
 		}
 
         // Output
+
+#ifdef _WIN32
+        ::OutputDebugStringA(message.c_str());
+#endif
+
         std::cout << message << std::endl;
 	}
 
