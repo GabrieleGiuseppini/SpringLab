@@ -13,11 +13,10 @@
 ParallelThreadPool::ParallelThreadPool(size_t parallelism)
     : mLock()
     , mThreads()
-    , mTasks(parallelism - 1, nullptr)
+    , mTasks(parallelism - 1, std::nullopt)
     , mNewTasksAvailableSignal()
-    , mTasksCompletedSignal()
-    , mEndOfTaskLoopSignal()
     , mTasksToComplete(0)
+    , mTasksCompletedSignal()
     , mIsStop(false)
 {
     assert(parallelism > 0);
@@ -55,6 +54,7 @@ void ParallelThreadPool::Run(std::vector<Task> const & tasks)
     assert(!mIsStop);
 
     // Queue all tasks that may run on our threads - padding with null's
+
     size_t const queuedTasks = std::min(tasks.size() - 1, mThreads.size());
     for (size_t t = 0; t < mThreads.size(); ++t)
     {
@@ -69,8 +69,7 @@ void ParallelThreadPool::Run(std::vector<Task> const & tasks)
     }
 
     // Signal that there are tasks available
-    // TODO: need assurance that all threads are waiting!
-    // TODO: might have them wait after decreasing semaphore, before restarting wait
+
     {
         std::unique_lock lock{ mLock };
 
@@ -80,12 +79,14 @@ void ParallelThreadPool::Run(std::vector<Task> const & tasks)
     mNewTasksAvailableSignal.notify_all();
 
     // Run all tasks that have to run on main thread
+
     for (size_t t = 0; t < tasks.size() - queuedTasks; ++t)
     {
         tasks[t]();
     }
 
     // Wait until all tasks are completed
+
     {
         std::unique_lock lock{ mLock };
 
@@ -99,9 +100,6 @@ void ParallelThreadPool::Run(std::vector<Task> const & tasks)
 
         assert(0 == mTasksToComplete);
     }
-
-    // TODOTEST
-    mEndOfTaskLoopSignal.notify_all();
 }
 
 void ParallelThreadPool::ThreadLoop(size_t t)
@@ -118,16 +116,17 @@ void ParallelThreadPool::ThreadLoop(size_t t)
 
     while (true)
     {
-        // Wait for tasks (or stop)
+        // Wait for our task (or stop)
+        Task const * task;
         {
             std::unique_lock lock{ mLock };
 
             // Wait for signal
             mNewTasksAvailableSignal.wait(
                 lock,
-                [this]
+                [this, t]
                 {
-                    return mIsStop || mTasksToComplete > 0;
+                    return mIsStop || mTasks[t].has_value();
                 });
 
             if (mIsStop)
@@ -135,10 +134,12 @@ void ParallelThreadPool::ThreadLoop(size_t t)
                 // We're done!
                 break;
             }
+
+            task = *(mTasks[t]);
+            mTasks[t].reset(); // Consume task
         }
 
         // Run our task
-        Task const * task = mTasks[t];
         if (task)
         {
             // TODOTEST: verify how expensive to try/catch
@@ -170,9 +171,6 @@ void ParallelThreadPool::ThreadLoop(size_t t)
             {
                 mTasksCompletedSignal.notify_all();
             }
-
-            // TODOTEST
-            mEndOfTaskLoopSignal.wait(lock);
         }
     }
 }

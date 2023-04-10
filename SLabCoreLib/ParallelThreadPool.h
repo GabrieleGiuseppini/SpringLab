@@ -9,6 +9,7 @@
 #include <condition_variable>
 #include <functional>
 #include <mutex>
+#include <optional>
 #include <thread>
 #include <vector>
 
@@ -50,20 +51,19 @@ private:
     // Our threads
     std::vector<std::thread> mThreads;
 
-    // The tasks currently awaiting to be picked up by each thread
-    std::vector<Task const *> mTasks;
+    // The tasks currently awaiting to be picked up by each thread;
+    // set by main thread, cleared by each thread
+    std::vector<std::optional<Task const *>> mTasks;
 
     // The condition variable to wake up threads when new tasks are ready
     std::condition_variable mNewTasksAvailableSignal;
 
+    // The number of tasks awaiting for completion; 
+    // set by main thread, decreased by each thread, awaited by main thread
+    size_t mTasksToComplete;
+
     // The condition variable to wake up the main thread when all tasks are completed
     std::condition_variable mTasksCompletedSignal;
-
-    // TODOTEST: the condition variable to sync the end of a loop
-    std::condition_variable mEndOfTaskLoopSignal;
-
-    // The number of tasks awaiting for completion
-    size_t mTasksToComplete;
 
     // Set to true when have to stop
     bool mIsStop;

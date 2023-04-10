@@ -51,15 +51,15 @@ FS 12 - By Springs, Structural Intrinsics, MT
 	- 544x68_bending_test
 		- Bending: 186-189
 		- 1 thread:
-			- CPU: 16,700us		
+			- CPU: 16,700us	- 16,600us (new tpool)
 		- 2 threads:
-			- CPU: 12,550us
+			- CPU: 12,550us - 12,500us (new tpool)
 		- 3 threads:
-			- CPU: 10,700us
+			- CPU: 10,700us - 10,400us (new tpool)
 		- 4 threads:
-			- CPU:	9,900us	- 9,500us (4 forces at a time)
+			- CPU:	9,900us	- 9,500us (4 forces at a time) - 9,700us (new tpool)
 		- 8 threads:
-			- CPU: 10,600us
+			- CPU: 10,600us - 10,600us (new tpool)
 FS 20 - By Point:
 	- 80x5_bending_test
 		- Bending: 20
@@ -116,13 +116,17 @@ FS 22 - By Point, Compact, Integrating:
 			- Test all force buffers interleaved in same buffer
 		- TaskThreadPool:
 			+ Pass *pointers* to tasks
-			- Different locking: threads access own task without locking?
-				- TODOHERE
-			- Test with original, small bar
+			+ Different locking: threads access own task without locking?
+			= Test with original, small bar
 				+ Start:
 					- 1t: 160-170
 					- 2t: 210-220
 					- 4t: 280-290
+				- Then:
+					- 1t: 160-170
+					- 2t: 930-980
+					- 4t: 1380-1420
+			- Re-test with older pool, and decide whether it really pays off to use new one
 		+ Redo all measurements (above) with large bar
 	+ 20. By Point
 	+ 21. By Point, Compact metadata
