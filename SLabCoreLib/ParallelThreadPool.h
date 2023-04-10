@@ -53,7 +53,7 @@ private:
 
     // The tasks currently awaiting to be picked up by each thread;
     // set by main thread, cleared by each thread
-    std::vector<std::optional<Task const *>> mTasks;
+    std::vector<Task const *> mTasks;
 
     // The condition variable to wake up threads when new tasks are ready
     std::condition_variable mNewTasksAvailableSignal;

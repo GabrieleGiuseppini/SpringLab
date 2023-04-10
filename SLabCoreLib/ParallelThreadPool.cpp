@@ -13,7 +13,7 @@
 ParallelThreadPool::ParallelThreadPool(size_t parallelism)
     : mLock()
     , mThreads()
-    , mTasks(parallelism - 1, std::nullopt)
+    , mTasks(parallelism - 1, nullptr)
     , mNewTasksAvailableSignal()
     , mTasksToComplete(0)
     , mTasksCompletedSignal()
@@ -73,7 +73,7 @@ void ParallelThreadPool::Run(std::vector<Task> const & tasks)
     {
         std::unique_lock lock{ mLock };
 
-        mTasksToComplete = mThreads.size();        
+        mTasksToComplete = queuedTasks;
     }
 
     mNewTasksAvailableSignal.notify_all();
@@ -126,7 +126,7 @@ void ParallelThreadPool::ThreadLoop(size_t t)
                 lock,
                 [this, t]
                 {
-                    return mIsStop || mTasks[t].has_value();
+                    return mIsStop || mTasks[t] != nullptr;
                 });
 
             if (mIsStop)
@@ -135,8 +135,8 @@ void ParallelThreadPool::ThreadLoop(size_t t)
                 break;
             }
 
-            task = *(mTasks[t]);
-            mTasks[t].reset(); // Consume task
+            task = mTasks[t];
+            mTasks[t] = nullptr; // Consume task
         }
 
         // Run our task
