@@ -140,7 +140,7 @@ void ParallelThreadPool::ThreadLoop(size_t t)
         }
 
         // Run our task
-        if (task)
+        assert(task != nullptr);
         {
             // TODOTEST: verify how expensive to try/catch
             ////try
@@ -160,17 +160,19 @@ void ParallelThreadPool::ThreadLoop(size_t t)
         }
 
         // Signal we're done
+
+        size_t remainingTasksToComplete;
         {
             std::unique_lock lock{ mLock };
             
             assert(mTasksToComplete > 0);
 
-            --mTasksToComplete;
+            remainingTasksToComplete = --mTasksToComplete;
+        }
 
-            if (mTasksToComplete == 0)
-            {
-                mTasksCompletedSignal.notify_all();
-            }
+        if (remainingTasksToComplete == 0)
+        {
+            mTasksCompletedSignal.notify_all();
         }
     }
 }
