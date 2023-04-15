@@ -66,7 +66,7 @@ protected:
         ElementIndex startSpringIndex,
         ElementCount endSpringIndex);  // Excluded
 
-    void IntegrateAndResetSpringForces(
+    virtual void IntegrateAndResetSpringForces(
         Object & object,
         SimulationParameters const & simulationParameters);
 

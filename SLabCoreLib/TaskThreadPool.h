@@ -29,7 +29,7 @@ public:
 
     ~TaskThreadPool();
 
-    size_t GetNumberOfThreads() const
+    size_t GetParallelism() const
     {
         return mThreads.size() + 1;
     }
