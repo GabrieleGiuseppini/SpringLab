@@ -51,6 +51,27 @@
 #define FS_IS_REGISTER_WIDTH_32() 1
 #endif
 
+//
+// OS
+//
+// None defined means "no specific code required"
+//
+
+#define FS_IS_OS_LINUX() 0
+#define FS_IS_OS_MACOS() 0
+#define FS_IS_OS_WINDOWS() 0
+
+#if defined(macintosh) || defined(Macintosh) || (defined(__APPLE__) && defined(__MACH__))
+#undef FS_IS_OS_MACOS
+#define FS_IS_OS_MACOS() 1
+#elif defined(__linux__) || defined(linux) || defined(__linux)
+#undef FS_IS_OS_LINUX
+#define FS_IS_OS_LINUX() 1
+#elif defined(_WIN32) || defined(_WIN64) || defined(__WIN32__)
+#undef FS_IS_OS_WINDOWS
+#define FS_IS_OS_WINDOWS() 1
+#endif
+
 #define restrict __restrict
 
 template<typename T>

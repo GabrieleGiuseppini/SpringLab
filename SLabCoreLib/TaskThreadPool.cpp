@@ -7,8 +7,15 @@
 
 #include "FloatingPoint.h"
 #include "Log.h"
+#include "SysSpecifics.h"
 
 #include <algorithm>
+
+#if FS_IS_OS_WINDOWS()
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
+#include <Windows.h>
+#endif
 
 TaskThreadPool::TaskThreadPool(size_t numberOfThreads)
     : mLock()
@@ -107,6 +114,10 @@ void TaskThreadPool::ThreadLoop()
     //
 
     EnableFloatingPointFlushToZero();
+
+#if FS_IS_OS_WINDOWS()
+    LogMessage("Thread processor: ", GetCurrentProcessorNumber());
+#endif
 
     //
     // Run thread loop until thread pool is destroyed

@@ -17,7 +17,7 @@ FSBySpringStructuralIntrinsicsMTSimulator::FSBySpringStructuralIntrinsicsMTSimul
         simulationParameters)
 {
     // CreateState() from base has been called; our turn now
-    CreateState(object, simulationParameters);
+    InitializeThreadingState(object, simulationParameters);
 }
 
 void FSBySpringStructuralIntrinsicsMTSimulator::CreateState(
@@ -26,6 +26,13 @@ void FSBySpringStructuralIntrinsicsMTSimulator::CreateState(
 {
     FSBySpringStructuralIntrinsicsSimulator::CreateState(object, simulationParameters);
 
+    InitializeThreadingState(object, simulationParameters);
+}
+
+void FSBySpringStructuralIntrinsicsMTSimulator::InitializeThreadingState(
+    Object const & object,
+    SimulationParameters const & simulationParameters)
+{
     // Clear threading state
     mThreadPool.reset();
     mSpringRelaxationTasks.clear();
@@ -72,14 +79,14 @@ void FSBySpringStructuralIntrinsicsMTSimulator::CreateState(
                     {
                         mAdditionalPointSpringForceBuffers[bufIndex].fill(vec2f::zero());
 
-                        FSBySpringStructuralIntrinsicsSimulator::ApplySpringsForces(
-                            object,
-                            mAdditionalPointSpringForceBuffers[bufIndex].data(),
-                            springStart,
-                            springEnd);
+                FSBySpringStructuralIntrinsicsSimulator::ApplySpringsForces(
+                    object,
+                    mAdditionalPointSpringForceBuffers[bufIndex].data(),
+                    springStart,
+                    springEnd);
                     });
             }
-            
+
             springStart = springEnd;
         }
     }

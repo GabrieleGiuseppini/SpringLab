@@ -62,7 +62,7 @@ private:
 
     Buffer<vec2f> mPointSpringForceBuffer;
     Buffer<vec2f> mPointExternalForceBuffer;
-    Buffer<float> mPointIntegrationFactorBuffer; // dt^2/Mass or zero when the point is frozen
+    Buffer<vec2f> mPointIntegrationFactorBuffer; // dt^2/Mass or zero when the point is frozen; identical elements, one for x and one for y
 
 
     //

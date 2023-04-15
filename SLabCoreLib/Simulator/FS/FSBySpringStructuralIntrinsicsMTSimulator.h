@@ -45,6 +45,10 @@ private:
         Object const & object,
         SimulationParameters const & simulationParameters) override;
 
+    void InitializeThreadingState(
+        Object const & object,
+        SimulationParameters const & simulationParameters);
+
     void ApplySpringsForces(
         Object const & object) override;
 

@@ -8,58 +8,58 @@ Classic:
 FS 0 - Base:
 	- 80x5_bending_test
 		- Bending: 20
-		- CPU: 240us (260us | 233us | 240us)
+		- CPU: 220us
 	- 544x68_bending_test
 		- Bending: 186-189
-		- CPU: 28,800us
+		- CPU: 24,900us
 FS 10 - By Springs, With Intrinsics:
 	- 80x5_bending_test
 		- Bending: 20
-		- CPU: 195us (212us | 187us | 193us )
+		- CPU: 180us
 	- 544x68_bending_test
 		- Bending:
-		- CPU: 20,900us
+		- CPU: 21,800us (min: 20,000)
 FS 11 - By Springs, With Intrinsics, Layout Optimized:
 	- 80x5_bending_test
 		- Bending: 20
 		- Optimize 1:
-			- CPU: 195us (when prev was 198us)
+			- CPU: 180us
 		- Optimize 2:
-			- CPU: 193us (189us)
+			- CPU: ?
 	- 544x68_bending_test
 		- Bending:
 		- Optimize 1:
-			- CPU: 23,100
+			- CPU: ?
 FS 12 - By Springs, Structural Intrinsics
 	- 80x5_bending_test
 		- Bending: 20
-		- CPU: 166us (176us)
+		- CPU: 150us (176us)
 	- 544x68_bending_test
 		- Bending:
-		- CPU: 16,200us
-FS 12 - By Springs, Structural Intrinsics, MT
+		- CPU: 15,200us
+FS 13 - By Springs, Structural Intrinsics, MT
 	- 80x5_bending_test
 		- Bending: 20
 		- 1 thread:
-			- CPU: 172us		
+			- CPU: 153us		
 		- 2 threads:
-			- CPU: 188us	
+			- CPU: 160us	
 		- 4 threads:
-			- CPU: 250us		
+			- CPU: 210us		
 		- 8 threads:
-			- CPU: 500us	
+			- CPU: 420us	
 	- 544x68_bending_test
 		- Bending: 186-189
 		- 1 thread:
-			- CPU: 16,700us	- 16,600us (new tpool)
+			- CPU: 15,500us	- 16,000us
 		- 2 threads:
-			- CPU: 12,550us - 12,500us (new tpool)
+			- CPU: 11,200us
 		- 3 threads:
-			- CPU: 10,700us - 10,400us (new tpool)
+			- CPU:  9,500us - 10,500us
 		- 4 threads:
-			- CPU:	9,900us	- 9,500us (4 forces at a time) - 9,700us (new tpool)
+			- CPU:	8,500us
 		- 8 threads:
-			- CPU: 10,600us - 10,600us (new tpool)
+			- CPU:  8,800us
 FS 20 - By Point:
 	- 80x5_bending_test
 		- Bending: 20
@@ -120,7 +120,7 @@ FS 22 - By Point, Compact, Integrating:
 					- 1t: 160-170
 					- 2t: 210-220
 					- 4t: 280-290
-				- Then:
+				X Then:
 					- 1t: 160-170
 					- 2t: 930-980
 					- 4t: 1380-1420
@@ -130,10 +130,18 @@ FS 22 - By Point, Compact, Integrating:
 			! Add is 2%
 			+ Nuke Simulator specialization for two pools - keep TaskThreadPool only
 			= Further ideas for optimizations:
-				- Spin off "...vectorized" out of MT
-				- Integration does both force add & force reset
-					- Replace 1+N-1 buffers with N buffers
-					- Structural Intrinsics: 16.3k -> 
+				= Spin off "...vectorized" out of MT
+					+ Redo integration factor buffer in whole hierarchy, as vec2f of two copies
+					= Verify assembly is now vectorized along whole hierarchy
+						+ Base
+						+ Intrinsics
+						+ IntrinsicsStructural
+						+ IntrinsicsStructuralMTVect_<1>
+						= IntrinsicsStructuralMTVect_<N> TODOHERE: NOT!
+					+ Re-take measurements above
+				= Integration does both force add & force reset
+					= Replace 1+N-1 buffers with N buffers
+					- Add new measurements to above
 				- All force buffers interleaved in same buffer
 					- With inline clear
 		+ Redo all measurements (above) with large bar

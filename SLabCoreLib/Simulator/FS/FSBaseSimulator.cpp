@@ -13,7 +13,7 @@ FSBaseSimulator::FSBaseSimulator(
     // Point buffers
     : mPointSpringForceBuffer(object.GetPoints().GetBufferElementCount(), 0, vec2f::zero())
     , mPointExternalForceBuffer(object.GetPoints().GetBufferElementCount(), 0, vec2f::zero())
-    , mPointIntegrationFactorBuffer(object.GetPoints().GetBufferElementCount(), 0, 0.0f)
+    , mPointIntegrationFactorBuffer(object.GetPoints().GetBufferElementCount(), 0, vec2f::zero())
     // Spring buffers
     , mSpringStiffnessCoefficientBuffer(object.GetSprings().GetBufferElementCount(), 0, 0.0f)
     , mSpringDampingCoefficientBuffer(object.GetSprings().GetBufferElementCount(), 0, 0.0f)
@@ -67,10 +67,12 @@ void FSBaseSimulator::CreateState(
             simulationParameters.Common.AssignedGravity * points.GetMass(pointIndex) * simulationParameters.Common.MassAdjustment
             + points.GetAssignedForce(pointIndex);
 
-        mPointIntegrationFactorBuffer[pointIndex] =
+        float const integrationFactorBuffer =
             dtSquared
             / (points.GetMass(pointIndex) * simulationParameters.Common.MassAdjustment)
             * points.GetFrozenCoefficient(pointIndex);
+
+        mPointIntegrationFactorBuffer[pointIndex] = vec2f(integrationFactorBuffer, integrationFactorBuffer);
     }
 
 
@@ -168,11 +170,11 @@ void FSBaseSimulator::IntegrateAndResetSpringForces(
 {
     float const dt = simulationParameters.Common.SimulationTimeStepDuration / static_cast<float>(simulationParameters.FSCommonSimulator.NumMechanicalDynamicsIterations);
 
-    vec2f * const restrict positionBuffer = object.GetPoints().GetPositionBuffer();
-    vec2f * const restrict velocityBuffer = object.GetPoints().GetVelocityBuffer();
-    vec2f * const restrict springForceBuffer = mPointSpringForceBuffer.data();
-    vec2f const * const restrict externalForceBuffer = mPointExternalForceBuffer.data();
-    float const * const restrict integrationFactorBuffer = mPointIntegrationFactorBuffer.data();
+    float * const restrict positionBuffer = reinterpret_cast<float *>(object.GetPoints().GetPositionBuffer());
+    float * const restrict velocityBuffer = reinterpret_cast<float *>(object.GetPoints().GetVelocityBuffer());
+    float * const restrict springForceBuffer = reinterpret_cast<float *>(mPointSpringForceBuffer.data());
+    float const * const restrict externalForceBuffer = reinterpret_cast<float *>(mPointExternalForceBuffer.data());
+    float const * const restrict integrationFactorBuffer = reinterpret_cast<float *>(mPointIntegrationFactorBuffer.data());
 
     float const globalDamping = 
         1.0f -
@@ -183,14 +185,14 @@ void FSBaseSimulator::IntegrateAndResetSpringForces(
     // provides the final, damped velocity
     float const velocityFactor = (1.0f - globalDamping) / dt;
 
-    size_t const count = object.GetPoints().GetBufferElementCount();
+    size_t const count = object.GetPoints().GetBufferElementCount() * 2; // Two components per vector
     for (size_t i = 0; i < count; ++i)
     {
         //
         // Verlet integration (fourth order, with velocity being first order)
         //
 
-        vec2f const deltaPos =
+        float const deltaPos =
             velocityBuffer[i] * dt
             + (springForceBuffer[i] + externalForceBuffer[i]) * integrationFactorBuffer[i];
 
@@ -198,6 +200,6 @@ void FSBaseSimulator::IntegrateAndResetSpringForces(
         velocityBuffer[i] = deltaPos * velocityFactor;
 
         // Zero out spring force now that we've integrated it
-        springForceBuffer[i] = vec2f::zero();
+        springForceBuffer[i] = 0.0f;
     }
 }
