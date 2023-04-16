@@ -53,13 +53,13 @@ FS 13 - By Springs, Structural Intrinsics, MT
 		- 1 thread:
 			- CPU: 15,500us	- 16,000us
 		- 2 threads:
-			- CPU: 11,200us
+			- CPU: 11,000us - 12,600us
 		- 3 threads:
-			- CPU:  9,500us - 10,500us
+			- CPU:  9,500us - 10,500us (10,300us mostly)
 		- 4 threads:
-			- CPU:	8,500us
+			- CPU:	8,600us - 9,300us
 		- 8 threads:
-			- CPU:  8,800us
+			- CPU:  8,700us - 9,200us
 FS 14 - By Spring - Structural Instrinsics - MT - Vectorized
 	- 80x5_bending_test
 		- Bending: 20
@@ -75,15 +75,15 @@ FS 14 - By Spring - Structural Instrinsics - MT - Vectorized
 			- CPU: 440us
 	- 544x68_bending_test
 		- 1 thread:
-			- CPU: 15,000us
+			- CPU: 15,000us -- DEFINITELY IMPROVEMENT
 		- 2 threads:
-			- CPU: 10,600us
+			- CPU: 10,600us - 12,500us -- DEFINITELY IMPROVEMENT
 		- 3 threads:
-			- CPU: 9,700us
+			- CPU:  9,200us - 10,200us -- DEFINITELY IMPROVEMENT
 		- 4 threads:
-			- CPU: 8,300-9,300us
+			- CPU:  8,300us - 9,200us -- DEFINITELY IMPROVEMENT
 		- 8 threads:
-			- CPU: 9,900-10,100us
+			- CPU:  9,300us - 9,800us
 	
 FS 20 - By Point:
 	- 80x5_bending_test
@@ -167,6 +167,8 @@ FS 22 - By Point, Compact, Integrating:
 				+ Integration does both force add & force reset
 					+ Replace 1+N-1 buffers with N buffers
 					+ Add new measurements to above
+				X Pointer increment instead of indexing
+				+ No alloc/delete for that local force vector
 				- All force buffers interleaved in same buffer
 					- With inline clear
 		+ Redo all measurements (above) with large bar

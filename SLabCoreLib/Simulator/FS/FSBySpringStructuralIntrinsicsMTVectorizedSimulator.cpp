@@ -32,6 +32,7 @@ void FSBySpringStructuralIntrinsicsMTVectorizedSimulator::CreateState(
     mThreadPool.reset();
     mSpringRelaxationTasks.clear();
     mPointSpringForceBuffers.clear();
+    mPointSpringForceBuffersVectorized.clear();
 
     // Number of 4-spring blocks per thread
     assert(simulationParameters.Common.NumberOfThreads > 0);
@@ -58,6 +59,7 @@ void FSBySpringStructuralIntrinsicsMTVectorizedSimulator::CreateState(
 
         // Create helper buffer for this thread
         mPointSpringForceBuffers.emplace_back(object.GetPoints().GetBufferElementCount(), 0, vec2f::zero());
+        mPointSpringForceBuffersVectorized.emplace_back(reinterpret_cast<float *>(mPointSpringForceBuffers.back().data()));
 
         mSpringRelaxationTasks.emplace_back(
             [this, &object, pointSpringForceBuffer = mPointSpringForceBuffers.back().data(), springStart, springEnd]()
@@ -288,12 +290,8 @@ void FSBySpringStructuralIntrinsicsMTVectorizedSimulator::IntegrateAndResetSprin
 
     ///////////////////////
 
-    size_t const nBuffers = mPointSpringForceBuffers.size();
-    std::vector<float * restrict> pointSpringForceBuffers(nBuffers);
-    for (size_t b = 0; b < nBuffers; ++b)
-    {
-        pointSpringForceBuffers[b] = reinterpret_cast<float *>(mPointSpringForceBuffers[b].data());
-    }
+    size_t const nBuffers = mPointSpringForceBuffersVectorized.size();
+    float * restrict * restrict const pointSprigForceBufferOfBuffers = mPointSpringForceBuffersVectorized.data();
 
     assert((object.GetPoints().GetBufferElementCount() % 2) == 0);
     size_t const count = object.GetPoints().GetBufferElementCount() * 2; // Two components per vector
@@ -310,9 +308,9 @@ void FSBySpringStructuralIntrinsicsMTVectorizedSimulator::IntegrateAndResetSprin
             springForce_2 =
                 _mm_add_ps(
                     springForce_2,
-                    _mm_load_ps(pointSpringForceBuffers[b] + p));
+                    _mm_load_ps(pointSprigForceBufferOfBuffers[b] + p));
             
-            _mm_store_ps(pointSpringForceBuffers[b] + p, zero_4);
+            _mm_store_ps(pointSprigForceBufferOfBuffers[b] + p, zero_4);
         }
 
         // vec2f const deltaPos =
