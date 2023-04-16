@@ -60,6 +60,31 @@ FS 13 - By Springs, Structural Intrinsics, MT
 			- CPU:	8,500us
 		- 8 threads:
 			- CPU:  8,800us
+FS 14 - By Spring - Structural Instrinsics - MT - Vectorized
+	- 80x5_bending_test
+		- Bending: 20
+		- 1 thread:
+			- CPU: 153us		
+		- 2 threads:
+			- CPU: 160us	
+		- 3 threads:
+			- CPU: 185us
+		- 4 threads:
+			- CPU: 200us		
+		- 8 threads:
+			- CPU: 440us
+	- 544x68_bending_test
+		- 1 thread:
+			- CPU: 15,000us
+		- 2 threads:
+			- CPU: 10,600us
+		- 3 threads:
+			- CPU: 9,700us
+		- 4 threads:
+			- CPU: 8,300-9,300us
+		- 8 threads:
+			- CPU: 9,900-10,100us
+	
 FS 20 - By Point:
 	- 80x5_bending_test
 		- Bending: 20
@@ -130,18 +155,18 @@ FS 22 - By Point, Compact, Integrating:
 			! Add is 2%
 			+ Nuke Simulator specialization for two pools - keep TaskThreadPool only
 			= Further ideas for optimizations:
-				= Spin off "...vectorized" out of MT
+				+ Spin off "...vectorized" out of MT
 					+ Redo integration factor buffer in whole hierarchy, as vec2f of two copies
-					= Verify assembly is now vectorized along whole hierarchy
+					+ Verify assembly is now vectorized along whole hierarchy
 						+ Base
 						+ Intrinsics
 						+ IntrinsicsStructural
 						+ IntrinsicsStructuralMTVect_<1>
-						= IntrinsicsStructuralMTVect_<N> TODOHERE: NOT!
+						+ IntrinsicsStructuralMTVect_<N> TODOHERE: NOT!
 					+ Re-take measurements above
-				= Integration does both force add & force reset
-					= Replace 1+N-1 buffers with N buffers
-					- Add new measurements to above
+				+ Integration does both force add & force reset
+					+ Replace 1+N-1 buffers with N buffers
+					+ Add new measurements to above
 				- All force buffers interleaved in same buffer
 					- With inline clear
 		+ Redo all measurements (above) with large bar
