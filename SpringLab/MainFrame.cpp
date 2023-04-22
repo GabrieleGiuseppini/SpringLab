@@ -158,6 +158,7 @@ MainFrame::MainFrame(wxApp * mainApp)
         mControlToolbar->Connect(ControlToolbar::ID_ACTION_RESET, ControlToolbar::wxEVT_TOOLBAR_ACTION, (wxObjectEventFunction)&MainFrame::OnResetMenuItemSelected, 0, this);
         mControlToolbar->Connect(ControlToolbar::ID_ACTION_LOAD_OBJECT, ControlToolbar::wxEVT_TOOLBAR_ACTION, (wxObjectEventFunction)&MainFrame::OnLoadObjectMenuItemSelected, 0, this);
         mControlToolbar->Connect(ControlToolbar::ID_ACTION_SETTINGS, ControlToolbar::wxEVT_TOOLBAR_ACTION, (wxObjectEventFunction)&MainFrame::OnOpenSettingsWindowMenuItemSelected, 0, this);
+        mControlToolbar->Connect(ControlToolbar::ID_VIEW_CONTROL_GRID, ControlToolbar::wxEVT_TOOLBAR_ACTION, (wxObjectEventFunction)&MainFrame::OnViewControlGridToggled, 0, this);
 
         mMainPanelTopHSizer->Add(
             mControlToolbar,
@@ -781,6 +782,12 @@ void MainFrame::OnSimulatorTypeChanged(wxCommandEvent & event)
     mSimulationController->SetSimulator(event.GetString().ToStdString());
 }
 
+void MainFrame::OnViewControlGridToggled(wxCommandEvent & event)
+{
+    assert(!!mSimulationController);
+    mSimulationController->SetViewGridEnabled(event.GetInt() != 0);
+}
+
 void MainFrame::OnSimulationTimer(wxTimerEvent & /*event*/)
 {
     //
@@ -791,7 +798,17 @@ void MainFrame::OnSimulationTimer(wxTimerEvent & /*event*/)
 
     if (!mSimulationController)
     {
-        FinishInitialization();
+        try
+        {
+            FinishInitialization();
+        }
+        catch (SLabException const & e)
+        {
+            mSimulationTimer->Stop(); // Stop looping and allow Die() to finish
+
+            OnError(std::string(e.what()), true);            
+            return;
+        }
     }
 
     //
@@ -869,9 +886,7 @@ void MainFrame::FinishInitialization()
     }
     catch (std::exception const & e)
     {
-        OnError("Error during initialization of simulation controller: " + std::string(e.what()), true);
-
-        return;
+        throw SLabException("Error during initialization of simulation controller: " + std::string(e.what()));
     }
 
     //
@@ -898,9 +913,7 @@ void MainFrame::FinishInitialization()
     }
     catch (std::exception const & e)
     {
-        OnError("Error during initialization of tool controller: " + std::string(e.what()), true);
-
-        return;
+        throw SLabException("Error during initialization of tool controller: " + std::string(e.what()));
     }
 
     //

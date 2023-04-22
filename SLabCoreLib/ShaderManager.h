@@ -29,13 +29,16 @@ public:
     {
         Points = 0,
         Springs = 1,
+        Grid = 2,
 
-        _Last = Springs
+        _Last = Grid
     };
 
     enum class ProgramParameterType : size_t
     {
-        OrthoMatrix = 0
+        OrthoMatrix = 0,
+        PixelWorldWidth = 1,
+        WorldStep = 2
     };
 
     enum class VertexAttributeType : size_t
@@ -46,7 +49,9 @@ public:
 
         SpringAttributeGroup1 = 0,
         SpringAttributeGroup2 = 1,
-        SpringAttributeGroup3 = 2
+        SpringAttributeGroup3 = 2,
+
+        GridAttributeGroup1 = 0
     };
 
 private:

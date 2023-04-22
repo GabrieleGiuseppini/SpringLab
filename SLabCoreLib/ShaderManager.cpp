@@ -462,7 +462,9 @@ std::set<std::string> ShaderManager::ExtractVertexAttributeNames(std::string con
 
 ShaderManager::ProgramType ShaderManager::ShaderFilenameToProgramType(std::string const & str)
 {
-    if (Utils::CaseInsensitiveEquals(str, "Points"))
+    if (Utils::CaseInsensitiveEquals(str, "Grid"))
+        return ProgramType::Grid;
+    else if (Utils::CaseInsensitiveEquals(str, "Points"))
         return ProgramType::Points;
     else if (Utils::CaseInsensitiveEquals(str, "Springs"))
         return ProgramType::Springs;
@@ -474,6 +476,8 @@ std::string ShaderManager::ProgramTypeToStr(ProgramType program)
 {
     switch (program)
     {
+        case ProgramType::Grid:
+            return "Grid";
         case ProgramType::Points:
             return "Points";
         case ProgramType::Springs:
@@ -488,6 +492,10 @@ ShaderManager::ProgramParameterType ShaderManager::StrToProgramParameterType(std
 {
     if (str == "OrthoMatrix")
         return ProgramParameterType::OrthoMatrix;
+    else if (str == "PixelWorldWidth")
+        return ProgramParameterType::PixelWorldWidth;
+    else if (str == "WorldStep")
+        return ProgramParameterType::WorldStep;
     else
         throw SLabException("Unrecognized program parameter \"" + str + "\"");
 }
@@ -498,6 +506,10 @@ std::string ShaderManager::ProgramParameterTypeToStr(ProgramParameterType progra
     {
         case ProgramParameterType::OrthoMatrix:
             return "OrthoMatrix";
+        case ProgramParameterType::PixelWorldWidth:
+            return "PixelWorldWidth";
+        case ProgramParameterType::WorldStep:
+            return "WorldStep";
         default:
             assert(false);
             throw SLabException("Unsupported ProgramParameterType");
@@ -506,7 +518,9 @@ std::string ShaderManager::ProgramParameterTypeToStr(ProgramParameterType progra
 
 ShaderManager::VertexAttributeType ShaderManager::StrToVertexAttributeType(std::string const & str)
 {
-    if (Utils::CaseInsensitiveEquals(str, "PointAttributeGroup1"))
+    if (Utils::CaseInsensitiveEquals(str, "GridAttributeGroup1"))
+        return VertexAttributeType::GridAttributeGroup1;
+    else if (Utils::CaseInsensitiveEquals(str, "PointAttributeGroup1"))
         return VertexAttributeType::PointAttributeGroup1;
     else if (Utils::CaseInsensitiveEquals(str, "PointAttributeGroup2"))
         return VertexAttributeType::PointAttributeGroup2;

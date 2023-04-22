@@ -13,6 +13,9 @@ RenderContext::RenderContext(
     // Settings
     , mIsCanvasSizeDirty(true)
     , mIsViewModelDirty(true)
+    , mIsGridDirty(true)
+    ////
+    , mIsGridEnabled(false)
 {
     GLuint tmpGLuint;
 
@@ -43,7 +46,6 @@ RenderContext::RenderContext(
 
     glGenVertexArrays(1, &tmpGLuint);
     mPointVAO = tmpGLuint;
-
     glBindVertexArray(*mPointVAO);
 
     glGenBuffers(1, &tmpGLuint);
@@ -66,7 +68,6 @@ RenderContext::RenderContext(
 
     glGenVertexArrays(1, &tmpGLuint);
     mSpringVAO = tmpGLuint;
-
     glBindVertexArray(*mSpringVAO);
 
     glGenBuffers(1, &tmpGLuint);
@@ -79,6 +80,23 @@ RenderContext::RenderContext(
     glVertexAttribPointer(static_cast<GLuint>(ShaderManager::VertexAttributeType::SpringAttributeGroup2), 4, GL_FLOAT, GL_FALSE, sizeof(SpringVertex), (void *)(4 * sizeof(float)));
     glEnableVertexAttribArray(static_cast<GLuint>(ShaderManager::VertexAttributeType::SpringAttributeGroup3));
     glVertexAttribPointer(static_cast<GLuint>(ShaderManager::VertexAttributeType::SpringAttributeGroup3), 1, GL_FLOAT, GL_FALSE, sizeof(SpringVertex), (void *)(8 * sizeof(float)));
+
+    glBindVertexArray(0);
+
+    //
+    // Grid
+    //
+
+    glGenVertexArrays(1, &tmpGLuint);
+    mGridVAO = tmpGLuint;
+    glBindVertexArray(*mGridVAO);
+
+    glGenBuffers(1, &tmpGLuint);
+    mGridVBO = tmpGLuint;
+    glBindBuffer(GL_ARRAY_BUFFER, *mGridVBO);
+
+    glEnableVertexAttribArray(static_cast<GLuint>(ShaderManager::VertexAttributeType::GridAttributeGroup1));
+    glVertexAttribPointer(static_cast<GLuint>(ShaderManager::VertexAttributeType::GridAttributeGroup1), 2, GL_FLOAT, GL_FALSE, sizeof(GridVertex), (void *)0);
 
     glBindVertexArray(0);
 
@@ -366,6 +384,8 @@ void RenderContext::RenderEnd()
         assert((mSpringVertexBuffer.size() % 6) == 0);
         glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(mSpringVertexBuffer.size()));
 
+        CheckOpenGLError();
+
         glBindVertexArray(0);
     }
 
@@ -380,7 +400,26 @@ void RenderContext::RenderEnd()
     assert((mPointVertexCount % 6) == 0);
     glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(mPointVertexCount));
 
+    CheckOpenGLError();
+
     glBindVertexArray(0);
+
+    ////////////////////////////////////////////////////////////////
+    // Grid
+    ////////////////////////////////////////////////////////////////
+    
+    if (mIsGridEnabled)
+    {
+        glBindVertexArray(*mGridVAO);
+
+        mShaderManager->ActivateProgram<ShaderManager::ProgramType::Grid>();
+
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+        CheckOpenGLError();
+
+        glBindVertexArray(0);
+    }
 
     ////////////////////////////////////////////////////////////////
     // Terminate
@@ -403,7 +442,14 @@ void RenderContext::ProcessSettingChanges()
     if (mIsViewModelDirty)
     {
         OnViewModelUpdated();
+        mIsGridDirty = true;
         mIsViewModelDirty = false;
+    }
+
+    if (mIsGridDirty)
+    {
+        OnGridUpdated();
+        mIsGridDirty = false;
     }
 }
 
@@ -427,4 +473,65 @@ void RenderContext::OnViewModelUpdated()
     mShaderManager->ActivateProgram<ShaderManager::ProgramType::Springs>();
     mShaderManager->SetProgramParameter<ShaderManager::ProgramType::Springs, ShaderManager::ProgramParameterType::OrthoMatrix>(
         orthoMatrix);
+
+    mShaderManager->ActivateProgram<ShaderManager::ProgramType::Grid>();
+    mShaderManager->SetProgramParameter<ShaderManager::ProgramType::Grid, ShaderManager::ProgramParameterType::OrthoMatrix>(
+        orthoMatrix);
+}
+
+void RenderContext::OnGridUpdated()
+{
+    //
+    // Calculate vertex attributes
+    //
+
+    // Visible world coordinates
+    vec2f const visibleWorldTopLeft = mViewModel.GetVisibleWorldTopLeft();
+    vec2f const visibleWorldBottomRight = mViewModel.GetVisibleWorldBottomRight();
+
+    // Vertices
+
+    std::array<GridVertex, 4> vertexBuffer;
+
+    // Bottom-left
+    vertexBuffer[0] = GridVertex(
+        vec2f(
+            visibleWorldTopLeft.x,
+            visibleWorldBottomRight.y));
+
+    // Top left
+    vertexBuffer[1] = GridVertex(
+        visibleWorldTopLeft);
+
+    // Bottom-right
+    vertexBuffer[2] = GridVertex(
+        visibleWorldBottomRight);
+
+    // Top-right
+    vertexBuffer[3] = GridVertex(
+        vec2f(
+            visibleWorldBottomRight.x,
+            visibleWorldTopLeft.y));
+
+    // Upload vertices
+    glBindBuffer(GL_ARRAY_BUFFER, *mGridVBO);
+    glBufferData(GL_ARRAY_BUFFER, vertexBuffer.size() * sizeof(GridVertex), vertexBuffer.data(), GL_STATIC_DRAW);
+    CheckOpenGLError();
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    //
+    // Calculate aspect
+    //
+
+    float const pixelWorldWidth = mViewModel.ScreenOffsetToWorldOffset(vec2f(1.0f, 1.0f)).x; // Same as y
+    mShaderManager->ActivateProgram<ShaderManager::ProgramType::Grid>();
+    mShaderManager->SetProgramParameter<ShaderManager::ProgramType::Grid, ShaderManager::ProgramParameterType::PixelWorldWidth>(
+        pixelWorldWidth);
+
+    // TODOHERE
+    float const worldStepSize = 1.0f; //TODOTEST mViewModel.CalculateGridPhysicalPixelStepSize();
+
+    mShaderManager->ActivateProgram<ShaderManager::ProgramType::Grid>();
+    mShaderManager->SetProgramParameter<ShaderManager::ProgramType::Grid, ShaderManager::ProgramParameterType::WorldStep>(
+        worldStepSize);
 }

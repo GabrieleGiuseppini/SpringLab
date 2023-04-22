@@ -35,6 +35,8 @@ long const ControlToolbar::ID_ACTION_RESET = wxNewId();
 long const ControlToolbar::ID_ACTION_LOAD_OBJECT = wxNewId();
 long const ControlToolbar::ID_ACTION_SETTINGS = wxNewId();
 
+long const ControlToolbar::ID_VIEW_CONTROL_GRID = wxNewId();
+
 ControlToolbar::ControlToolbar(wxWindow* parent)
     : wxPanel(
         parent,
@@ -325,6 +327,32 @@ ControlToolbar::ControlToolbar(wxWindow* parent)
 
     vSizer->AddSpacer(10);
 
+    // View Control
+    {
+        wxGridSizer * gridSizer = new wxGridSizer(2, 2, 2);
+
+        // Grid
+        {
+            mViewControlGridButton = new wxBitmapToggleButton(
+                this,
+                ID_VIEW_CONTROL_GRID,
+                wxBitmap(
+                    (ResourceLocator::GetResourcesFolderPath() / "view_grid.png").string(),
+                    wxBITMAP_TYPE_PNG),
+                wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
+
+            mViewControlGridButton->Bind(wxEVT_TOGGLEBUTTON, [this](wxCommandEvent & /*event*/) { OnViewControlButton(mViewControlGridButton); });
+
+            mViewControlGridButton->SetToolTip("Enable or disable grid");
+
+            gridSizer->Add(mViewControlGridButton);
+        }
+
+        vSizer->Add(gridSizer, 0, wxALIGN_CENTER | wxALL, 5);
+    }
+
+    vSizer->AddSpacer(10);
+
     this->SetSizer(vSizer);
 }
 
@@ -535,4 +563,15 @@ void ControlToolbar::OnSimulatorTypeChoiceChanged()
     wxCommandEvent evt(wxEVT_TOOLBAR_ACTION, ID_SIMULATOR_TYPE);
     evt.SetString(mSimulatorTypeChoice->GetString(mSimulatorTypeChoice->GetSelection()));
     ProcessEvent(evt);
+}
+
+void ControlToolbar::OnViewControlButton(wxBitmapToggleButton * button)
+{
+    if (button->GetId() == ID_VIEW_CONTROL_GRID)
+    {
+        // Fire event
+        wxCommandEvent evt(wxEVT_TOOLBAR_ACTION, ID_VIEW_CONTROL_GRID);
+        evt.SetInt(button->GetValue() ? 1 : 0);
+        ProcessEvent(evt);
+    }
 }

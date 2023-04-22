@@ -134,6 +134,7 @@ private:
     void OnInitialConditionsPin(wxCommandEvent & event);
     void OnInitialConditionsParticleForce(wxCommandEvent & event);
     void OnSimulatorTypeChanged(wxCommandEvent & event);
+    void OnViewControlGridToggled(wxCommandEvent & event);
 
     // Timers
     void OnSimulationTimer(wxTimerEvent & event);

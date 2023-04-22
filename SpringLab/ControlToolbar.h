@@ -34,6 +34,8 @@ public:
     static long const ID_ACTION_LOAD_OBJECT;
     static long const ID_ACTION_SETTINGS;
 
+    static long const ID_VIEW_CONTROL_GRID;
+
 public:
 
     ControlToolbar(wxWindow* parent);
@@ -53,6 +55,7 @@ private:
     void OnActionLoadObjectButton();
     void OnActionSettingsButton();
     void OnSimulatorTypeChoiceChanged();
+    void OnViewControlButton(wxBitmapToggleButton * button);
 
 private:
 
@@ -65,6 +68,8 @@ private:
     wxBitmapToggleButton * mInitialConditionsMoveButton;
     wxBitmapToggleButton * mInitialConditionsPinButton;
     wxBitmapToggleButton * mInitialConditionsParticleForceButton;
+
+    wxBitmapToggleButton * mViewControlGridButton;
 
     wxChoice * mSimulatorTypeChoice;
 };

@@ -140,8 +140,13 @@ public:
         return mRenderContext->WorldToScreen(worldCoordinates);
     }
 
-    RgbImageData TakeScreenshot();
+    void SetViewGridEnabled(bool value)
+    {
+        assert(!!mRenderContext);
+        mRenderContext->SetGridEnabled(value);
+    }
 
+    RgbImageData TakeScreenshot();
 
     //
     // Simmulation parameters

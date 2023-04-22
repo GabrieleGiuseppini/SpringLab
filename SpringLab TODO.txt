@@ -11,7 +11,8 @@ FS 0 - Base:
 		- CPU: 220us
 	- 544x68_bending_test
 		- Bending: 186-189
-		- CPU: 24,900us
+			- w/80 iterations: 28.9
+		- CPU: 24,300us
 FS 10 - By Springs, With Intrinsics:
 	- 80x5_bending_test
 		- Bending: 20
@@ -75,7 +76,7 @@ FS 14 - By Spring - Structural Instrinsics - MT - Vectorized
 			- CPU: 440us
 	- 544x68_bending_test
 		- 1 thread:
-			- CPU: 15,000us -- DEFINITELY IMPROVEMENT
+			- CPU: 14,900us -- DEFINITELY IMPROVEMENT
 		- 2 threads:
 			- CPU: 10,600us - 12,500us -- DEFINITELY IMPROVEMENT
 		- 3 threads:
@@ -164,6 +165,9 @@ FS 22 - By Point, Compact, Integrating:
 						+ IntrinsicsStructuralMTVect_<1>
 						+ IntrinsicsStructuralMTVect_<N> TODOHERE: NOT!
 					+ Re-take measurements above
+					- Code profiling of Vectorized, 1 thread:
+						- ApplySpringForces: 52.85%
+						- IntegrateAndResetSpringForces: 3.56%
 				+ Integration does both force add & force reset
 					+ Replace 1+N-1 buffers with N buffers
 					+ Add new measurements to above
@@ -171,7 +175,15 @@ FS 22 - By Point, Compact, Integrating:
 				+ No alloc/delete for that local force vector
 				- All force buffers interleaved in same buffer
 					- With inline clear
-		+ Redo all measurements (above) with large bar
+				
+		+ Redo all measurements (above) with large bar	
+		- Bending improvements:
+			- Vectorized, 1 thread:
+				- 40 iterations: 
+					- Bending = 111.6
+					- CPU = 20,000us
+				- Then, 0.60x K:
+					- Bending = 92.0
 	+ 20. By Point
 	+ 21. By Point, Compact metadata
 	+ 22. By Point, Compact metadata, With integration

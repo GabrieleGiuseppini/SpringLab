@@ -104,19 +104,30 @@ public:
         return mViewModel.CalculateZoomForWorldHeight(worldHeight);
     }
 
-    inline vec2f ScreenToWorld(vec2f const & screenCoordinates) const
+    vec2f ScreenToWorld(vec2f const & screenCoordinates) const
     {
         return mViewModel.ScreenToWorld(screenCoordinates);
     }
 
-    inline vec2f ScreenOffsetToWorldOffset(vec2f const & screenOffset) const
+    vec2f ScreenOffsetToWorldOffset(vec2f const & screenOffset) const
     {
         return mViewModel.ScreenOffsetToWorldOffset(screenOffset);
     }
 
-    inline vec2f WorldToScreen(vec2f const & worldCoordinates) const
+    vec2f WorldToScreen(vec2f const & worldCoordinates) const
     {
         return mViewModel.WorldToScreen(worldCoordinates);
+    }
+
+    bool IsGridEnabled() const
+    {
+        return mIsGridEnabled;
+    }
+
+    void SetGridEnabled(bool isGridEnabled)
+    {
+        mIsGridEnabled = isGridEnabled;
+        mIsGridDirty = true;
     }
 
     ////////////////////////////////////////////////////////////////
@@ -171,6 +182,9 @@ private:
 
     bool mIsViewModelDirty;
     void OnViewModelUpdated();
+
+    bool mIsGridDirty;
+    void OnGridUpdated();
 
 private:
 
@@ -242,4 +256,28 @@ private:
 
     std::vector<SpringVertex> mSpringVertexBuffer;
     SLabOpenGLVBO mSpringVertexVBO;
+
+    ////////////////////////////////////////////////////////////////
+    // Grid
+    ////////////////////////////////////////////////////////////////
+    
+#pragma pack(push)
+
+    struct GridVertex
+    {
+        vec2f positionObject; // Object space
+
+        GridVertex() = default;
+
+        GridVertex(
+            vec2f const & _positionObject)
+            : positionObject(_positionObject)
+        {}
+    };
+
+#pragma pack(pop)
+
+    SLabOpenGLVAO mGridVAO;
+    SLabOpenGLVBO mGridVBO;
+    bool mIsGridEnabled;
 };
