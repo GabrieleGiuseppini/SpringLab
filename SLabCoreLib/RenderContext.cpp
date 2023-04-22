@@ -523,10 +523,11 @@ void RenderContext::OnGridUpdated()
     // Calculate aspect
     //
 
-    float const pixelWorldWidth = mViewModel.ScreenOffsetToWorldOffset(vec2f(1.0f, 1.0f)).x; // Same as y
+    vec2f const pixelWorldWidth = mViewModel.ScreenOffsetToWorldOffset(vec2f(1.0f, -1.0f));
     mShaderManager->ActivateProgram<ShaderManager::ProgramType::Grid>();
     mShaderManager->SetProgramParameter<ShaderManager::ProgramType::Grid, ShaderManager::ProgramParameterType::PixelWorldWidth>(
-        pixelWorldWidth);
+        pixelWorldWidth.x,
+        pixelWorldWidth.y);
 
     // TODOHERE
     float const worldStepSize = 1.0f; //TODOTEST mViewModel.CalculateGridPhysicalPixelStepSize();
