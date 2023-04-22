@@ -18,10 +18,10 @@ Object ObjectBuilder::Create(
     ILayoutOptimizer const & layoutOptimizer)
 {
     int const structureWidth = objectDefinition.StructuralLayerImage.Size.Width;
-    float const halfWidth = static_cast<float>(structureWidth) / 2.0f;
+    float const halfWidth = static_cast<float>(structureWidth / 2); // We want to align on integral world coords
 
     int const structureHeight = objectDefinition.StructuralLayerImage.Size.Height;
-    float const halfHeight = static_cast<float>(structureHeight) / 2.0f;
+    float const halfHeight = static_cast<float>(structureHeight / 2); // We want to align on integral world coords
 
     // Build Point's
     std::vector<ObjectBuildPoint> pointInfos;
