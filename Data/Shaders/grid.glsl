@@ -36,8 +36,8 @@ void main()
     
     // 1. on grid, 0. otherwise
     float gridDepth = 1.0 -
-        step(paramPixelWorldWidth.x, gridUnary.x)
-        * step(paramPixelWorldWidth.y, gridUnary.y);
+        (step(paramPixelWorldWidth.x * 0.51, gridUnary.x) - step(1.0 - paramPixelWorldWidth.x * 0.49, gridUnary.x))
+        * (step(paramPixelWorldWidth.y * 0.51, gridUnary.y) - step(1.0 - paramPixelWorldWidth.y * 0.49, gridUnary.y));
     
     gl_FragColor = vec4(.7, .7, .7, 
         gridDepth);
