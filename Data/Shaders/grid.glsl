@@ -27,7 +27,7 @@ in vec2 vertexObjectSpaceCoords;
 
 // Parameters
 uniform float paramWorldStep;
-uniform vec2 paramPixelWorldWidth;
+uniform float paramPixelWorldWidth;
 
 void main()
 {
@@ -35,9 +35,10 @@ void main()
     vec2 gridUnary = fract(vertexObjectSpaceCoords / paramWorldStep);
     
     // 1. on grid, 0. otherwise
+    float pixelTolerance = paramPixelWorldWidth / paramWorldStep;
     float gridDepth = 1.0 -
-        (step(paramPixelWorldWidth.x * 0.51, gridUnary.x) - step(1.0 - paramPixelWorldWidth.x * 0.49, gridUnary.x))
-        * (step(paramPixelWorldWidth.y * 0.51, gridUnary.y) - step(1.0 - paramPixelWorldWidth.y * 0.49, gridUnary.y));
+        (step(pixelTolerance * 0.51, gridUnary.x) - step(1.0 - pixelTolerance * 0.49, gridUnary.x))
+        * (step(pixelTolerance * 0.51, gridUnary.y) - step(1.0 - pixelTolerance * 0.49, gridUnary.y));
     
     gl_FragColor = vec4(.7, .7, .7, 
         gridDepth);

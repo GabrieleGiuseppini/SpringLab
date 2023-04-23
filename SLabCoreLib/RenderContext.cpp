@@ -5,6 +5,8 @@
 ***************************************************************************************/
 #include "RenderContext.h"
 
+#include <cmath>
+
 RenderContext::RenderContext(
     int canvasWidth,
     int canvasHeight)
@@ -523,14 +525,13 @@ void RenderContext::OnGridUpdated()
     // Calculate aspect
     //
 
-    vec2f const pixelWorldWidth = mViewModel.ScreenOffsetToWorldOffset(vec2f(1.0f, -1.0f));
+    float const pixelWorldWidth = mViewModel.ScreenOffsetToWorldOffset(vec2f(1.0f, -1.0f)).x; // x and y are the same here
     mShaderManager->ActivateProgram<ShaderManager::ProgramType::Grid>();
     mShaderManager->SetProgramParameter<ShaderManager::ProgramType::Grid, ShaderManager::ProgramParameterType::PixelWorldWidth>(
-        pixelWorldWidth.x,
-        pixelWorldWidth.y);
+        pixelWorldWidth);
 
-    // TODOHERE
-    float const worldStepSize = 1.0f; //TODOTEST mViewModel.CalculateGridPhysicalPixelStepSize();
+    int constexpr ExtraGridEnlargement = 2;
+    float const worldStepSize = std::max(std::ldexp(1.0f, static_cast<int>(std::floor(std::log2f(pixelWorldWidth))) + 2 + ExtraGridEnlargement), 1.0f);
 
     mShaderManager->ActivateProgram<ShaderManager::ProgramType::Grid>();
     mShaderManager->SetProgramParameter<ShaderManager::ProgramType::Grid, ShaderManager::ProgramParameterType::WorldStep>(
