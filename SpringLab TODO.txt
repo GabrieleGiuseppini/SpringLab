@@ -165,9 +165,9 @@ FS 22 - By Point, Compact, Integrating:
 						+ IntrinsicsStructuralMTVect_<1>
 						+ IntrinsicsStructuralMTVect_<N> TODOHERE: NOT!
 					+ Re-take measurements above
-					- Code profiling of Vectorized, 1 thread:
-						- ApplySpringForces: 52.85%
-						- IntegrateAndResetSpringForces: 3.56%
+					+ Code profiling of Vectorized, 1 thread:
+						+ ApplySpringForces: 52.85%
+						+ IntegrateAndResetSpringForces: 3.56%
 				+ Integration does both force add & force reset
 					+ Replace 1+N-1 buffers with N buffers
 					+ Add new measurements to above
@@ -177,13 +177,13 @@ FS 22 - By Point, Compact, Integrating:
 					- With inline clear
 				
 		+ Redo all measurements (above) with large bar	
-		- Bending improvements:
-			- Vectorized, 1 thread:
-				- 40 iterations: 
-					- Bending = 111.6
-					- CPU = 20,000us
-				- Then, 0.60x K:
-					- Bending = 92.0
+		+ Bending improvements:
+			+ Vectorized, 1 thread:
+				+ 40 iterations: 
+					+ Bending = 111.6 (FSBase: 187.5)
+					+ CPU = 20,000us (FSBase: 24,300us)
+				+ Then, 0.60x K:
+					+ Bending = 92.0
 	+ 20. By Point
 	+ 21. By Point, Compact metadata
 	+ 22. By Point, Compact metadata, With integration
