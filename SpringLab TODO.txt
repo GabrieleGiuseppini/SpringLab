@@ -10,7 +10,7 @@ FS 0 - Base:
 		- Bending: 20
 		- CPU: 220us
 	- 544x68_bending_test
-		- Bending: 186-189
+		- Bending: 186-189 (187.5)
 			- w/80 iterations: 28.9
 		- CPU: 24,300us
 FS 10 - By Springs, With Intrinsics:
