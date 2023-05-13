@@ -27,14 +27,16 @@ void FastMSSBasicSimulator::Update(
     float /*currentSimulationTime*/,
     SimulationParameters const & simulationParameters)
 {
+    auto const nParticles = object.GetPoints().GetElementCount();
+
     //
     // The object's state is our last-produced next state, *plus* any user-applied state modifications;
     // so, we take it as our current state (effectively wiping our last production).
     //
 
-    Eigen::Map<Eigen::VectorXf> currentState = Eigen::Map<Eigen::VectorXf>(
+    auto currentState = Eigen::Map<Eigen::VectorXf>(
         reinterpret_cast<float *>(object.GetPoints().GetPositionBuffer()),
-        object.GetPoints().GetElementCount() * 2);
+        nParticles * 2);
 
     //
     // Calculate inertial term:
@@ -46,7 +48,7 @@ void FastMSSBasicSimulator::Update(
 
     float const damping = simulationParameters.FastMSSCommonSimulator.GlobalDamping;
 
-    Eigen::VectorXf const inertialTem = mM * ((damping + 1.0f) * currentState - damping * mPreviousState);
+    Eigen::VectorXf const inertialTerm = mM * ((damping + 1.0f) * currentState - damping * mPreviousState);
 
     //
     // Shift current state (i.e. now's object state) into previous state
@@ -63,8 +65,17 @@ void FastMSSBasicSimulator::Update(
 
     for (size_t i = 0; i < simulationParameters.FastMSSCommonSimulator.NumLocalGlobalStepIterations; ++i)
     {
-        RunLocalStep(currentState);  // Calculates spring directions based on current state
-        currentState = RunGlobalStep(); // Calculates new current state (updating points' position buffer)
+        // Calculate spring directions based on current state
+        Eigen::VectorXf const springDirections = RunLocalStep(currentState);
+
+        // Calculate new current state (updating points' position buffer)
+        currentState = RunGlobalStep(
+            inertialTerm,
+            springDirections,
+            Eigen::PlainObjectBase<Eigen::VectorXf>::Map(
+                reinterpret_cast<float const *>(object.GetPoints().GetAssignedForceBuffer()),
+                nParticles * 2),
+            simulationParameters); 
         // TODO: double-check that by assigning to currentState we're effectively changing the object's point positions buffer
     }
 }
@@ -76,7 +87,7 @@ void FastMSSBasicSimulator::CreateState(
     SimulationParameters const & simulationParameters)
 {
     std::vector<Eigen::Triplet<float>> triplets;
-
+    
     float const dtSquared = simulationParameters.Common.SimulationTimeStepDuration * simulationParameters.Common.SimulationTimeStepDuration;
     auto const nParticles = object.GetPoints().GetElementCount();
     auto const nSprings = object.GetSprings().GetElementCount();
@@ -194,26 +205,43 @@ void FastMSSBasicSimulator::CreateState(
     mPreviousState = Eigen::PlainObjectBase<Eigen::VectorXf>::Map(
         reinterpret_cast<float const *>(object.GetPoints().GetPositionBuffer()), 
         nParticles * 2);
-
-    // TODO: external forces
 }
 
-void FastMSSBasicSimulator::RunLocalStep(Eigen::Map<Eigen::VectorXf> const & currentState)
+Eigen::VectorXf FastMSSBasicSimulator::RunLocalStep(Eigen::Map<Eigen::VectorXf> const & currentState)
 {
     //
     // Calculate optimal spring directions based on current state (fixing positions)
     //
 
-    // TODO
+    // TODOHERE
     (void)currentState;
 }
 
-Eigen::VectorXf FastMSSBasicSimulator::RunGlobalStep()
+Eigen::VectorXf FastMSSBasicSimulator::RunGlobalStep(
+    Eigen::VectorXf const & inertialTerm,
+    Eigen::VectorXf const & springDirections,
+    Eigen::VectorXf const & externalForces,
+    SimulationParameters const & simulationParameters)
 {
     //
     // Produce new current state by computing optimal positions (fixing directions)
     //
 
-    // TODO    
+    float const dtSquared = simulationParameters.Common.SimulationTimeStepDuration * simulationParameters.Common.SimulationTimeStepDuration;
+
+    //
+    // Compute b vector (external forces and inertia)
+    //
+
+    Eigen::VectorXf const b = 
+        inertialTerm
+        + dtSquared * mJ * springDirections
+        + dtSquared * externalForces;
+
+    //
+    // Solve system and return new state
+    //
+
+    return mCholenskySystemMatrix.solve(b);
 }
 

@@ -53,9 +53,15 @@ private:
         Object const & object,
         SimulationParameters const & simulationParameters);
 
-    void RunLocalStep(Eigen::Map<Eigen::VectorXf> const & currentState);
+    // Returns new spring directions
+    Eigen::VectorXf RunLocalStep(Eigen::Map<Eigen::VectorXf> const & currentState);
 
-    Eigen::VectorXf RunGlobalStep();
+    // Return new positions (state)
+    Eigen::VectorXf RunGlobalStep(
+        Eigen::VectorXf const & inertialTerm,
+        Eigen::VectorXf const & springDirections,
+        Eigen::VectorXf const & externalForces,
+        SimulationParameters const & simulationParameters);
 
 private:
 

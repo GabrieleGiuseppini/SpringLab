@@ -198,9 +198,11 @@ FS 22 - By Point, Compact, Integrating:
 			- Or not: after all they seems to only be useful in 3D when there are no springs constraining the bend...
 			- But could still try and come up with constraints on the angles between each pair of springs incident to the same vertex
 
-	- ProjectiveTODO/with Eigen
+	= Fast MSS Simulation (with Eigen)
 		- External forces
+		- Inertial term: subst a (cur-prev) with (vel * dt)
 		- Fixed points
+			- Apparently it's done by forcing their positions back to original
 	
 	! Notes:
 		! When integration is...integrated, it might fare worse because we do double the number of fp operations
