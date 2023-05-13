@@ -6,6 +6,7 @@
 #include "SimulatorRegistry.h"
 
 #include "Simulator/Classic/ClassicSimulator.h"
+#include "Simulator/FastMSS/FastMSSBasicSimulator.h"
 #include "Simulator/FS/FSBaseSimulator.h"
 #include "Simulator/FS/FSByPointSimulator.h"
 #include "Simulator/FS/FSByPointCompactSimulator.h"
@@ -36,8 +37,9 @@ SimulatorRegistry::SimulatorRegistry()
     RegisterSimulatorType<FSBySpringStructuralIntrinsicsMTVectorizedSimulator>();
     RegisterSimulatorType<FSByPointSimulator>();
     RegisterSimulatorType<FSByPointCompactSimulator>();
-    RegisterSimulatorType<FSByPointCompactIntegratingSimulator>();    
+    RegisterSimulatorType<FSByPointCompactIntegratingSimulator>();
     RegisterSimulatorType<PositionBasedBasicSimulator>();
+    RegisterSimulatorType<FastMSSBasicSimulator>();
 }
 
 /////////////////////////////////////

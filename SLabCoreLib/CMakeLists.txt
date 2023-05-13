@@ -95,6 +95,13 @@ set  (SIMULATOR_CLASSIC_SOURCES
 	Simulator/Classic/ClassicSimulatorParameters.h
 )
 
+set  (SIMULATOR_FAST_MSS_SOURCES
+	Simulator/FastMSS/FastMSSBasicSimulator.cpp
+	Simulator/FastMSS/FastMSSBasicSimulator.h
+	Simulator/FastMSS/FastMSSCommonSimulatorParameters.cpp
+	Simulator/FastMSS/FastMSSCommonSimulatorParameters.h
+)
+
 set  (SIMULATOR_FS_SOURCES
 	Simulator/FS/FSBaseSimulator.cpp
 	Simulator/FS/FSBaseSimulator.h
@@ -136,6 +143,7 @@ source_group(" " FILES ${SOURCES})
 source_group("glad" FILES ${GLAD_SOURCES})
 source_group("Simulator/Common" FILES ${SIMULATOR_COMMON_SOURCES})
 source_group("Simulator/Classic" FILES ${SIMULATOR_CLASSIC_SOURCES})
+source_group("Simulator/FastMSS" FILES ${SIMULATOR_FAST_MSS_SOURCES})
 source_group("Simulator/FS" FILES ${SIMULATOR_FS_SOURCES})
 source_group("Simulator/PositionBased" FILES ${SIMULATOR_POSITION_BASED_SOURCES})
 
@@ -144,6 +152,7 @@ add_library (SLabCoreLib
 	${GLAD_SOURCES} 
 	${SIMULATOR_COMMON_SOURCES}
 	${SIMULATOR_CLASSIC_SOURCES}
+	${SIMULATOR_FAST_MSS_SOURCES}
 	${SIMULATOR_FS_SOURCES}
 	${SIMULATOR_POSITION_BASED_SOURCES})
 
@@ -153,11 +162,13 @@ target_include_directories(SLabCoreLib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(SLabCoreLib INTERFACE ..)
 
 target_link_libraries (SLabCoreLib
+	eigen
 	${IL_LIBRARIES}
 	${ILU_LIBRARIES}
 	${ILUT_LIBRARIES}
 	${OPENGL_LIBRARIES}
-	${ADDITIONAL_LIBRARIES})
+	${ADDITIONAL_LIBRARIES}
+	)
 
 if (${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
 

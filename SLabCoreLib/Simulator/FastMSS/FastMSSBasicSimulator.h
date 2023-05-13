@@ -1,0 +1,62 @@
+/***************************************************************************************
+* Original Author:      Gabriele Giuseppini
+* Created:              2023-05-13
+* Copyright:            Gabriele Giuseppini  (https://github.com/GabrieleGiuseppini)
+***************************************************************************************/
+#pragma once
+
+#include "Simulator/Common/ISimulator.h"
+
+#include <Eigen/Dense>
+#include <Eigen/Sparse>
+
+#include <memory>
+#include <string>
+
+/*
+ * Implementation of "Fast simulation of mass-spring systems", from:
+ * Liu, T., Bargteil, A. W., Obrien, J. F., & Kavan, L. (2013). Fast simulation of mass-spring systems. ACM Transactions on Graphics,32(6), 1-7. doi:10.1145/2508363.2508406
+ *
+ * Adapted from https://github.com/sam007961/FastMassSpring.
+ */
+class FastMSSBasicSimulator final : public ISimulator
+{
+public:
+
+    static std::string GetSimulatorName()
+    {
+        return "Fast MSS - Basic";
+    }
+
+public:
+
+    FastMSSBasicSimulator(
+        Object const & object,
+        SimulationParameters const & simulationParameters);
+
+    //////////////////////////////////////////////////////////
+    // ISimulator
+    //////////////////////////////////////////////////////////
+
+    void OnStateChanged(
+        Object const & object,
+        SimulationParameters const & simulationParameters) override;
+
+    void Update(
+        Object & object,
+        float currentSimulationTime,
+        SimulationParameters const & simulationParameters) override;
+
+private:
+
+    void CreateState(
+        Object const & object,
+        SimulationParameters const & simulationParameters);
+
+private:
+
+    // L, J, M matrices
+    Eigen::SparseMatrix<float> mL;
+    Eigen::SparseMatrix<float> mJ;
+    Eigen::SparseMatrix<float> mM;
+};

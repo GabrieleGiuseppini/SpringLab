@@ -52,12 +52,29 @@ if(EXISTS "${USER_SETTINGS_FILE}")
 	include("${USER_SETTINGS_FILE}")
 endif()
 
+message (STATUS "FS_USE_STATIC_LIBS:" ${FS_USE_STATIC_LIBS})
+message (STATUS "FS_BUILD_BENCHMARKS:" ${FS_BUILD_BENCHMARKS})
+
 ####################################################
 #  External libraries configuration
 ####################################################
 
-message (STATUS "FS_USE_STATIC_LIBS:" ${FS_USE_STATIC_LIBS})
-message (STATUS "FS_BUILD_BENCHMARKS:" ${FS_BUILD_BENCHMARKS})
+include(FetchContent)
+
+#
+# Eigen
+#
+
+FetchContent_Declare(
+  eigen
+  GIT_REPOSITORY  https://gitlab.com/libeigen/eigen.git
+)
+
+FetchContent_GetProperties(eigen)
+if(NOT eigen_POPULATED)
+  FetchContent_Populate(eigen)
+  add_subdirectory(${eigen_SOURCE_DIR} ${eigen_BINARY_DIR})
+endif()
 
 #
 # PicoJSON
