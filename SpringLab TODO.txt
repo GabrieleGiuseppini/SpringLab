@@ -199,6 +199,8 @@ FS 22 - By Point, Compact, Integrating:
 			- But could still try and come up with constraints on the angles between each pair of springs incident to the same vertex
 
 	- ProjectiveTODO/with Eigen
+		- External forces
+		- Fixed points
 	
 	! Notes:
 		! When integration is...integrated, it might fare worse because we do double the number of fp operations

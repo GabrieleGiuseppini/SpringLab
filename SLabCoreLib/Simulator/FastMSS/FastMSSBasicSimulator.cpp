@@ -27,9 +27,46 @@ void FastMSSBasicSimulator::Update(
     float /*currentSimulationTime*/,
     SimulationParameters const & simulationParameters)
 {
-    // TODO
-    (void)object;
-    (void)simulationParameters;
+    //
+    // The object's state is our last-produced next state, *plus* any user-applied state modifications;
+    // so, we take it as our current state (effectively wiping our last production).
+    //
+
+    Eigen::Map<Eigen::VectorXf> currentState = Eigen::Map<Eigen::VectorXf>(
+        reinterpret_cast<float *>(object.GetPoints().GetPositionBuffer()),
+        object.GetPoints().GetElementCount() * 2);
+
+    //
+    // Calculate inertial term:
+    //
+    //  M * (2q(n) − q(n−1))
+    //
+    // Where we allow damping to skew the equation.
+    //
+
+    float const damping = simulationParameters.FastMSSCommonSimulator.GlobalDamping;
+
+    Eigen::VectorXf const inertialTem = mM * ((damping + 1.0f) * currentState - damping * mPreviousState);
+
+    //
+    // Shift current state (i.e. now's object state) into previous state
+    // (as we're now done with previous state; should technically do this at bottom
+    // but that would require to have an additional buffer to calculate next state 
+    // instead of calculating in-place in current state)
+    //
+
+    mPreviousState = currentState;
+
+    //
+    // Optimize, alternating between local and global steps
+    //
+
+    for (size_t i = 0; i < simulationParameters.FastMSSCommonSimulator.NumLocalGlobalStepIterations; ++i)
+    {
+        RunLocalStep(currentState);  // Calculates spring directions based on current state
+        currentState = RunGlobalStep(); // Calculates new current state (updating points' position buffer)
+        // TODO: double-check that by assigning to currentState we're effectively changing the object's point positions buffer
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -143,5 +180,40 @@ void FastMSSBasicSimulator::CreateState(
 
     mM.setFromTriplets(triplets.cbegin(), triplets.cend());
 
-    // TODOHERE
+    //
+    // Pre-factor system matrix
+    //
+
+    Eigen::SparseMatrix<float> const A = mM + dtSquared * mL;
+    mCholenskySystemMatrix.compute(A);
+
+    // 
+    // Initialize previous state
+    //
+
+    mPreviousState = Eigen::PlainObjectBase<Eigen::VectorXf>::Map(
+        reinterpret_cast<float const *>(object.GetPoints().GetPositionBuffer()), 
+        nParticles * 2);
+
+    // TODO: external forces
 }
+
+void FastMSSBasicSimulator::RunLocalStep(Eigen::Map<Eigen::VectorXf> const & currentState)
+{
+    //
+    // Calculate optimal spring directions based on current state (fixing positions)
+    //
+
+    // TODO
+    (void)currentState;
+}
+
+Eigen::VectorXf FastMSSBasicSimulator::RunGlobalStep()
+{
+    //
+    // Produce new current state by computing optimal positions (fixing directions)
+    //
+
+    // TODO    
+}
+

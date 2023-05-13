@@ -13,4 +13,14 @@ struct FastMSSCommonSimulatorParameters
     float SpringStiffnessCoefficient;
     static float constexpr MinSpringStiffnessCoefficient = 0.0f;
     static float constexpr MaxSpringStiffnessCoefficient = 500000.0f;
+
+    // Global damping
+    float GlobalDamping;
+    static float constexpr MinGlobalDamping = 0.0f;
+    static float constexpr MaxGlobalDamping = 1.0f;
+
+    // The number of local-global iterations in a step
+    size_t NumLocalGlobalStepIterations;
+    static size_t constexpr MinNumLocalGlobalStepIterations = 1;
+    static size_t constexpr MaxNumLocalGlobalStepIterations = 100;
 };

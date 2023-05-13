@@ -53,10 +53,22 @@ private:
         Object const & object,
         SimulationParameters const & simulationParameters);
 
+    void RunLocalStep(Eigen::Map<Eigen::VectorXf> const & currentState);
+
+    Eigen::VectorXf RunGlobalStep();
+
 private:
+
+    // State
+    //
+    // At each step we calculate state(t+1) given state(t) (aka current state) and state(t-1) (aka previous state)
+    Eigen::VectorXf mPreviousState;
 
     // L, J, M matrices
     Eigen::SparseMatrix<float> mL;
     Eigen::SparseMatrix<float> mJ;
     Eigen::SparseMatrix<float> mM;
+
+    // System matrix (points coeff in system)
+    Eigen::SimplicialLLT<Eigen::SparseMatrix<float>> mCholenskySystemMatrix;
 };

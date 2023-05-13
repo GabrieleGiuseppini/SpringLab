@@ -7,5 +7,7 @@
 
 FastMSSCommonSimulatorParameters::FastMSSCommonSimulatorParameters()
 	: SpringStiffnessCoefficient(36700.0f)
+	, GlobalDamping(1.0f)
+	, NumLocalGlobalStepIterations(10)
 {
 }

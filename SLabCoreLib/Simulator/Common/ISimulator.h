@@ -16,7 +16,7 @@ public:
 
     /*
      * Invoked when either a parameter changes, or when an attribute of the
-     * object changes - excluding position and velocity changes.
+     * object changes - such as assigned forces, but excluding position and velocity changes.
      * No structural changes.
      */
     virtual void OnStateChanged(
