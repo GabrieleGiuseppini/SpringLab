@@ -199,10 +199,13 @@ FS 22 - By Point, Compact, Integrating:
 			- But could still try and come up with constraints on the angles between each pair of springs incident to the same vertex
 
 	= Fast MSS Simulation (with Eigen)
-		- External forces
+		+ External forces
 		- Inertial term: subst a (cur-prev) with (vel * dt)
 		- Fixed points
-			- Apparently it's done by forcing their positions back to original
+			- Force their positions back to original
+				- Would it work to use previousState all the time?
+		- Optimize
+			- Those vectors that we keep creating, save an allocation
 	
 	! Notes:
 		! When integration is...integrated, it might fare worse because we do double the number of fp operations

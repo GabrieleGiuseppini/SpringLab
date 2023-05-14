@@ -66,7 +66,9 @@ void FastMSSBasicSimulator::Update(
     for (size_t i = 0; i < simulationParameters.FastMSSCommonSimulator.NumLocalGlobalStepIterations; ++i)
     {
         // Calculate spring directions based on current state
-        Eigen::VectorXf const springDirections = RunLocalStep(currentState);
+        Eigen::VectorXf const springDirections = RunLocalStep(
+            currentState,
+            object.GetSprings());
 
         // Calculate new current state (updating points' position buffer)
         currentState = RunGlobalStep(
@@ -207,14 +209,33 @@ void FastMSSBasicSimulator::CreateState(
         nParticles * 2);
 }
 
-Eigen::VectorXf FastMSSBasicSimulator::RunLocalStep(Eigen::Map<Eigen::VectorXf> const & currentState)
+Eigen::VectorXf FastMSSBasicSimulator::RunLocalStep(
+    Eigen::Map<Eigen::VectorXf> const & currentState,
+    Springs const & springs)
 {
     //
     // Calculate optimal spring directions based on current state (fixing positions)
     //
 
-    // TODOHERE
-    (void)currentState;
+    Eigen::VectorXf springDirections(springs.GetElementCount() * 2);
+
+    for (auto s : springs)
+    {
+        auto const pa = springs.GetEndpointAIndex(s);
+        auto const pb = springs.GetEndpointBIndex(s);
+
+        vec2f const xa = vec2f(currentState[2 * pa], currentState[2 * pa + 1]);
+        vec2f const xb = vec2f(currentState[2 * pb], currentState[2 * pb + 1]);
+
+        vec2f const dir =
+            (xa - xb).normalise()
+            * springs.GetRestLength(s);
+
+        springDirections[2 * s] = dir.x;
+        springDirections[2 * s + 1] = dir.y;
+    }
+
+    return springDirections;
 }
 
 Eigen::VectorXf FastMSSBasicSimulator::RunGlobalStep(

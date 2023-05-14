@@ -54,7 +54,9 @@ private:
         SimulationParameters const & simulationParameters);
 
     // Returns new spring directions
-    Eigen::VectorXf RunLocalStep(Eigen::Map<Eigen::VectorXf> const & currentState);
+    Eigen::VectorXf RunLocalStep(
+        Eigen::Map<Eigen::VectorXf> const & currentState,
+        Springs const & springs);
 
     // Return new positions (state)
     Eigen::VectorXf RunGlobalStep(
@@ -65,7 +67,7 @@ private:
 
 private:
 
-    // State
+    // State (i.e. positions)
     //
     // At each step we calculate state(t+1) given state(t) (aka current state) and state(t-1) (aka previous state)
     Eigen::VectorXf mPreviousState;
