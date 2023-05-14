@@ -200,10 +200,10 @@ FS 22 - By Point, Compact, Integrating:
 
 	= Fast MSS Simulation (with Eigen)
 		+ External forces
-		- Inertial term: subst a (cur-prev) with (vel * dt)
+		+ Inertial term: subst a (cur-prev) with (vel * dt)
 		- Fixed points
 			- Force their positions back to original
-				- Would it work to use previousState all the time?
+		- SettingsDialog tab
 		- Optimize
 			- Those vectors that we keep creating, save an allocation
 	

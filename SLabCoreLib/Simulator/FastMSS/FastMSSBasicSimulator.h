@@ -67,10 +67,8 @@ private:
 
 private:
 
-    // State (i.e. positions)
-    //
-    // At each step we calculate state(t+1) given state(t) (aka current state) and state(t-1) (aka previous state)
-    Eigen::VectorXf mPreviousState;
+    // External forces
+    Eigen::VectorXf mExternalForces;
 
     // L, J, M matrices
     Eigen::SparseMatrix<float> mL;

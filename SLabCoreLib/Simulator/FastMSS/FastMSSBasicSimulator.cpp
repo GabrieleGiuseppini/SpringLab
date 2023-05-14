@@ -27,11 +27,13 @@ void FastMSSBasicSimulator::Update(
     float /*currentSimulationTime*/,
     SimulationParameters const & simulationParameters)
 {
+    float const dt = simulationParameters.Common.SimulationTimeStepDuration;
+
     auto const nParticles = object.GetPoints().GetElementCount();
 
     //
     // The object's state is our last-produced next state, *plus* any user-applied state modifications;
-    // so, we take it as our current state (effectively wiping our last production).
+    // so, we take it as our current state
     //
 
     auto currentState = Eigen::Map<Eigen::VectorXf>(
@@ -45,23 +47,26 @@ void FastMSSBasicSimulator::Update(
     //
     // Where we allow damping to skew the equation.
     //
+    // Realizing that the inertial term is simply the current positions plus
+    // the current velocities (i.e. (q(n) - q(n-1))/dt), we rewrite is as follows:
+    //
+    //  M * q(n) + d * v(n) * dt
+    //
+
+    auto currentVelocities = Eigen::Map<Eigen::VectorXf>(
+        reinterpret_cast<float *>(object.GetPoints().GetVelocityBuffer()),
+        nParticles * 2);
 
     float const damping = simulationParameters.FastMSSCommonSimulator.GlobalDamping;
 
-    Eigen::VectorXf const inertialTerm = mM * ((damping + 1.0f) * currentState - damping * mPreviousState);
-
-    //
-    // Shift current state (i.e. now's object state) into previous state
-    // (as we're now done with previous state; should technically do this at bottom
-    // but that would require to have an additional buffer to calculate next state 
-    // instead of calculating in-place in current state)
-    //
-
-    mPreviousState = currentState;
+    Eigen::VectorXf const inertialTerm = mM * (currentState + currentVelocities * damping * dt);
 
     //
     // Optimize, alternating between local and global steps
     //
+
+    // Save current state as initial state
+    Eigen::VectorXf const initialState = currentState;
 
     for (size_t i = 0; i < simulationParameters.FastMSSCommonSimulator.NumLocalGlobalStepIterations; ++i)
     {
@@ -74,12 +79,21 @@ void FastMSSBasicSimulator::Update(
         currentState = RunGlobalStep(
             inertialTerm,
             springDirections,
-            Eigen::PlainObjectBase<Eigen::VectorXf>::Map(
-                reinterpret_cast<float const *>(object.GetPoints().GetAssignedForceBuffer()),
-                nParticles * 2),
+            mExternalForces,
             simulationParameters); 
-        // TODO: double-check that by assigning to currentState we're effectively changing the object's point positions buffer
     }
+
+    //
+    // Fix points
+    //
+
+    // TODO: use initialState
+
+    //
+    // Calculate velocities
+    //
+
+    currentVelocities = (currentState - initialState) / dt;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -194,19 +208,31 @@ void FastMSSBasicSimulator::CreateState(
     mM.setFromTriplets(triplets.cbegin(), triplets.cend());
 
     //
-    // Pre-factor system matrix
+    // Pre-factor system matrix:
+    //
+    //  M + h^2L
     //
 
     Eigen::SparseMatrix<float> const A = mM + dtSquared * mL;
     mCholenskySystemMatrix.compute(A);
 
-    // 
-    // Initialize previous state
+    //
+    // Calculate external forces
     //
 
-    mPreviousState = Eigen::PlainObjectBase<Eigen::VectorXf>::Map(
-        reinterpret_cast<float const *>(object.GetPoints().GetPositionBuffer()), 
-        nParticles * 2);
+    mExternalForces = Eigen::VectorXf(nParticles * 2);
+
+    for (auto p : object.GetPoints())
+    {
+        vec2f const totalForce =
+            // Gravity
+            simulationParameters.Common.AssignedGravity * object.GetPoints().GetMass(p) * simulationParameters.Common.MassAdjustment
+            // External forces
+            + object.GetPoints().GetAssignedForce(p);
+
+        mExternalForces(2 * p) = totalForce.x;
+        mExternalForces(2 * p + 1) = totalForce.y;
+    }
 }
 
 Eigen::VectorXf FastMSSBasicSimulator::RunLocalStep(
