@@ -233,6 +233,22 @@ public:
     float GetPositionBasedSimulatorMinGlobalDamping() const { return PositionBasedCommonSimulatorParameters::MinGlobalDamping; }
     float GetPositionBasedSimulatorMaxGlobalDamping() const { return PositionBasedCommonSimulatorParameters::MaxGlobalDamping; }
 
+    size_t GetFastMSSSimulatorNumLocalGlobalStepIterations() const { return mSimulationParameters.FastMSSCommonSimulator.NumLocalGlobalStepIterations; }
+    void SetFastMSSSimulatorNumLocalGlobalStepIterations(size_t value) { mSimulationParameters.FastMSSCommonSimulator.NumLocalGlobalStepIterations = value; mIsSimulationStateDirty = true; }
+    size_t GetFastMSSSimulatorMinNumLocalGlobalStepIterations() const { return FastMSSCommonSimulatorParameters::MinNumLocalGlobalStepIterations; }
+    size_t GetFastMSSSimulatorMaxNumLocalGlobalStepIterations() const { return FastMSSCommonSimulatorParameters::MaxNumLocalGlobalStepIterations; }
+
+    float GetFastMSSSimulatorSpringStiffnessCoefficient() const { return mSimulationParameters.FastMSSCommonSimulator.SpringStiffnessCoefficient; }
+    void SetFastMSSSimulatorSpringStiffnessCoefficient(float value) { mSimulationParameters.FastMSSCommonSimulator.SpringStiffnessCoefficient = value; mIsSimulationStateDirty = true; }
+    float GetFastMSSSimulatorMinSpringStiffnessCoefficient() const { return FastMSSCommonSimulatorParameters::MinSpringStiffnessCoefficient; }
+    float GetFastMSSSimulatorMaxSpringStiffnessCoefficient() const { return FastMSSCommonSimulatorParameters::MaxSpringStiffnessCoefficient; }
+
+    float GetFastMSSSimulatorGlobalDamping() const { return mSimulationParameters.FastMSSCommonSimulator.GlobalDamping; }
+    void SetFastMSSSimulatorGlobalDamping(float value) { mSimulationParameters.FastMSSCommonSimulator.GlobalDamping = value; mIsSimulationStateDirty = true; }
+    float GetFastMSSSimulatorMinGlobalDamping() const { return FastMSSCommonSimulatorParameters::MinGlobalDamping; }
+    float GetFastMSSSimulatorMaxGlobalDamping() const { return FastMSSCommonSimulatorParameters::MaxGlobalDamping; }
+
+
     //
     // Own parameters
     //

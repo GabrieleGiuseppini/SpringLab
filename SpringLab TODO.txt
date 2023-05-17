@@ -201,11 +201,12 @@ FS 22 - By Point, Compact, Integrating:
 	= Fast MSS Simulation (with Eigen)
 		+ External forces
 		+ Inertial term: subst a (cur-prev) with (vel * dt)
-		- Fixed points
-			- Force their positions back to original
-		- SettingsDialog tab
+		+ Fixed points
+			+ Force their positions back to original
+		+ SettingsDialog tab
 		- Optimize
 			- Those vectors that we keep creating, save an allocation
+			- Fixed points
 	
 	! Notes:
 		! When integration is...integrated, it might fare worse because we do double the number of fp operations

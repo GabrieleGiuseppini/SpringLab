@@ -87,7 +87,15 @@ void FastMSSBasicSimulator::Update(
     // Fix points
     //
 
-    // TODO: use initialState
+    for (auto const p : object.GetPoints())
+    {
+        currentState[2 * p] =
+            object.GetPoints().GetFrozenCoefficient(p) * currentState[2 * p]
+            + (1.0f - object.GetPoints().GetFrozenCoefficient(p)) * initialState[2 * p];
+        currentState[2 * p + 1] =
+            object.GetPoints().GetFrozenCoefficient(p) * currentState[2 * p + 1]
+            + (1.0f - object.GetPoints().GetFrozenCoefficient(p)) * initialState[2 * p + 1];
+    }
 
     //
     // Calculate velocities
@@ -122,7 +130,7 @@ void FastMSSBasicSimulator::CreateState(
     mL.resize(2 * nParticles, 2 * nParticles);
 
     triplets.clear();
-    for (auto s : object.GetSprings())
+    for (auto const s : object.GetSprings())
     {
         float const k =
             simulationParameters.FastMSSCommonSimulator.SpringStiffnessCoefficient
@@ -161,7 +169,7 @@ void FastMSSBasicSimulator::CreateState(
     mJ.resize(2 * nParticles, 2 * nSprings);
 
     triplets.clear();
-    for (auto s : object.GetSprings())
+    for (auto const s : object.GetSprings())
     {
         float const k =
             object.GetSprings().GetMaterialStiffness(s)
@@ -192,7 +200,7 @@ void FastMSSBasicSimulator::CreateState(
     mM.resize(2 * nParticles, 2 * nParticles);
 
     triplets.clear();
-    for (auto p : object.GetPoints())
+    for (auto const p : object.GetPoints())
     {
         float const m =
             object.GetPoints().GetMass(p)
@@ -222,7 +230,7 @@ void FastMSSBasicSimulator::CreateState(
 
     mExternalForces = Eigen::VectorXf(nParticles * 2);
 
-    for (auto p : object.GetPoints())
+    for (auto const p : object.GetPoints())
     {
         vec2f const totalForce =
             // Gravity
@@ -245,7 +253,7 @@ Eigen::VectorXf FastMSSBasicSimulator::RunLocalStep(
 
     Eigen::VectorXf springDirections(springs.GetElementCount() * 2);
 
-    for (auto s : springs)
+    for (auto const s : springs)
     {
         auto const pa = springs.GetEndpointAIndex(s);
         auto const pb = springs.GetEndpointBIndex(s);

@@ -30,6 +30,10 @@ enum class SLabSettings : size_t
     PositionBasedSimulatorSpringDampingCoefficient,
     PositionBasedSimulatorGlobalDamping,
 
+    FastMSSSimulatorNumLocalGlobalStepIterations,
+    FastMSSSimulatorSpringStiffnessCoefficient,
+    FastMSSSimulatorGlobalDamping,
+
     DoRenderAssignedParticleForces,
 
     _Last = DoRenderAssignedParticleForces

@@ -43,6 +43,10 @@ BaseSettingsManager<SLabSettings>::BaseSettingsManagerFactory SettingsManager::M
     ADD_SETTING(float, PositionBasedSimulatorSpringDampingCoefficient);
     ADD_SETTING(float, PositionBasedSimulatorGlobalDamping);
 
+    ADD_SETTING(size_t, FastMSSSimulatorNumLocalGlobalStepIterations);
+    ADD_SETTING(float, FastMSSSimulatorSpringStiffnessCoefficient);
+    ADD_SETTING(float, FastMSSSimulatorGlobalDamping);
+
     ADD_SETTING(bool, DoRenderAssignedParticleForces);
 
     return factory;

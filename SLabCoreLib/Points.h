@@ -78,7 +78,7 @@ public:
         , mAssignedForceBuffer(mBufferElementCount, pointCount, vec2f::zero())
         , mStructuralMaterialBuffer(mBufferElementCount, pointCount, nullptr)
         , mMassBuffer(mBufferElementCount, pointCount, 0.0f)
-        , mFrozenCoefficientBuffer(mBufferElementCount, pointCount, 0.0f)
+        , mFrozenCoefficientBuffer(mBufferElementCount, pointCount, 1.0f)
         , mConnectedSpringsBuffer(mBufferElementCount, pointCount, ConnectedSpringsVector())
         // Render
         , mRenderColorBuffer(mBufferElementCount, pointCount, vec4f::zero())
