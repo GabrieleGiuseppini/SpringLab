@@ -248,6 +248,27 @@ public:
     float GetFastMSSSimulatorMinGlobalDamping() const { return FastMSSCommonSimulatorParameters::MinGlobalDamping; }
     float GetFastMSSSimulatorMaxGlobalDamping() const { return FastMSSCommonSimulatorParameters::MaxGlobalDamping; }
 
+    size_t GetGaussSeidelSimulatorNumMechanicalDynamicsIterations() const { return mSimulationParameters.GaussSeidelCommonSimulator.NumMechanicalDynamicsIterations; }
+    void SetGaussSeidelSimulatorNumMechanicalDynamicsIterations(size_t value) { mSimulationParameters.GaussSeidelCommonSimulator.NumMechanicalDynamicsIterations = value; mIsSimulationStateDirty = true; }
+    size_t GetGaussSeidelSimulatorMinNumMechanicalDynamicsIterations() const { return GaussSeidelCommonSimulatorParameters::MinNumMechanicalDynamicsIterations; }
+    size_t GetGaussSeidelSimulatorMaxNumMechanicalDynamicsIterations() const { return GaussSeidelCommonSimulatorParameters::MaxNumMechanicalDynamicsIterations; }
+
+    float GetGaussSeidelSimulatorSpringReductionFraction() const { return mSimulationParameters.GaussSeidelCommonSimulator.SpringReductionFraction; }
+    void SetGaussSeidelSimulatorSpringReductionFraction(float value) { mSimulationParameters.GaussSeidelCommonSimulator.SpringReductionFraction = value; mIsSimulationStateDirty = true; }
+    float GetGaussSeidelSimulatorMinSpringReductionFraction() const { return GaussSeidelCommonSimulatorParameters::MinSpringReductionFraction; }
+    float GetGaussSeidelSimulatorMaxSpringReductionFraction() const { return GaussSeidelCommonSimulatorParameters::MaxSpringReductionFraction; }
+
+    float GetGaussSeidelSimulatorSpringDampingCoefficient() const { return mSimulationParameters.GaussSeidelCommonSimulator.SpringDampingCoefficient; }
+    void SetGaussSeidelSimulatorSpringDampingCoefficient(float value) { mSimulationParameters.GaussSeidelCommonSimulator.SpringDampingCoefficient = value; mIsSimulationStateDirty = true; }
+    float GetGaussSeidelSimulatorMinSpringDampingCoefficient() const { return GaussSeidelCommonSimulatorParameters::MinSpringDampingCoefficient; }
+    float GetGaussSeidelSimulatorMaxSpringDampingCoefficient() const { return GaussSeidelCommonSimulatorParameters::MaxSpringDampingCoefficient; }
+
+    float GetGaussSeidelSimulatorGlobalDamping() const { return mSimulationParameters.GaussSeidelCommonSimulator.GlobalDamping; }
+    void SetGaussSeidelSimulatorGlobalDamping(float value) { mSimulationParameters.GaussSeidelCommonSimulator.GlobalDamping = value; mIsSimulationStateDirty = true; }
+    float GetGaussSeidelSimulatorMinGlobalDamping() const { return GaussSeidelCommonSimulatorParameters::MinGlobalDamping; }
+    float GetGaussSeidelSimulatorMaxGlobalDamping() const { return GaussSeidelCommonSimulatorParameters::MaxGlobalDamping; }
+
+
 
     //
     // Own parameters

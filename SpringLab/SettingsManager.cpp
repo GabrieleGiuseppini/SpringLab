@@ -47,6 +47,11 @@ BaseSettingsManager<SLabSettings>::BaseSettingsManagerFactory SettingsManager::M
     ADD_SETTING(float, FastMSSSimulatorSpringStiffnessCoefficient);
     ADD_SETTING(float, FastMSSSimulatorGlobalDamping);
 
+    ADD_SETTING(size_t, GaussSeidelSimulatorNumMechanicalDynamicsIterations);
+    ADD_SETTING(float, GaussSeidelSimulatorSpringReductionFraction);
+    ADD_SETTING(float, GaussSeidelSimulatorSpringDampingCoefficient);
+    ADD_SETTING(float, GaussSeidelSimulatorGlobalDamping);
+
     ADD_SETTING(bool, DoRenderAssignedParticleForces);
 
     return factory;

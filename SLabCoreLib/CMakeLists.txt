@@ -125,6 +125,13 @@ set  (SIMULATOR_FS_SOURCES
 	Simulator/FS/FSCommonSimulatorParameters.h
 )
 
+set  (SIMULATOR_GAUSS_SEIDEL_SOURCES
+	Simulator/GaussSeidel/GaussSeidelByPointSimulator.cpp
+	Simulator/GaussSeidel/GaussSeidelByPointSimulator.h
+	Simulator/GaussSeidel/GaussSeidelCommonSimulatorParameters.cpp
+	Simulator/GaussSeidel/GaussSeidelCommonSimulatorParameters.h
+)
+
 set  (SIMULATOR_POSITION_BASED_SOURCES
 	Simulator/PositionBased/PositionBasedBasicSimulator.cpp
 	Simulator/PositionBased/PositionBasedBasicSimulator.h
@@ -145,6 +152,7 @@ source_group("Simulator/Common" FILES ${SIMULATOR_COMMON_SOURCES})
 source_group("Simulator/Classic" FILES ${SIMULATOR_CLASSIC_SOURCES})
 source_group("Simulator/FastMSS" FILES ${SIMULATOR_FAST_MSS_SOURCES})
 source_group("Simulator/FS" FILES ${SIMULATOR_FS_SOURCES})
+source_group("Simulator/GaussSeidel" FILES ${SIMULATOR_GAUSS_SEIDEL_SOURCES})
 source_group("Simulator/PositionBased" FILES ${SIMULATOR_POSITION_BASED_SOURCES})
 
 add_library (SLabCoreLib 
@@ -154,6 +162,7 @@ add_library (SLabCoreLib
 	${SIMULATOR_CLASSIC_SOURCES}
 	${SIMULATOR_FAST_MSS_SOURCES}
 	${SIMULATOR_FS_SOURCES}
+	${SIMULATOR_GAUSS_SEIDEL_SOURCES}
 	${SIMULATOR_POSITION_BASED_SOURCES})
 
 target_include_directories(SLabCoreLib PRIVATE ${IL_INCLUDE_DIR})

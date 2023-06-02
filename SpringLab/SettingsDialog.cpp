@@ -114,16 +114,6 @@ SettingsDialog::SettingsDialog(
 
 
     //
-    // Position-Based
-    //
-
-    wxPanel * positionBasedSimulatorPanel = new wxPanel(notebook);
-
-    PopulatePositionBasedSimulatorPanel(positionBasedSimulatorPanel);
-
-    notebook->AddPage(positionBasedSimulatorPanel, "PB Simulator");
-
-    //
     // Fast MSS
     //
 
@@ -132,6 +122,28 @@ SettingsDialog::SettingsDialog(
     PopulateFastMSSSimulatorPanel(fastMSSSimulatorPanel);
 
     notebook->AddPage(fastMSSSimulatorPanel, "Fast MSS");
+
+
+    //
+    // Gauss-Seidel
+    //
+
+    wxPanel * gaussSeidelSimulatorPanel = new wxPanel(notebook);
+
+    PopulateGaussSeidelSimulatorPanel(gaussSeidelSimulatorPanel);
+
+    notebook->AddPage(gaussSeidelSimulatorPanel, "Gauss-Seidel");
+
+
+    //
+    // Position-Based
+    //
+
+    wxPanel * positionBasedSimulatorPanel = new wxPanel(notebook);
+
+    PopulatePositionBasedSimulatorPanel(positionBasedSimulatorPanel);
+
+    notebook->AddPage(positionBasedSimulatorPanel, "PB Simulator");
 
 
     //
@@ -876,6 +888,142 @@ void SettingsDialog::PopulateFastMSSSimulatorPanel(wxPanel * panel)
     panel->SetSizer(gridSizer);
 }
 
+void SettingsDialog::PopulateGaussSeidelSimulatorPanel(wxPanel * panel)
+{
+    wxGridBagSizer * gridSizer = new wxGridBagSizer(0, 0);
+
+    // Mechanics
+    {
+        wxStaticBox * mechanicsBox = new wxStaticBox(panel, wxID_ANY, _("Mechanics"));
+
+        wxBoxSizer * mechanicsBoxSizer = new wxBoxSizer(wxVERTICAL);
+        mechanicsBoxSizer->AddSpacer(StaticBoxTopMargin);
+
+        {
+            wxGridBagSizer * mechanicsSizer = new wxGridBagSizer(0, 0);
+
+            // Num Iterations
+            {
+                mGaussSeidelSimulatorNumMechanicalDynamicsIterationsSlider = new SliderControl<size_t>(
+                    mechanicsBox,
+                    SliderWidth,
+                    SliderHeight,
+                    "Num Iterations",
+                    "Adjusts the number of iterations of the spring relaxation algorithm.",
+                    [this](size_t value)
+                    {
+                        this->mLiveSettings.SetValue(SLabSettings::GaussSeidelSimulatorNumMechanicalDynamicsIterations, value);
+                        this->OnLiveSettingsChanged();
+                    },
+                    std::make_unique<IntegralLinearSliderCore<size_t>>(
+                        mSimulationController->GetGaussSeidelSimulatorMinNumMechanicalDynamicsIterations(),
+                        mSimulationController->GetGaussSeidelSimulatorMaxNumMechanicalDynamicsIterations()));
+
+                mechanicsSizer->Add(
+                    mGaussSeidelSimulatorNumMechanicalDynamicsIterationsSlider,
+                    wxGBPosition(0, 0),
+                    wxGBSpan(1, 1),
+                    wxEXPAND | wxALL,
+                    CellBorder);
+            }
+
+            // Spring Reduction Fraction
+            {
+                mGaussSeidelSimulatorSpringReductionFraction = new SliderControl<float>(
+                    mechanicsBox,
+                    SliderWidth,
+                    SliderHeight,
+                    "Spring Reduction Fraction",
+                    "Adjusts the fraction of the over-length that gets reduced by the spring.",
+                    [this](float value)
+                    {
+                        this->mLiveSettings.SetValue(SLabSettings::GaussSeidelSimulatorSpringReductionFraction, value);
+                        this->OnLiveSettingsChanged();
+                    },
+                    std::make_unique<LinearSliderCore>(
+                        mSimulationController->GetGaussSeidelSimulatorMinSpringReductionFraction(),
+                        mSimulationController->GetGaussSeidelSimulatorMaxSpringReductionFraction()));
+
+                mechanicsSizer->Add(
+                    mGaussSeidelSimulatorSpringReductionFraction,
+                    wxGBPosition(0, 1),
+                    wxGBSpan(1, 1),
+                    wxEXPAND | wxALL,
+                    CellBorder);
+            }
+
+            // Spring Damping
+            {
+                mGaussSeidelSimulatorSpringDampingSlider = new SliderControl<float>(
+                    mechanicsBox,
+                    SliderWidth,
+                    SliderHeight,
+                    "Spring Damping",
+                    "Adjusts the magnitude of the spring damping.",
+                    [this](float value)
+                    {
+                        this->mLiveSettings.SetValue(SLabSettings::GaussSeidelSimulatorSpringDampingCoefficient, value);
+                        this->OnLiveSettingsChanged();
+                    },
+                    std::make_unique<LinearSliderCore>(
+                        mSimulationController->GetGaussSeidelSimulatorMinSpringDampingCoefficient(),
+                        mSimulationController->GetGaussSeidelSimulatorMaxSpringDampingCoefficient()));
+
+                mechanicsSizer->Add(
+                    mGaussSeidelSimulatorSpringDampingSlider,
+                    wxGBPosition(0, 2),
+                    wxGBSpan(1, 1),
+                    wxEXPAND | wxALL,
+                    CellBorder);
+            }
+
+            // Global Damping
+            {
+                mGaussSeidelSimulatorGlobalDampingSlider = new SliderControl<float>(
+                    mechanicsBox,
+                    SliderWidth,
+                    SliderHeight,
+                    "Global Damping",
+                    "The global velocity damp factor.",
+                    [this](float value)
+                    {
+                        this->mLiveSettings.SetValue(SLabSettings::GaussSeidelSimulatorGlobalDamping, value);
+                        this->OnLiveSettingsChanged();
+                    },
+                    std::make_unique<LinearSliderCore>(
+                        mSimulationController->GetGaussSeidelSimulatorMinGlobalDamping(),
+                        mSimulationController->GetGaussSeidelSimulatorMaxGlobalDamping()));
+
+                mechanicsSizer->Add(
+                    mGaussSeidelSimulatorGlobalDampingSlider,
+                    wxGBPosition(0, 3),
+                    wxGBSpan(1, 1),
+                    wxEXPAND | wxALL,
+                    CellBorder);
+            }
+
+            mechanicsBoxSizer->Add(mechanicsSizer, 0, wxALL, StaticBoxInsetMargin);
+        }
+
+        mechanicsBox->SetSizerAndFit(mechanicsBoxSizer);
+
+        gridSizer->Add(
+            mechanicsBox,
+            wxGBPosition(0, 0),
+            wxGBSpan(1, 4),
+            wxEXPAND | wxALL | wxALIGN_CENTER_HORIZONTAL,
+            CellBorder);
+    }
+
+
+    // Finalize panel
+
+    for (int c = 0; c < gridSizer->GetCols(); ++c)
+        gridSizer->AddGrowableCol(c);
+
+    panel->SetSizer(gridSizer);
+}
+
 void SettingsDialog::PopulatePositionBasedSimulatorPanel(wxPanel * panel)
 {
     wxGridBagSizer * gridSizer = new wxGridBagSizer(0, 0);
@@ -1113,6 +1261,12 @@ void SettingsDialog::SyncControlsWithSettings(Settings<SLabSettings> const & set
     mFastMSSSimulatorNumLocalGlobalStepIterationsSlider->SetValue(settings.GetValue<size_t>(SLabSettings::FastMSSSimulatorNumLocalGlobalStepIterations));
     mFastMSSSimulatorSpringStiffnessSlider->SetValue(settings.GetValue<float>(SLabSettings::FastMSSSimulatorSpringStiffnessCoefficient));
     mFastMSSSimulatorGlobalDampingSlider->SetValue(settings.GetValue<float>(SLabSettings::FastMSSSimulatorGlobalDamping));
+
+    // Gauss-Seidel
+    mGaussSeidelSimulatorNumMechanicalDynamicsIterationsSlider->SetValue(settings.GetValue<size_t>(SLabSettings::GaussSeidelSimulatorNumMechanicalDynamicsIterations));
+    mGaussSeidelSimulatorSpringReductionFraction->SetValue(settings.GetValue<float>(SLabSettings::GaussSeidelSimulatorSpringReductionFraction));
+    mGaussSeidelSimulatorSpringDampingSlider->SetValue(settings.GetValue<float>(SLabSettings::GaussSeidelSimulatorSpringDampingCoefficient));
+    mGaussSeidelSimulatorGlobalDampingSlider->SetValue(settings.GetValue<float>(SLabSettings::GaussSeidelSimulatorGlobalDamping));
 
     // Render
     mDoRenderAssignedParticleForcesCheckBox->SetValue(settings.GetValue<bool>(SLabSettings::DoRenderAssignedParticleForces));

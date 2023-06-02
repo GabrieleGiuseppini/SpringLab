@@ -66,7 +66,7 @@ private:
     SliderControl<float> * mFSSimulatorSpringDampingSlider;
     SliderControl<float> * mFSSimulatorGlobalDampingSlider;
 
-    // FS
+    // PositionBased
     SliderControl<size_t> * mPositionBasedSimulatorNumMechanicalDynamicsIterationsSlider;
     SliderControl<size_t> * mPositionBasedSimulatorNumSolverIterationsSlider;
     SliderControl<float> * mPositionBasedSimulatorSpringReductionFraction;
@@ -77,6 +77,12 @@ private:
     SliderControl<size_t> * mFastMSSSimulatorNumLocalGlobalStepIterationsSlider;
     SliderControl<float> * mFastMSSSimulatorSpringStiffnessSlider;
     SliderControl<float> * mFastMSSSimulatorGlobalDampingSlider;
+
+    // GaussSeidel
+    SliderControl<size_t> * mGaussSeidelSimulatorNumMechanicalDynamicsIterationsSlider;
+    SliderControl<float> * mGaussSeidelSimulatorSpringReductionFraction;
+    SliderControl<float> * mGaussSeidelSimulatorSpringDampingSlider;
+    SliderControl<float> * mGaussSeidelSimulatorGlobalDampingSlider;
 
     // Rendering
     wxCheckBox * mDoRenderAssignedParticleForcesCheckBox;
@@ -99,6 +105,7 @@ private:
     void PopulateFSSimulatorPanel(wxPanel * panel);
     void PopulatePositionBasedSimulatorPanel(wxPanel * panel);
     void PopulateFastMSSSimulatorPanel(wxPanel * panel);
+    void PopulateGaussSeidelSimulatorPanel(wxPanel * panel);
     void PopulateRenderingPanel(wxPanel * panel);
 
     void SyncControlsWithSettings(Settings<SLabSettings> const & settings);

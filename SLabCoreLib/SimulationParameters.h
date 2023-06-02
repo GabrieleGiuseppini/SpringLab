@@ -11,6 +11,7 @@
 #include "Simulator/Classic/ClassicSimulatorParameters.h"
 #include "Simulator/FastMSS/FastMSSCommonSimulatorParameters.h"
 #include "Simulator/FS/FSCommonSimulatorParameters.h"
+#include "Simulator/GaussSeidel/GaussSeidelCommonSimulatorParameters.h"
 #include "Simulator/PositionBased/PositionBasedCommonSimulatorParameters.h"
 
 /*
@@ -37,6 +38,7 @@ struct SimulationParameters
     ClassicSimulatorParameters ClassicSimulator;
     FastMSSCommonSimulatorParameters FastMSSCommonSimulator;
     FSCommonSimulatorParameters FSCommonSimulator;
+    GaussSeidelCommonSimulatorParameters GaussSeidelCommonSimulator;
     PositionBasedCommonSimulatorParameters PositionBasedCommonSimulator;
 
     //

@@ -67,12 +67,12 @@ void FSBaseSimulator::CreateState(
             simulationParameters.Common.AssignedGravity * points.GetMass(pointIndex) * simulationParameters.Common.MassAdjustment
             + points.GetAssignedForce(pointIndex);
 
-        float const integrationFactorBuffer =
+        float const integrationFactor =
             dtSquared
             / (points.GetMass(pointIndex) * simulationParameters.Common.MassAdjustment)
             * points.GetFrozenCoefficient(pointIndex);
 
-        mPointIntegrationFactorBuffer[pointIndex] = vec2f(integrationFactorBuffer, integrationFactorBuffer);
+        mPointIntegrationFactorBuffer[pointIndex] = vec2f(integrationFactor, integrationFactor);
     }
 
 
