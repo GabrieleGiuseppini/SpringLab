@@ -34,8 +34,6 @@ set  (SOURCES
 	ObjectDefinition.cpp
 	ObjectDefinition.h
 	ObjectSimulatorSpecificStructure.h
-	ParallelThreadPool.cpp
-	ParallelThreadPool.h
 	PerfStats.h
 	Points.cpp
 	Points.h
@@ -72,6 +70,10 @@ set  (SOURCES
 	SysSpecifics.h
 	TaskThreadPool.cpp
 	TaskThreadPool.h
+	ThreadManager.cpp
+	ThreadManager.h
+	ThreadPool.cpp
+	ThreadPool.h
 	Utils.cpp
 	Utils.h	
 	Vectors.cpp

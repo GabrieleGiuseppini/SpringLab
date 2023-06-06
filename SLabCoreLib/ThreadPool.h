@@ -17,7 +17,7 @@
  * This class implements a thread pool that executes batches of tasks.
  *
  */
-class ParallelThreadPool
+class ThreadPool
 {
 public:
 
@@ -25,9 +25,9 @@ public:
 
 public:
 
-    explicit ParallelThreadPool(size_t parallelism);
+    explicit ThreadPool(size_t parallelism);
 
-    ~ParallelThreadPool();
+    ~ThreadPool();
 
     size_t GetParallelism() const
     {

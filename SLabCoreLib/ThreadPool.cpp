@@ -3,14 +3,13 @@
 * Created:              2023-04-08
 * Copyright:            Gabriele Giuseppini  (https://github.com/GabrieleGiuseppini)
 ***************************************************************************************/
-#include "ParallelThreadPool.h"
+#include "ThreadPool.h"
 
-#include "FloatingPoint.h"
-#include "Log.h"
+#include "ThreadManager.h"
 
 #include <algorithm>
 
-ParallelThreadPool::ParallelThreadPool(size_t parallelism)
+ThreadPool::ThreadPool(size_t parallelism)
     : mLock()
     , mThreads()
     , mTasks(parallelism - 1, nullptr)
@@ -24,11 +23,11 @@ ParallelThreadPool::ParallelThreadPool(size_t parallelism)
     // Start N-1 threads (main thread is one of them)
     for (size_t t = 0; t < parallelism - 1; ++t)
     {
-        mThreads.emplace_back(&ParallelThreadPool::ThreadLoop, this, t);
+        mThreads.emplace_back(&ThreadPool::ThreadLoop, this, t);
     }
 }
 
-ParallelThreadPool::~ParallelThreadPool()
+ThreadPool::~ThreadPool()
 {
     // Tell all threads to stop
     {
@@ -47,7 +46,7 @@ ParallelThreadPool::~ParallelThreadPool()
     }
 }
 
-void ParallelThreadPool::Run(std::vector<Task> const & tasks)
+void ThreadPool::Run(std::vector<Task> const & tasks)
 {   
     assert(tasks.size() > 0);
     assert(mTasksToComplete == 0);
@@ -102,13 +101,13 @@ void ParallelThreadPool::Run(std::vector<Task> const & tasks)
     }
 }
 
-void ParallelThreadPool::ThreadLoop(size_t t)
+void ThreadPool::ThreadLoop(size_t t)
 {
     //
     // Initialize thread
     //
 
-    EnableFloatingPointFlushToZero();
+    ThreadManager::GetInstance().InitializeThisThread();
 
     //
     // Run thread loop until thread pool is destroyed
