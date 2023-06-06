@@ -11,7 +11,7 @@
 #include <string>
 
 /*
- * Simulator implementing a Gauss-Seidel solve per-point.
+ * Simulator implementing a Gauss-Seidel solve per-point, with auto-determined spring stiffnesses.
  */
 class GaussSeidelByPointSimulator : public ISimulator
 {
