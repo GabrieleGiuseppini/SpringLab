@@ -112,6 +112,7 @@ void FSBySpringStructuralIntrinsicsMTSimulator::InitializeThreadingState(
         " numberOfFourSpringsPerThread=", numberOfFourSpringsPerThread, " numThreads=", numThreads);
 
     mThreadPool = std::make_unique<TaskThreadPool>(numThreads);
+    //mThreadPool = std::make_unique<ThreadPool>(numThreads);
 }
 
 void FSBySpringStructuralIntrinsicsMTSimulator::ApplySpringsForces(

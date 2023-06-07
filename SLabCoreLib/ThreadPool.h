@@ -5,6 +5,8 @@
 ***************************************************************************************/
 #pragma once
 
+#include "ThreadManager.h"
+
 #include <cassert>
 #include <condition_variable>
 #include <functional>
@@ -25,7 +27,9 @@ public:
 
 public:
 
-    explicit ThreadPool(size_t parallelism);
+    explicit ThreadPool(
+        size_t parallelism/*,
+        ThreadManager & threadManager*/);
 
     ~ThreadPool();
 
@@ -41,7 +45,9 @@ public:
 
 private:
 
-    void ThreadLoop(size_t t);
+    void ThreadLoop(
+        size_t t/*,
+        ThreadManager & threadManager*/);
 
 private:
 

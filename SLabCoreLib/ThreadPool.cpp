@@ -7,9 +7,14 @@
 
 #include "ThreadManager.h"
 
+// TODOTEST
+#include "FloatingPoint.h"
+
 #include <algorithm>
 
-ThreadPool::ThreadPool(size_t parallelism)
+ThreadPool::ThreadPool(
+    size_t parallelism/*,
+    ThreadManager & threadManager*/)
     : mLock()
     , mThreads()
     , mTasks(parallelism - 1, nullptr)
@@ -23,7 +28,11 @@ ThreadPool::ThreadPool(size_t parallelism)
     // Start N-1 threads (main thread is one of them)
     for (size_t t = 0; t < parallelism - 1; ++t)
     {
-        mThreads.emplace_back(&ThreadPool::ThreadLoop, this, t);
+        mThreads.emplace_back(
+            [/*&threadManager,*/t, this]()
+            {
+                ThreadLoop(t/*, threadManager*/);
+            });
     }
 }
 
@@ -101,13 +110,17 @@ void ThreadPool::Run(std::vector<Task> const & tasks)
     }
 }
 
-void ThreadPool::ThreadLoop(size_t t)
+void ThreadPool::ThreadLoop(
+    size_t t/*,
+    ThreadManager & threadManager*/)
 {
     //
     // Initialize thread
     //
 
-    ThreadManager::GetInstance().InitializeThisThread();
+    // TODOTEST
+    //threadManager.InitializeThisThread();
+    EnableFloatingPointFlushToZero();
 
     //
     // Run thread loop until thread pool is destroyed

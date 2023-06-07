@@ -57,7 +57,8 @@ void ThreadManager::SetSimulationParallelism(size_t parallelism)
     //
 
     mSimulationThreadPool.reset();
-    mSimulationThreadPool = std::make_unique<ThreadPool>(parallelism);
+    //mSimulationThreadPool = std::make_unique<ThreadPool>(parallelism, *this);
+    (void)parallelism;
 }
 
 ThreadPool & ThreadManager::GetSimulationThreadPool()

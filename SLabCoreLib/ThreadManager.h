@@ -26,14 +26,19 @@ public:
         return mIsRenderingMultithreaded;
     }
 
+    bool GetSimulationParallelism() const;
+
+    void SetSimulationParallelism(size_t parallelism);
+
+    size_t GetMinSimulationParallelism() const
+    {
+        return 1;
+    }
+
     size_t GetMaxSimulationParallelism() const
     {
         return mMaxSimulationParallelism;
     }
-
-    bool GetSimulationParallelism() const;
-
-    void SetSimulationParallelism(size_t parallelism);
 
     ThreadPool & GetSimulationThreadPool();
 
