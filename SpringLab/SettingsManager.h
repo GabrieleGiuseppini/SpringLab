@@ -12,8 +12,7 @@ enum class SLabSettings : size_t
 {
     CommonSimulationTimeStepDuration = 0,
     CommonMassAdjustment,
-    CommonGravityAdjustment,
-    CommonNumberOfThreads,
+    CommonGravityAdjustment,    
 
     ClassicSimulatorSpringStiffnessCoefficient,
     ClassicSimulatorSpringDampingCoefficient,
@@ -39,7 +38,9 @@ enum class SLabSettings : size_t
     GaussSeidelSimulatorSpringDampingCoefficient,
     GaussSeidelSimulatorGlobalDamping,
 
-    DoRenderAssignedParticleForces,
+    NumberOfSimulationThreads,
+
+    DoRenderAssignedParticleForces,    
 
     _Last = DoRenderAssignedParticleForces
 };

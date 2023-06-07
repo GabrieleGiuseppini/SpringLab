@@ -10,14 +10,16 @@
 
 FastMSSBasicSimulator::FastMSSBasicSimulator(
     Object const & object,
-    SimulationParameters const & simulationParameters)
+    SimulationParameters const & simulationParameters,
+    ThreadManager const & /*threadManager*/)
 {
     CreateState(object, simulationParameters);
 }
 
 void FastMSSBasicSimulator::OnStateChanged(
     Object const & object,
-    SimulationParameters const & simulationParameters)
+    SimulationParameters const & simulationParameters,
+    ThreadManager const & /*threadManager*/)
 {
     CreateState(object, simulationParameters);
 }
@@ -25,7 +27,8 @@ void FastMSSBasicSimulator::OnStateChanged(
 void FastMSSBasicSimulator::Update(
     Object & object,
     float /*currentSimulationTime*/,
-    SimulationParameters const & simulationParameters)
+    SimulationParameters const & simulationParameters,
+    ThreadManager & /*threadManager*/)
 {
     float const dt = simulationParameters.Common.SimulationTimeStepDuration;
 

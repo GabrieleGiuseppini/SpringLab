@@ -11,47 +11,48 @@
 
 FSBySpringStructuralIntrinsicsMTSimulator::FSBySpringStructuralIntrinsicsMTSimulator(
     Object const & object,
-    SimulationParameters const & simulationParameters)
+    SimulationParameters const & simulationParameters,
+    ThreadManager const & threadManager)
     : FSBySpringStructuralIntrinsicsSimulator(
         object,
-        simulationParameters)
+        simulationParameters,
+        threadManager)
 {
-    // CreateState() from base has been called; our turn now
-    InitializeThreadingState(object, simulationParameters);
+    // CreateState() on base has been called; our turn now
+    InitializeThreadingState(object, threadManager);
 }
 
 void FSBySpringStructuralIntrinsicsMTSimulator::CreateState(
     Object const & object,
-    SimulationParameters const & simulationParameters)
+    SimulationParameters const & simulationParameters,
+    ThreadManager const & threadManager)
 {
-    FSBySpringStructuralIntrinsicsSimulator::CreateState(object, simulationParameters);
+    FSBySpringStructuralIntrinsicsSimulator::CreateState(object, simulationParameters, threadManager);
 
-    InitializeThreadingState(object, simulationParameters);
+    InitializeThreadingState(object, threadManager);
 }
 
 void FSBySpringStructuralIntrinsicsMTSimulator::InitializeThreadingState(
     Object const & object,
-    SimulationParameters const & simulationParameters)
+    ThreadManager const & threadManager)
 {
     // Clear threading state
-    mThreadPool.reset();
     mSpringRelaxationTasks.clear();
     mAdditionalPointSpringForceBuffers.clear();
 
-    // Number of 4-spring blocks per thread
-    assert(simulationParameters.Common.NumberOfThreads > 0);
+    // Number of 4-spring blocks per thread, assuming we use maximum threads
     ElementCount const numberOfSprings = static_cast<ElementCount>(object.GetSprings().GetElementCount());
-    ElementCount const numberOfFourSpringsPerThread = numberOfSprings / (static_cast<ElementCount>(simulationParameters.Common.NumberOfThreads) * 4);
+    ElementCount const numberOfFourSpringsPerThread = numberOfSprings / (static_cast<ElementCount>(threadManager.GetMaxSimulationParallelism()) * 4);
 
-    size_t numThreads;
+    size_t parallelism;
     if (numberOfFourSpringsPerThread > 0)
     {
-        numThreads = simulationParameters.Common.NumberOfThreads;
+        parallelism = threadManager.GetMaxSimulationParallelism();
 
         ElementIndex springStart = 0;
-        for (size_t t = 0; t < numThreads; ++t)
+        for (size_t t = 0; t < parallelism; ++t)
         {
-            ElementIndex const springEnd = (t < numThreads - 1)
+            ElementIndex const springEnd = (t < parallelism - 1)
                 ? springStart + numberOfFourSpringsPerThread * 4
                 : numberOfSprings;
 
@@ -93,7 +94,7 @@ void FSBySpringStructuralIntrinsicsMTSimulator::InitializeThreadingState(
     else
     {
         // Not enough, use just one thread
-        numThreads = 1;
+        parallelism = 1;
 
         vec2f * restrict pointSpringForceBuffer = mPointSpringForceBuffer.data();
 
@@ -109,20 +110,18 @@ void FSBySpringStructuralIntrinsicsMTSimulator::InitializeThreadingState(
     }
 
     LogMessage("FSBySpringStructuralIntrinsicsMTSimulator: numSprings=", object.GetSprings().GetElementCount(), " springPerfectSquareCount=", mSpringPerfectSquareCount,
-        " numberOfFourSpringsPerThread=", numberOfFourSpringsPerThread, " numThreads=", numThreads);
-
-    mThreadPool = std::make_unique<TaskThreadPool>(numThreads);
-    //mThreadPool = std::make_unique<ThreadPool>(numThreads);
+        " numberOfFourSpringsPerThread=", numberOfFourSpringsPerThread, " numThreads=", parallelism);
 }
 
 void FSBySpringStructuralIntrinsicsMTSimulator::ApplySpringsForces(
-    Object const & object)
+    Object const & object,
+    ThreadManager & threadManager)
 {
     //
     // Run algo
     //
 
-    mThreadPool->Run(mSpringRelaxationTasks);
+    threadManager.GetSimulationThreadPool().Run(mSpringRelaxationTasks);
 
     //
     // Add additional spring forces to main spring force buffer

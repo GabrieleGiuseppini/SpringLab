@@ -14,6 +14,7 @@
 #include "SimulationParameters.h"
 #include "SLabTypes.h"
 #include "StructuralMaterialDatabase.h"
+#include "ThreadManager.h"
 #include "Vectors.h"
 
 #include "Simulator/Common/ISimulator.h"
@@ -168,11 +169,6 @@ public:
     bool GetCommonDoApplyGravity() const { return mSimulationParameters.Common.AssignedGravity != vec2f::zero(); }
     void SetCommonDoApplyGravity(bool value);
 
-    size_t GetCommonNumberOfThreads() const { return mSimulationParameters.Common.NumberOfThreads; }
-    void SetCommonNumberOfThreads(size_t value) { mSimulationParameters.Common.NumberOfThreads = value; mIsSimulationStateDirty = true; }
-    size_t GetCommonMinNumberOfThreads() const { return CommonSimulatorParameters::MinNumberOfThreads; }
-    size_t GetCommonMaxNumberOfThreads() const { return mSimulationParameters.Common.MaxNumberOfThreads; }
-
     float GetClassicSimulatorSpringStiffnessCoefficient() const { return mSimulationParameters.ClassicSimulator.SpringStiffnessCoefficient; }
     void SetClassicSimulatorSpringStiffnessCoefficient(float value) { mSimulationParameters.ClassicSimulator.SpringStiffnessCoefficient = value; mIsSimulationStateDirty = true; }
     float GetClassicSimulatorMinSpringStiffnessCoefficient() const { return ClassicSimulatorParameters::MinSpringStiffnessCoefficient; }
@@ -268,6 +264,14 @@ public:
     float GetGaussSeidelSimulatorMinGlobalDamping() const { return GaussSeidelCommonSimulatorParameters::MinGlobalDamping; }
     float GetGaussSeidelSimulatorMaxGlobalDamping() const { return GaussSeidelCommonSimulatorParameters::MaxGlobalDamping; }
 
+    //
+    // Parallelism
+    //
+
+    size_t GetNumberOfSimulationThreads() const { return mThreadManager.GetSimulationParallelism(); }
+    void SetNumberOfSimulationThreads(size_t value) { mThreadManager.SetSimulationParallelism(value); mIsSimulationStateDirty = true; }
+    size_t GetMinNumberOfSimulationThreads() const { return mThreadManager.GetMinSimulationParallelism(); }
+    size_t GetMaxNumberOfSimulationThreads() const { return mThreadManager.GetMaxSimulationParallelism(); }
 
 
     //
@@ -294,6 +298,7 @@ private:
 
     EventDispatcher mEventDispatcher;
     std::unique_ptr<RenderContext> mRenderContext;
+    ThreadManager mThreadManager;
     StructuralMaterialDatabase mStructuralMaterialDatabase;
 
     //

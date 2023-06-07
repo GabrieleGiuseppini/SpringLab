@@ -39,10 +39,12 @@ public:
 
     FSBySpringIntrinsicsLayoutOptimizationSimulator(
         Object const & object,
-        SimulationParameters const & simulationParameters)
+        SimulationParameters const & simulationParameters,
+        ThreadManager const & threadManager)
         : FSBySpringIntrinsicsSimulator(
             object,
-            simulationParameters)
+            simulationParameters,
+            threadManager)
     {}
 };
 

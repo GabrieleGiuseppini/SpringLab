@@ -35,11 +35,12 @@ public:
     static std::unique_ptr<ISimulator> MakeSimulator(
         std::string const & simulatorName,
         Object const & object,
-        SimulationParameters const & simulationParameters)
+        SimulationParameters const & simulationParameters,
+        ThreadManager const & threadManager)
     {
         assert(mInstance.mSimulatorFactories.count(simulatorName) == 1);
 
-        return mInstance.mSimulatorFactories[simulatorName](object, simulationParameters);
+        return mInstance.mSimulatorFactories[simulatorName](object, simulationParameters, threadManager);
     }
 
     static ILayoutOptimizer const & GetLayoutOptimizer(std::string const & simulatorName)
@@ -58,7 +59,10 @@ private:
 
 private:
 
-    using factory_function = std::function<std::unique_ptr<ISimulator>(Object const & object, SimulationParameters const & simulationParameters)> ;
+    using factory_function = std::function<std::unique_ptr<ISimulator>(
+        Object const & object, 
+        SimulationParameters const & simulationParameters,
+        ThreadManager const & threadManager)> ;
 
     static SimulatorRegistry mInstance;
 

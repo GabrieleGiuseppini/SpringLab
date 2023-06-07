@@ -1,6 +1,6 @@
 /***************************************************************************************
 * Original Author:      Gabriele Giuseppini
-* Created:              2023-04-08
+* Created:              2020-02-08
 * Copyright:            Gabriele Giuseppini  (https://github.com/GabrieleGiuseppini)
 ***************************************************************************************/
 #pragma once
@@ -11,7 +11,7 @@
 #include <condition_variable>
 #include <functional>
 #include <mutex>
-#include <optional>
+#include <deque>
 #include <thread>
 #include <vector>
 
@@ -28,8 +28,8 @@ public:
 public:
 
     explicit ThreadPool(
-        size_t parallelism/*,
-        ThreadManager & threadManager*/);
+        size_t parallelism,
+        ThreadManager & threadManager);
 
     ~ThreadPool();
 
@@ -43,11 +43,22 @@ public:
      */
     void Run(std::vector<Task> const & tasks);
 
+    /*
+     * The first task is guaranteed to run on the main thread.
+     */
+    inline void RunAndClear(std::vector<Task> & tasks)
+    {
+        Run(tasks);
+        tasks.clear();
+    }
+
 private:
 
-    void ThreadLoop(
-        size_t t/*,
-        ThreadManager & threadManager*/);
+    void ThreadLoop(ThreadManager & threadManager);
+
+    void RunRemainingTasksLoop();
+
+    void RunTask(Task const & task);
 
 private:
 
@@ -57,19 +68,18 @@ private:
     // Our threads
     std::vector<std::thread> mThreads;
 
-    // The tasks currently awaiting to be picked up by each thread;
-    // set by main thread, cleared by each thread
-    std::vector<Task const *> mTasks;
+    // The condition variable to wake up threads
+    std::condition_variable mWorkerThreadSignal;
 
-    // The condition variable to wake up threads when new tasks are ready
-    std::condition_variable mNewTasksAvailableSignal;
+    // The condition variable to wake up the main thread
+    std::condition_variable mMainThreadSignal;
 
-    // The number of tasks awaiting for completion; 
-    // set by main thread, decreased by each thread, awaited by main thread
+    // The tasks currently awaiting to be picked up;
+    // expected to be empty at each Run invocation
+    std::deque<Task const *> mRemainingTasks;
+
+    // The number of tasks awaiting for completion
     size_t mTasksToComplete;
-
-    // The condition variable to wake up the main thread when all tasks are completed
-    std::condition_variable mTasksCompletedSignal;
 
     // Set to true when have to stop
     bool mIsStop;

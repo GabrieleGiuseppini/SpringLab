@@ -10,7 +10,8 @@
 
 FSByPointCompactIntegratingSimulator::FSByPointCompactIntegratingSimulator(
     Object const & object,
-    SimulationParameters const & simulationParameters)
+    SimulationParameters const & simulationParameters,
+    ThreadManager const & /*threadManager*/)
     // Point buffers
     : mPointSpringForceBuffer(object.GetPoints().GetBufferElementCount(), 0, vec2f::zero())
     , mPointExternalForceBuffer(object.GetPoints().GetBufferElementCount(), 0, vec2f::zero())
@@ -22,7 +23,8 @@ FSByPointCompactIntegratingSimulator::FSByPointCompactIntegratingSimulator(
 
 void FSByPointCompactIntegratingSimulator::OnStateChanged(
     Object const & object,
-    SimulationParameters const & simulationParameters)
+    SimulationParameters const & simulationParameters,
+    ThreadManager const & /*threadManager*/)
 {
     CreateState(object, simulationParameters);
 }
@@ -30,7 +32,8 @@ void FSByPointCompactIntegratingSimulator::OnStateChanged(
 void FSByPointCompactIntegratingSimulator::Update(
     Object & object,
     float /*currentSimulationTime*/,
-    SimulationParameters const & simulationParameters)
+    SimulationParameters const & simulationParameters,
+    ThreadManager & /*threadManager*/)
 {
     for (size_t i = 0; i < simulationParameters.FSCommonSimulator.NumMechanicalDynamicsIterations; ++i)
     {

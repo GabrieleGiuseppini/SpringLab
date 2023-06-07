@@ -9,7 +9,6 @@
 
 #include "Buffer.h"
 #include "Simulator/Common/ISimulator.h"
-#include "TaskThreadPool.h"
 #include "Vectors.h"
 
 #include <memory>
@@ -37,16 +36,19 @@ public:
 
     FSBySpringStructuralIntrinsicsMTVectorizedSimulator(
         Object const & object,
-        SimulationParameters const & simulationParameters);
+        SimulationParameters const & simulationParameters,
+        ThreadManager const & threadManager);
 
 private:
 
     virtual void CreateState(
         Object const & object,
-        SimulationParameters const & simulationParameters) override;
+        SimulationParameters const & simulationParameters,
+        ThreadManager const & threadManager) override;
 
     void ApplySpringsForces(
-        Object const & object) override;
+        Object const & object,
+        ThreadManager & threadManager) override;
 
     void IntegrateAndResetSpringForces(
         Object & object,
@@ -70,8 +72,7 @@ private:
 
 private:
 
-    std::unique_ptr<TaskThreadPool> mThreadPool;
-    std::vector<typename TaskThreadPool::Task> mSpringRelaxationTasks;
+    std::vector<typename ThreadPool::Task> mSpringRelaxationTasks;
 
     std::vector<Buffer<vec2f>> mPointSpringForceBuffers;
     std::vector<float * restrict> mPointSpringForceBuffersVectorized;

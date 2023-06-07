@@ -31,10 +31,4 @@ struct CommonSimulatorParameters
     float GravityAdjustment;
     static float constexpr MinGravityAdjustment = 0.0f;
     static float constexpr MaxGravityAdjustment = 1000.0f;
-
-    // Computation
-
-    size_t NumberOfThreads;
-    static size_t constexpr MinNumberOfThreads = 1;
-    size_t MaxNumberOfThreads;
 };

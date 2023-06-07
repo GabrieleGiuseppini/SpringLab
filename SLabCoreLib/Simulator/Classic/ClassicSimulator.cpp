@@ -9,7 +9,8 @@
 
 ClassicSimulator::ClassicSimulator(
     Object const & object,
-    SimulationParameters const & simulationParameters)
+    SimulationParameters const & simulationParameters,
+    ThreadManager const & /*threadManager*/)
     // Point buffers
     : mPointSpringForceBuffer(object.GetPoints().GetBufferElementCount(), 0, vec2f::zero())
     , mPointExternalForceBuffer(object.GetPoints().GetBufferElementCount(), 0, vec2f::zero())
@@ -23,7 +24,8 @@ ClassicSimulator::ClassicSimulator(
 
 void ClassicSimulator::OnStateChanged(
     Object const & object,
-    SimulationParameters const & simulationParameters)
+    SimulationParameters const & simulationParameters,
+    ThreadManager const & /*threadManager*/)
 {
     CreateState(object, simulationParameters);
 }
@@ -31,7 +33,8 @@ void ClassicSimulator::OnStateChanged(
 void ClassicSimulator::Update(
     Object & object,
     float /*currentSimulationTime*/,
-    SimulationParameters const & simulationParameters)
+    SimulationParameters const & simulationParameters,
+    ThreadManager & /*threadManager*/)
 {
     // Apply spring forces
     ApplySpringsForces(object);

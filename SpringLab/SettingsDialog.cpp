@@ -487,7 +487,7 @@ void SettingsDialog::PopulateCommonSimulatorPanel(wxPanel * panel)
 
             // NumberOfThreads
             {
-                mCommonNumberOfThreadsSlider = new SliderControl<size_t>(
+                mNumberOfSimulationThreadsSlider = new SliderControl<size_t>(
                     computationBox,
                     SliderWidth,
                     SliderHeight,
@@ -495,15 +495,15 @@ void SettingsDialog::PopulateCommonSimulatorPanel(wxPanel * panel)
                     "The number of threads that multi-threaded simulators may use.",
                     [this](size_t value)
                     {
-                        this->mLiveSettings.SetValue(SLabSettings::CommonNumberOfThreads, value);
+                        this->mLiveSettings.SetValue(SLabSettings::NumberOfSimulationThreads, value);
                         this->OnLiveSettingsChanged();
                     },
                     std::make_unique<IntegralLinearSliderCore<size_t>>(
-                        mSimulationController->GetCommonMinNumberOfThreads(),
-                        mSimulationController->GetCommonMaxNumberOfThreads()));
+                        mSimulationController->GetMinNumberOfSimulationThreads(),
+                        mSimulationController->GetMaxNumberOfSimulationThreads()));
 
                 computationSizer->Add(
-                    mCommonNumberOfThreadsSlider,
+                    mNumberOfSimulationThreadsSlider,
                     wxGBPosition(0, 0),
                     wxGBSpan(1, 1),
                     wxEXPAND | wxALL,
@@ -1237,7 +1237,7 @@ void SettingsDialog::SyncControlsWithSettings(Settings<SLabSettings> const & set
     mCommonSimulationTimeStepDurationSlider->SetValue(settings.GetValue<float>(SLabSettings::CommonSimulationTimeStepDuration));
     mCommonMassAdjustmentSlider->SetValue(settings.GetValue<float>(SLabSettings::CommonMassAdjustment));
     mCommonGravityAdjustmentSlider->SetValue(settings.GetValue<float>(SLabSettings::CommonGravityAdjustment));    
-    mCommonNumberOfThreadsSlider->SetValue(settings.GetValue<size_t>(SLabSettings::CommonNumberOfThreads));
+    mNumberOfSimulationThreadsSlider->SetValue(settings.GetValue<size_t>(SLabSettings::NumberOfSimulationThreads));
 
     // Classic
     mClassicSimulatorSpringStiffnessSlider->SetValue(settings.GetValue<float>(SLabSettings::ClassicSimulatorSpringStiffnessCoefficient));

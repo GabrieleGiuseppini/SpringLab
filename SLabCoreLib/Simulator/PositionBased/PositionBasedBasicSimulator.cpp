@@ -9,7 +9,8 @@
 
 PositionBasedBasicSimulator::PositionBasedBasicSimulator(
     Object const & object,
-    SimulationParameters const & simulationParameters)
+    SimulationParameters const & simulationParameters,
+    ThreadManager const & /*threadManager*/)
     // Point buffers
     : mPointMassBuffer(object.GetPoints().GetBufferElementCount(), 0, 0.0f)
     , mPointExternalForceBuffer(object.GetPoints().GetBufferElementCount(), 0, vec2f::zero())
@@ -22,7 +23,8 @@ PositionBasedBasicSimulator::PositionBasedBasicSimulator(
 
 void PositionBasedBasicSimulator::OnStateChanged(
     Object const & object,
-    SimulationParameters const & simulationParameters)
+    SimulationParameters const & simulationParameters,
+    ThreadManager const & /*threadManager*/)
 {
     CreateState(object, simulationParameters);
 }
@@ -30,7 +32,8 @@ void PositionBasedBasicSimulator::OnStateChanged(
 void PositionBasedBasicSimulator::Update(
     Object & object,
     float /*currentSimulationTime*/,
-    SimulationParameters const & simulationParameters)
+    SimulationParameters const & simulationParameters,
+    ThreadManager & /*threadManager*/)
 {
     for (size_t i = 0; i < simulationParameters.PositionBasedCommonSimulator.NumMechanicalDynamicsIterations; ++i)
     {

@@ -9,8 +9,6 @@
 
 #include "Buffer.h"
 #include "Simulator/Common/ISimulator.h"
-#include "TaskThreadPool.h"
-//#include "ThreadPool.h"
 #include "Vectors.h"
 
 #include <memory>
@@ -38,25 +36,27 @@ public:
 
     FSBySpringStructuralIntrinsicsMTSimulator(
         Object const & object,
-        SimulationParameters const & simulationParameters);
+        SimulationParameters const & simulationParameters,
+        ThreadManager const & threadManager);
 
 private:
 
     virtual void CreateState(
         Object const & object,
-        SimulationParameters const & simulationParameters) override;
+        SimulationParameters const & simulationParameters,
+        ThreadManager const & threadManager) override;
 
     void InitializeThreadingState(
         Object const & object,
-        SimulationParameters const & simulationParameters);
+        ThreadManager const & threadManager);
 
     void ApplySpringsForces(
-        Object const & object) override;
+        Object const & object,
+        ThreadManager & threadManager) override;
 
 protected:
 
-    std::unique_ptr<TaskThreadPool> mThreadPool;
-    std::vector<typename TaskThreadPool::Task> mSpringRelaxationTasks;
+    std::vector<typename ThreadPool::Task> mSpringRelaxationTasks;
 
     std::vector<Buffer<vec2f>> mAdditionalPointSpringForceBuffers; // One less the number of threads
 };

@@ -40,6 +40,7 @@ SimulationController::SimulationController(
     StructuralMaterialDatabase structuralMaterialDatabase)
     : mEventDispatcher()
     , mRenderContext(std::move(renderContext))
+    , mThreadManager(false, 1) // Initial parallelism=1, we allow user to change later
     , mStructuralMaterialDatabase(std::move(structuralMaterialDatabase))
     // Simulation state
     , mSimulator()
@@ -105,7 +106,7 @@ void SimulationController::UpdateSimulation()
 
     if (mIsSimulationStateDirty)
     {
-        mSimulator->OnStateChanged(*mObject, mSimulationParameters);
+        mSimulator->OnStateChanged(*mObject, mSimulationParameters, mThreadManager);
 
         mIsSimulationStateDirty = false;
     }
@@ -120,7 +121,8 @@ void SimulationController::UpdateSimulation()
     mSimulator->Update(
         *mObject,
         mCurrentSimulationTime,
-        mSimulationParameters);
+        mSimulationParameters,
+        mThreadManager);
 
     mPerfStats.SimulationDuration.Update(std::chrono::duration_cast<std::chrono::nanoseconds>(Chronometer::now() - updateStartTimestamp));
 
@@ -248,7 +250,7 @@ void SimulationController::Reset(
     //
 
     // Make new simulator
-    mSimulator = SimulatorRegistry::MakeSimulator(mCurrentSimulatorTypeName, *mObject, mSimulationParameters);
+    mSimulator = SimulatorRegistry::MakeSimulator(mCurrentSimulatorTypeName, *mObject, mSimulationParameters, mThreadManager);
 
     // Reset simulation state
     mCurrentSimulationTime = 0.0f;

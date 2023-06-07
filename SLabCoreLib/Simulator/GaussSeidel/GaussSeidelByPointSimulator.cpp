@@ -9,7 +9,8 @@
 
 GaussSeidelByPointSimulator::GaussSeidelByPointSimulator(
     Object const & object,
-    SimulationParameters const & simulationParameters)
+    SimulationParameters const & simulationParameters,
+    ThreadManager const & /*threadManager*/)
     // Point buffers
     : mPointExternalForceBuffer(object.GetPoints().GetBufferElementCount(), 0, vec2f::zero())
     , mPointIntegrationFactorBuffer(object.GetPoints().GetBufferElementCount(), 0, 0.0f)
@@ -22,7 +23,8 @@ GaussSeidelByPointSimulator::GaussSeidelByPointSimulator(
 
 void GaussSeidelByPointSimulator::OnStateChanged(
     Object const & object,
-    SimulationParameters const & simulationParameters)
+    SimulationParameters const & simulationParameters,
+    ThreadManager const & /*threadManager*/)
 {
     CreateState(object, simulationParameters);
 }
@@ -30,7 +32,8 @@ void GaussSeidelByPointSimulator::OnStateChanged(
 void GaussSeidelByPointSimulator::Update(
     Object & object,
     float /*currentSimulationTime*/,
-    SimulationParameters const & simulationParameters)
+    SimulationParameters const & simulationParameters,
+    ThreadManager & /*threadManager*/)
 {
     for (size_t i = 0; i < simulationParameters.GaussSeidelCommonSimulator.NumMechanicalDynamicsIterations; ++i)
     {

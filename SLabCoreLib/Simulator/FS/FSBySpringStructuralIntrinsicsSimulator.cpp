@@ -24,7 +24,8 @@
 
 FSBySpringStructuralIntrinsicsSimulator::FSBySpringStructuralIntrinsicsSimulator(
     Object const & object,
-    SimulationParameters const & simulationParameters)
+    SimulationParameters const & simulationParameters,
+    ThreadManager const & threadManager)
     // Point buffers
     : mPointSpringForceBuffer(object.GetPoints().GetBufferElementCount(), 0, vec2f::zero())
     , mPointExternalForceBuffer(object.GetPoints().GetBufferElementCount(), 0, vec2f::zero())
@@ -33,7 +34,7 @@ FSBySpringStructuralIntrinsicsSimulator::FSBySpringStructuralIntrinsicsSimulator
     , mSpringStiffnessCoefficientBuffer(object.GetSprings().GetBufferElementCount(), 0, 0.0f)
     , mSpringDampingCoefficientBuffer(object.GetSprings().GetBufferElementCount(), 0, 0.0f)
 {
-    CreateState(object, simulationParameters);
+    CreateState(object, simulationParameters, threadManager);
 
     assert(object.GetSimulatorSpecificStructure().SpringProcessingBlockSizes.size() == 1);
     mSpringPerfectSquareCount = object.GetSimulatorSpecificStructure().SpringProcessingBlockSizes[0];
@@ -41,20 +42,22 @@ FSBySpringStructuralIntrinsicsSimulator::FSBySpringStructuralIntrinsicsSimulator
 
 void FSBySpringStructuralIntrinsicsSimulator::OnStateChanged(
     Object const & object,
-    SimulationParameters const & simulationParameters)
+    SimulationParameters const & simulationParameters,
+    ThreadManager const & threadManager)
 {
-    CreateState(object, simulationParameters);
+    CreateState(object, simulationParameters, threadManager);
 }
 
 void FSBySpringStructuralIntrinsicsSimulator::Update(
     Object & object,
     float /*currentSimulationTime*/,
-    SimulationParameters const & simulationParameters)
+    SimulationParameters const & simulationParameters,
+    ThreadManager & threadManager)
 {
     for (size_t i = 0; i < simulationParameters.FSCommonSimulator.NumMechanicalDynamicsIterations; ++i)
     {
         // Apply spring forces
-        ApplySpringsForces(object);
+        ApplySpringsForces(object, threadManager);
 
         // Integrate spring and external forces,
         // and reset spring forces
@@ -66,7 +69,8 @@ void FSBySpringStructuralIntrinsicsSimulator::Update(
 
 void FSBySpringStructuralIntrinsicsSimulator::CreateState(
     Object const & object,
-    SimulationParameters const & simulationParameters)
+    SimulationParameters const & simulationParameters,
+    ThreadManager const & /*threadManager*/)
 {
     float const dt = simulationParameters.Common.SimulationTimeStepDuration / static_cast<float>(simulationParameters.FSCommonSimulator.NumMechanicalDynamicsIterations);
     float const dtSquared = dt * dt;
@@ -130,7 +134,8 @@ void FSBySpringStructuralIntrinsicsSimulator::CreateState(
 }
 
 void FSBySpringStructuralIntrinsicsSimulator::ApplySpringsForces(
-    Object const & object)
+    Object const & object,
+    ThreadManager & /*threadManager*/)
 {
     ApplySpringsForces(
         object,

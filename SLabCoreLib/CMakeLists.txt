@@ -68,8 +68,6 @@ set  (SOURCES
 	StructuralMaterialDatabase.h
 	StructuralMaterial.cpp
 	SysSpecifics.h
-	TaskThreadPool.cpp
-	TaskThreadPool.h
 	ThreadManager.cpp
 	ThreadManager.h
 	ThreadPool.cpp

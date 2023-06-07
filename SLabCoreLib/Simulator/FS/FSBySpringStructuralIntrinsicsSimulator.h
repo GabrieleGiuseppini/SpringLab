@@ -36,7 +36,8 @@ public:
 
     FSBySpringStructuralIntrinsicsSimulator(
         Object const & object,
-        SimulationParameters const & simulationParameters);
+        SimulationParameters const & simulationParameters,
+        ThreadManager const & threadManager);
 
     //////////////////////////////////////////////////////////
     // ISimulator
@@ -44,21 +45,25 @@ public:
 
     void OnStateChanged(
         Object const & object,
-        SimulationParameters const & simulationParameters) override;
+        SimulationParameters const & simulationParameters,
+        ThreadManager const & threadManager) override;
 
     void Update(
         Object & object,
         float currentSimulationTime,
-        SimulationParameters const & simulationParameters) override;
+        SimulationParameters const & simulationParameters,
+        ThreadManager & threadManager) override;
 
 protected:
 
     virtual void CreateState(
         Object const & object,
-        SimulationParameters const & simulationParameters);
+        SimulationParameters const & simulationParameters,
+        ThreadManager const & threadManager);
 
     virtual void ApplySpringsForces(
-        Object const & object);
+        Object const & object,
+        ThreadManager & threadManager);
 
     void ApplySpringsForces(
         Object const & object,

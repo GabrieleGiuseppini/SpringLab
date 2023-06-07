@@ -28,7 +28,8 @@ public:
 
     FSByPointCompactSimulator(
         Object const & object,
-        SimulationParameters const & simulationParameters);
+        SimulationParameters const & simulationParameters,
+        ThreadManager const & threadManager);
 
     //////////////////////////////////////////////////////////
     // ISimulator
@@ -36,12 +37,14 @@ public:
 
     void OnStateChanged(
         Object const & object,
-        SimulationParameters const & simulationParameters) override;
+        SimulationParameters const & simulationParameters,
+        ThreadManager const & threadManager) override;
 
     void Update(
         Object & object,
         float currentSimulationTime,
-        SimulationParameters const & simulationParameters) override;
+        SimulationParameters const & simulationParameters,
+        ThreadManager & threadManager) override;
 
 private:
 

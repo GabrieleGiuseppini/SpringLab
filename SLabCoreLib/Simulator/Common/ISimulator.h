@@ -7,6 +7,7 @@
 
 #include "Object.h"
 #include "SimulationParameters.h"
+#include "ThreadManager.h"
 
 class ISimulator
 {
@@ -21,7 +22,8 @@ public:
      */
     virtual void OnStateChanged(
         Object const & object,
-        SimulationParameters const & simulationParameters) = 0;
+        SimulationParameters const & simulationParameters,
+        ThreadManager const & threadManager) = 0;
 
     /*
      * Performs a single update step of the simulation.
@@ -30,5 +32,6 @@ public:
     virtual void Update(
         Object & object,
         float currentSimulationTime,
-        SimulationParameters const & simulationParameters) = 0;
+        SimulationParameters const & simulationParameters,
+        ThreadManager & threadManager) = 0;
 };

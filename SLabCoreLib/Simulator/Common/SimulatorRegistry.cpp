@@ -78,9 +78,9 @@ void SimulatorRegistry::RegisterSimulatorType()
 
     mSimulatorFactories.emplace(
         simulatorName,
-        [](Object const & object, SimulationParameters const & simulationParameters)
+        [](Object const & object, SimulationParameters const & simulationParameters, ThreadManager const & threadManager)
         {
-            return std::make_unique<TSimulatorType>(object, simulationParameters);
+            return std::make_unique<TSimulatorType>(object, simulationParameters, threadManager);
         });
 
     static_assert(has_layout_optimizer<FSBySpringIntrinsicsLayoutOptimizationSimulator>);
