@@ -65,7 +65,7 @@ void FSBySpringStructuralIntrinsicsMTVectorizedSimulator::CreateState(
         mSpringRelaxationTasks.emplace_back(
             [this, &object, pointSpringForceBuffer = mPointSpringForceBuffers.back().data(), springStart, springEnd]()
             {
-                FSBySpringStructuralIntrinsicsSimulator::ApplySpringsForces(
+                FSBySpringStructuralIntrinsicsSimulator::ApplySpringsForcesVectorized(
                     object,
                     pointSpringForceBuffer,
                     springStart,

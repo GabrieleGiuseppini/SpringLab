@@ -63,7 +63,7 @@ void FSBySpringStructuralIntrinsicsMTSimulator::InitializeThreadingState(
                 mSpringRelaxationTasks.emplace_back(
                     [this, &object, &buffer = mPointSpringForceBuffer, springStart, springEnd]()
                     {
-                        FSBySpringStructuralIntrinsicsSimulator::ApplySpringsForces(
+                        FSBySpringStructuralIntrinsicsSimulator::ApplySpringsForcesVectorized(
                             object,
                             buffer.data(),
                             springStart,
@@ -80,7 +80,7 @@ void FSBySpringStructuralIntrinsicsMTSimulator::InitializeThreadingState(
                     {
                         mAdditionalPointSpringForceBuffers[bufIndex].fill(vec2f::zero());
 
-                FSBySpringStructuralIntrinsicsSimulator::ApplySpringsForces(
+                FSBySpringStructuralIntrinsicsSimulator::ApplySpringsForcesVectorized(
                     object,
                     mAdditionalPointSpringForceBuffers[bufIndex].data(),
                     springStart,
@@ -101,7 +101,7 @@ void FSBySpringStructuralIntrinsicsMTSimulator::InitializeThreadingState(
         mSpringRelaxationTasks.emplace_back(
             [this, &object, pointSpringForceBuffer, springStart = 0, springEnd = numberOfSprings]()
             {
-                FSBySpringStructuralIntrinsicsSimulator::ApplySpringsForces(
+                FSBySpringStructuralIntrinsicsSimulator::ApplySpringsForcesVectorized(
                     object,
                     pointSpringForceBuffer,
                     springStart,

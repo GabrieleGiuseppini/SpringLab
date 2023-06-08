@@ -65,7 +65,7 @@ protected:
         Object const & object,
         ThreadManager & threadManager);
 
-    void ApplySpringsForces(
+    void ApplySpringsForcesVectorized(
         Object const & object,
         vec2f * restrict pointSpringForceBuffer,
         ElementIndex startSpringIndex,

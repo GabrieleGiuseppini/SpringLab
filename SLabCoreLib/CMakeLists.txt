@@ -121,6 +121,8 @@ set  (SIMULATOR_FS_SOURCES
 	Simulator/FS/FSBySpringStructuralIntrinsicsMTVectorizedSimulator.h
 	Simulator/FS/FSBySpringStructuralIntrinsicsSimulator.cpp
 	Simulator/FS/FSBySpringStructuralIntrinsicsSimulator.h
+	Simulator/FS/FSBySpringStructuralPseudoIntrinsicsMTVectorizedSimulator.cpp
+	Simulator/FS/FSBySpringStructuralPseudoIntrinsicsMTVectorizedSimulator.h
 	Simulator/FS/FSCommonSimulatorParameters.cpp
 	Simulator/FS/FSCommonSimulatorParameters.h
 )

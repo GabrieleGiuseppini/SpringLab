@@ -16,6 +16,7 @@
 #include "Simulator/FS/FSBySpringStructuralIntrinsicsSimulator.h"
 #include "Simulator/FS/FSBySpringStructuralIntrinsicsMTSimulator.h"
 #include "Simulator/FS/FSBySpringStructuralIntrinsicsMTVectorizedSimulator.h"
+#include "Simulator/FS/FSBySpringStructuralPseudoIntrinsicsMTVectorizedSimulator.h"
 #include "Simulator/GaussSeidel/GaussSeidelByPointSimulator.h"
 #include "Simulator/PositionBased/PositionBasedBasicSimulator.h"
 
@@ -36,6 +37,7 @@ SimulatorRegistry::SimulatorRegistry()
     RegisterSimulatorType<FSBySpringStructuralIntrinsicsSimulator>();
     RegisterSimulatorType<FSBySpringStructuralIntrinsicsMTSimulator>();
     RegisterSimulatorType<FSBySpringStructuralIntrinsicsMTVectorizedSimulator>();
+    RegisterSimulatorType<FSBySpringStructuralPseudoIntrinsicsMTVectorizedSimulator>();
     RegisterSimulatorType<FSByPointSimulator>();
     RegisterSimulatorType<FSByPointCompactSimulator>();
     RegisterSimulatorType<FSByPointCompactIntegratingSimulator>();

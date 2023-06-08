@@ -1,159 +1,101 @@
 /***************************************************************************************
 * Original Author:      Gabriele Giuseppini
-* Created:              2023-03-22
+* Created:              2023-06-08
 * Copyright:            Gabriele Giuseppini  (https://github.com/GabrieleGiuseppini)
 ***************************************************************************************/
-#include "FSBySpringStructuralIntrinsicsSimulator.h"
+#include "FSBySpringStructuralPseudoIntrinsicsMTVectorizedSimulator.h"
 
 #include "Log.h"
-#include "SysSpecifics.h"
 
 #include <array>
 #include <cassert>
+#include <numeric>
 
-/*
- * This simulator divides the whole set of springs into two disjoint subsets:
- * 
- * - The first subset is comprised of a sequence of 4 springs all sharing the same
- *   four endpoints; the spring relaxation algorithm for this subset can then be implemented
- *   quite efficiently by leveraging the property that we only need to load 4 points for 4 springs,
- *   instead of 8;
- * - The second subset is comprised of all leftover springs; the spring relaxation algorithm 
-     for this subset is the trivial algorithm which requires 2 point loads for each spring.
- */
-
-FSBySpringStructuralIntrinsicsSimulator::FSBySpringStructuralIntrinsicsSimulator(
+FSBySpringStructuralPseudoIntrinsicsMTVectorizedSimulator::FSBySpringStructuralPseudoIntrinsicsMTVectorizedSimulator(
     Object const & object,
     SimulationParameters const & simulationParameters,
     ThreadManager const & threadManager)
-    // Point buffers
-    : mPointSpringForceBuffer(object.GetPoints().GetBufferElementCount(), 0, vec2f::zero())
-    , mPointExternalForceBuffer(object.GetPoints().GetBufferElementCount(), 0, vec2f::zero())
-    , mPointIntegrationFactorBuffer(object.GetPoints().GetBufferElementCount(), 0, vec2f::zero())
-    // Spring buffers
-    , mSpringStiffnessCoefficientBuffer(object.GetSprings().GetBufferElementCount(), 0, 0.0f)
-    , mSpringDampingCoefficientBuffer(object.GetSprings().GetBufferElementCount(), 0, 0.0f)
+    : FSBySpringStructuralIntrinsicsSimulator(
+        object,
+        simulationParameters,
+        threadManager)
 {
+    // CreateState() on base has been called; our turn now
     CreateState(object, simulationParameters, threadManager);
-
-    assert(object.GetSimulatorSpecificStructure().SpringProcessingBlockSizes.size() == 1);
-    mSpringPerfectSquareCount = object.GetSimulatorSpecificStructure().SpringProcessingBlockSizes[0];
 }
 
-void FSBySpringStructuralIntrinsicsSimulator::OnStateChanged(
+void FSBySpringStructuralPseudoIntrinsicsMTVectorizedSimulator::CreateState(
     Object const & object,
     SimulationParameters const & simulationParameters,
     ThreadManager const & threadManager)
 {
-    CreateState(object, simulationParameters, threadManager);
+    FSBySpringStructuralIntrinsicsSimulator::CreateState(object, simulationParameters, threadManager);
+
+    // Clear threading state
+    mSpringRelaxationTasks.clear();
+    mPointSpringForceBuffers.clear();
+    mPointSpringForceBuffersVectorized.clear();
+
+    // Number of 4-spring blocks per thread, assuming we use all parallelism
+    ElementCount const numberOfSprings = static_cast<ElementCount>(object.GetSprings().GetElementCount());
+    ElementCount const numberOfFourSpringsPerThread = numberOfSprings / (static_cast<ElementCount>(threadManager.GetSimulationParallelism()) * 4);
+
+    size_t parallelism;
+    if (numberOfFourSpringsPerThread > 0)
+    {
+        parallelism = threadManager.GetSimulationParallelism();
+    }
+    else
+    {
+        // Not enough, use just one thread
+        parallelism = 1;
+    }
+
+    ElementIndex springStart = 0;
+    for (size_t t = 0; t < parallelism; ++t)
+    {
+        ElementIndex const springEnd = (t < parallelism - 1)
+            ? springStart + numberOfFourSpringsPerThread * 4
+            : numberOfSprings;
+
+        // Create helper buffer for this thread
+        mPointSpringForceBuffers.emplace_back(object.GetPoints().GetBufferElementCount(), 0, vec2f::zero());
+        mPointSpringForceBuffersVectorized.emplace_back(reinterpret_cast<float *>(mPointSpringForceBuffers.back().data()));
+
+        mSpringRelaxationTasks.emplace_back(
+            [this, &object, pointSpringForceBuffer = mPointSpringForceBuffers.back().data(), springStart, springEnd]()
+            {
+                ApplySpringsForcesPseudoVectorized(
+                    object,
+                    pointSpringForceBuffer,
+                    springStart,
+                    springEnd);
+            });
+
+        springStart = springEnd;
+    }
+
+    LogMessage("FSBySpringStructuralPseudoIntrinsicsMTVectorizedSimulator: numSprings=", object.GetSprings().GetElementCount(), " springPerfectSquareCount=", mSpringPerfectSquareCount,
+        " numberOfFourSpringsPerThread=", numberOfFourSpringsPerThread, " numThreads=", parallelism);
 }
 
-void FSBySpringStructuralIntrinsicsSimulator::Update(
-    Object & object,
-    float /*currentSimulationTime*/,
-    SimulationParameters const & simulationParameters,
+void FSBySpringStructuralPseudoIntrinsicsMTVectorizedSimulator::ApplySpringsForces(
+    Object const & /*object*/,
     ThreadManager & threadManager)
 {
-    for (size_t i = 0; i < simulationParameters.FSCommonSimulator.NumMechanicalDynamicsIterations; ++i)
-    {
-        // Apply spring forces
-        ApplySpringsForces(object, threadManager);
+    //
+    // Run algo
+    //
 
-        // Integrate spring and external forces,
-        // and reset spring forces
-        IntegrateAndResetSpringForces(object, simulationParameters);
-    }
+    threadManager.GetSimulationThreadPool().Run(mSpringRelaxationTasks);
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////
-
-void FSBySpringStructuralIntrinsicsSimulator::CreateState(
-    Object const & object,
-    SimulationParameters const & simulationParameters,
-    ThreadManager const & /*threadManager*/)
-{
-    float const dt = simulationParameters.Common.SimulationTimeStepDuration / static_cast<float>(simulationParameters.FSCommonSimulator.NumMechanicalDynamicsIterations);
-    float const dtSquared = dt * dt;
-
-    //
-    // Initialize point buffers
-    //
-
-    Points const & points = object.GetPoints();
-
-    for (auto pointIndex : points)
-    {
-        mPointSpringForceBuffer[pointIndex] = vec2f::zero();
-
-        mPointExternalForceBuffer[pointIndex] =
-            simulationParameters.Common.AssignedGravity * points.GetMass(pointIndex) * simulationParameters.Common.MassAdjustment
-            + points.GetAssignedForce(pointIndex);
-
-        float const integrationFactorBuffer =
-            dtSquared
-            / (points.GetMass(pointIndex) * simulationParameters.Common.MassAdjustment)
-            * points.GetFrozenCoefficient(pointIndex);
-
-        mPointIntegrationFactorBuffer[pointIndex] = vec2f(integrationFactorBuffer, integrationFactorBuffer);
-    }
-
-
-    //
-    // Initialize spring buffers
-    //
-
-    Springs const & springs = object.GetSprings();
-
-    for (auto springIndex : springs)
-    {
-        auto const endpointAIndex = springs.GetEndpointAIndex(springIndex);
-        auto const endpointBIndex = springs.GetEndpointBIndex(springIndex);
-
-        float const endpointAMass = points.GetMass(endpointAIndex) * simulationParameters.Common.MassAdjustment;
-        float const endpointBMass = points.GetMass(endpointBIndex) * simulationParameters.Common.MassAdjustment;
-
-        float const massFactor =
-            (endpointAMass * endpointBMass)
-            / (endpointAMass + endpointBMass);
-
-        // The "stiffness coefficient" is the factor which, once multiplied with the spring displacement,
-        // yields the spring force, according to Hooke's law.
-        mSpringStiffnessCoefficientBuffer[springIndex] =
-            simulationParameters.FSCommonSimulator.SpringReductionFraction
-            * springs.GetMaterialStiffness(springIndex)
-            * massFactor
-            / dtSquared;
-
-        // Damping coefficient
-        // Magnitude of the drag force on the relative velocity component along the spring.
-        mSpringDampingCoefficientBuffer[springIndex] =
-            simulationParameters.FSCommonSimulator.SpringDampingCoefficient
-            * massFactor
-            / dt;
-    }
-}
-
-void FSBySpringStructuralIntrinsicsSimulator::ApplySpringsForces(
-    Object const & object,
-    ThreadManager & /*threadManager*/)
-{
-    ApplySpringsForcesVectorized(
-        object,
-        mPointSpringForceBuffer.data(),
-        0,
-        object.GetSprings().GetElementCount());
-}
-
-void FSBySpringStructuralIntrinsicsSimulator::ApplySpringsForcesVectorized(
+void FSBySpringStructuralPseudoIntrinsicsMTVectorizedSimulator::ApplySpringsForcesPseudoVectorized(
     Object const & object,
     vec2f * restrict pointSpringForceBuffer,
     ElementIndex startSpringIndex,
     ElementCount endSpringIndex)  // Excluded
 {
-    // This implementation is for 4-float SSE
-#if !FS_IS_ARCHITECTURE_X86_32() && !FS_IS_ARCHITECTURE_X86_64()
-#error Unsupported Architecture
-#endif    
     static_assert(vectorization_float_count<int> == 4);
 
     vec2f const * restrict const pointPositionBuffer = object.GetPoints().GetPositionBuffer();
@@ -163,8 +105,7 @@ void FSBySpringStructuralIntrinsicsSimulator::ApplySpringsForcesVectorized(
     float const * restrict const restLengthBuffer = object.GetSprings().GetRestLengthBuffer();
     float const * restrict const stiffnessCoefficientBuffer = mSpringStiffnessCoefficientBuffer.data();
     float const * restrict const dampingCoefficientBuffer = mSpringDampingCoefficientBuffer.data();
-
-    __m128 const Zero = _mm_setzero_ps();
+    
     aligned_to_vword vec2f tmpSpringForces[4];
 
     ElementIndex s = startSpringIndex;
@@ -174,9 +115,12 @@ void FSBySpringStructuralIntrinsicsSimulator::ApplySpringsForcesVectorized(
     //
 
     ElementCount const endSpringIndexPerfectSquare = std::min(endSpringIndex, mSpringPerfectSquareCount);
-    
+
     for (; s < endSpringIndexPerfectSquare; s += 4)
     {
+        // TODOHERE
+        __m128 const Zero = _mm_setzero_ps();
+
         // XMM register notation:
         //   low (left, or top) -> height (right, or bottom)
 
@@ -231,7 +175,7 @@ void FSBySpringStructuralIntrinsicsSimulator::ApplySpringsForcesVectorized(
         __m128 const k_pos_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointPositionBuffer + pointKIndex)));
         __m128 const l_pos_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointPositionBuffer + pointLIndex)));
         __m128 const m_pos_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointPositionBuffer + pointMIndex)));
-        
+
         __m128 const jm_pos_xy = _mm_movelh_ps(j_pos_xy, m_pos_xy); // First argument goes low
         __m128 lk_pos_xy = _mm_movelh_ps(l_pos_xy, k_pos_xy); // First argument goes low
         __m128 const s0s1_dis_xy = _mm_sub_ps(lk_pos_xy, jm_pos_xy);
@@ -254,7 +198,7 @@ void FSBySpringStructuralIntrinsicsSimulator::ApplySpringsForcesVectorized(
         //  Standard: sqrt 12, (div 11, and 1), (div 11, and 1) = 5instrs/36cycles
         //  This one: rsqrt 4, and 1, (mul 4), (mul 4), rec 4, and 1 = 6instrs/18cycles
 
-        __m128 const sq_len = 
+        __m128 const sq_len =
             _mm_add_ps(
                 _mm_mul_ps(s0s1s2s3_dis_x, s0s1s2s3_dis_x),
                 _mm_mul_ps(s0s1s2s3_dis_y, s0s1s2s3_dis_y));
@@ -269,7 +213,7 @@ void FSBySpringStructuralIntrinsicsSimulator::ApplySpringsForcesVectorized(
         __m128 const s0s1s2s3_springLength =
             _mm_and_ps(
                 _mm_rcp_ps(s0s1s2s3_springLength_inv),
-                validMask); 
+                validMask);
 
         // Calculate spring directions        
         __m128 const s0s1s2s3_sdir_x = _mm_mul_ps(s0s1s2s3_dis_x, s0s1s2s3_springLength_inv);
@@ -292,10 +236,10 @@ void FSBySpringStructuralIntrinsicsSimulator::ApplySpringsForcesVectorized(
         // ( springLength[s3] - restLength[s3] ) * stiffness[s3]
         //
 
-        __m128 const s0s1s2s3_hooke_forceModuli = 
+        __m128 const s0s1s2s3_hooke_forceModuli =
             _mm_mul_ps(
                 _mm_sub_ps(
-                    s0s1s2s3_springLength, 
+                    s0s1s2s3_springLength,
                     _mm_load_ps(restLengthBuffer + s)),
                 _mm_load_ps(stiffnessCoefficientBuffer + s));
 
@@ -333,7 +277,7 @@ void FSBySpringStructuralIntrinsicsSimulator::ApplySpringsForcesVectorized(
         __m128 s0s1s2s3_rvel_y = _mm_shuffle_ps(s0s1_rvel_xy, s2s3_rvel_xy, 0xDD);
 
         __m128 const s0s1s2s3_damping_forceModuli =
-            _mm_mul_ps(                
+            _mm_mul_ps(
                 _mm_add_ps( // Dot product
                     _mm_mul_ps(s0s1s2s3_rvel_x, s0s1s2s3_sdir_x),
                     _mm_mul_ps(s0s1s2s3_rvel_y, s0s1s2s3_sdir_y)),
@@ -379,8 +323,8 @@ void FSBySpringStructuralIntrinsicsSimulator::ApplySpringsForcesVectorized(
         // 
         // l_sforce -= s0_a_tforce + s3_a_tforce
         // k_sforce -= s1_a_tforce + s2_a_tforce
-        
-        
+
+
         __m128 s0s1_tforceA_xy = _mm_unpacklo_ps(s0s1s2s3_tforceA_x, s0s1s2s3_tforceA_y); // a[0], b[0], a[1], b[1]
         __m128 s2s3_tforceA_xy = _mm_unpackhi_ps(s0s1s2s3_tforceA_x, s0s1s2s3_tforceA_y); // a[2], b[2], a[3], b[3]
 
@@ -451,6 +395,7 @@ void FSBySpringStructuralIntrinsicsSimulator::ApplySpringsForcesVectorized(
         // s0_displacement.x^2 + s0_displacement.y^2, s1_displacement.x^2 + s1_displacement.y^2, s2_displacement..., s3_displacement...
         __m128 const s0s1s2s3_displacement_x2_p_y2 = _mm_add_ps(s0s1s2s3_displacement_x2, s0s1s2s3_displacement_y2);
 
+        __m128 const Zero = _mm_setzero_ps();
         __m128 const validMask = _mm_cmpneq_ps(s0s1s2s3_displacement_x2_p_y2, Zero);
 
         __m128 const s0s1s2s3_springLength_inv =
@@ -649,7 +594,39 @@ void FSBySpringStructuralIntrinsicsSimulator::ApplySpringsForcesVectorized(
     }
 }
 
-void FSBySpringStructuralIntrinsicsSimulator::IntegrateAndResetSpringForces(
+void FSBySpringStructuralPseudoIntrinsicsMTVectorizedSimulator::IntegrateAndResetSpringForces(
+    Object & object,
+    SimulationParameters const & simulationParameters)
+{
+    switch (mSpringRelaxationTasks.size())
+    {
+        case 1:
+        {
+            IntegrateAndResetSpringForces_1(object, simulationParameters);
+            break;
+        }
+
+        case 2:
+        {
+            IntegrateAndResetSpringForces_2(object, simulationParameters);
+            break;
+        }
+
+        case 4:
+        {
+            IntegrateAndResetSpringForces_4(object, simulationParameters);
+            break;
+        }
+
+        default:
+        {
+            IntegrateAndResetSpringForces_N(object, simulationParameters);
+            break;
+        }
+    }
+}
+
+void FSBySpringStructuralPseudoIntrinsicsMTVectorizedSimulator::IntegrateAndResetSpringForces_1(
     Object & object,
     SimulationParameters const & simulationParameters)
 {
@@ -657,11 +634,10 @@ void FSBySpringStructuralIntrinsicsSimulator::IntegrateAndResetSpringForces(
 
     float * const restrict positionBuffer = reinterpret_cast<float *>(object.GetPoints().GetPositionBuffer());
     float * const restrict velocityBuffer = reinterpret_cast<float *>(object.GetPoints().GetVelocityBuffer());
-    float * const restrict springForceBuffer = reinterpret_cast<float *>(mPointSpringForceBuffer.data());
     float const * const restrict externalForceBuffer = reinterpret_cast<float *>(mPointExternalForceBuffer.data());
     float const * const restrict integrationFactorBuffer = reinterpret_cast<float *>(mPointIntegrationFactorBuffer.data());
 
-    float const globalDamping = 
+    float const globalDamping =
         1.0f -
         pow((1.0f - simulationParameters.FSCommonSimulator.GlobalDamping),
             12.0f / static_cast<float>(simulationParameters.FSCommonSimulator.NumMechanicalDynamicsIterations));
@@ -669,6 +645,11 @@ void FSBySpringStructuralIntrinsicsSimulator::IntegrateAndResetSpringForces(
     // Pre-divide damp coefficient by dt to provide the scalar factor which, when multiplied with a displacement,
     // provides the final, damped velocity
     float const velocityFactor = (1.0f - globalDamping) / dt;
+
+    ///////////////////////
+
+    assert(mPointSpringForceBuffers.size() == 1);
+    float * const restrict springForceBuffer = reinterpret_cast<float *>(mPointSpringForceBuffers[0].data());
 
     size_t const count = object.GetPoints().GetBufferElementCount() * 2; // Two components per vector
     for (size_t i = 0; i < count; ++i)
@@ -689,293 +670,180 @@ void FSBySpringStructuralIntrinsicsSimulator::IntegrateAndResetSpringForces(
     }
 }
 
-/////////////////////////////////////////////////
-
-ILayoutOptimizer::LayoutRemap FSBySpringStructuralIntrinsicsLayoutOptimizer::Remap(
-    ObjectBuildPointIndexMatrix const & pointMatrix,
-    std::vector<ObjectBuildPoint> const & points,
-    std::vector<ObjectBuildSpring> const & springs) const
+void FSBySpringStructuralPseudoIntrinsicsMTVectorizedSimulator::IntegrateAndResetSpringForces_2(
+    Object & object,
+    SimulationParameters const & simulationParameters)
 {
-    IndexRemap optimalPointRemap(points.size());
-    IndexRemap optimalSpringRemap(springs.size());
+    float const dt = simulationParameters.Common.SimulationTimeStepDuration / static_cast<float>(simulationParameters.FSCommonSimulator.NumMechanicalDynamicsIterations);
 
-    std::vector<bool> remappedPointMask(points.size(), false);
-    std::vector<bool> remappedSpringMask(springs.size(), false);
-    std::vector<bool> springFlipMask(springs.size(), false);
+    float * const restrict positionBuffer = reinterpret_cast<float *>(object.GetPoints().GetPositionBuffer());
+    float * const restrict velocityBuffer = reinterpret_cast<float *>(object.GetPoints().GetVelocityBuffer());
+    float const * const restrict externalForceBuffer = reinterpret_cast<float *>(mPointExternalForceBuffer.data());
+    float const * const restrict integrationFactorBuffer = reinterpret_cast<float *>(mPointIntegrationFactorBuffer.data());
 
-    // Build Point Pair -> Old Spring Index table
-    PointPairToIndexMap pointPairToOldSpringIndexMap;
-    for (ElementIndex s = 0; s < springs.size(); ++s)
+    float const globalDamping =
+        1.0f -
+        pow((1.0f - simulationParameters.FSCommonSimulator.GlobalDamping),
+            12.0f / static_cast<float>(simulationParameters.FSCommonSimulator.NumMechanicalDynamicsIterations));
+
+    // Pre-divide damp coefficient by dt to provide the scalar factor which, when multiplied with a displacement,
+    // provides the final, damped velocity
+    float const velocityFactor = (1.0f - globalDamping) / dt;
+
+    ///////////////////////
+
+    assert(mPointSpringForceBuffers.size() == 2);
+    float * const restrict springForceBuffer1 = reinterpret_cast<float *>(mPointSpringForceBuffers[0].data());
+    float * const restrict springForceBuffer2 = reinterpret_cast<float *>(mPointSpringForceBuffers[1].data());
+
+    size_t const count = object.GetPoints().GetBufferElementCount() * 2; // Two components per vector
+    for (size_t i = 0; i < count; ++i)
     {
-        pointPairToOldSpringIndexMap.emplace(
-            std::piecewise_construct,
-            std::forward_as_tuple(springs[s].PointAIndex, springs[s].PointBIndex),
-            std::forward_as_tuple(s));
+        float const springForce = springForceBuffer1[i] + springForceBuffer2[i];
+
+        //
+        // Verlet integration (fourth order, with velocity being first order)
+        //
+
+        float const deltaPos =
+            velocityBuffer[i] * dt
+            + (springForce + externalForceBuffer[i]) * integrationFactorBuffer[i];
+
+        positionBuffer[i] += deltaPos;
+        velocityBuffer[i] = deltaPos * velocityFactor;
+
+        // Zero out spring forces now that we've integrated them
+        springForceBuffer1[i] = 0.0f;
+        springForceBuffer2[i] = 0.0f;
     }
+}
 
-    //
-    // 1. Find all "complete squares" from left-bottom
-    //
-    // A complete square looks like:
-    // 
-    //  If A is "even":
-    // 
-    //  D  C
-    //  |\/|
-    //  |/\|
-    //  A  B
-    // 
-    // Else (A is "odd"):
-    // 
-    //  D--C
-    //   \/
-    //   /\
-    //  A--B
-    // 
-    // For each perfect square, we re-order springs and their endpoints of each spring so that:
-    //  - The first two springs of the perfect square are the cross springs
-    //  - The endpoints A's of the cross springs are to be connected, and likewise 
-    //    the endpoint B's
-    //
+void FSBySpringStructuralPseudoIntrinsicsMTVectorizedSimulator::IntegrateAndResetSpringForces_4(
+    Object & object,
+    SimulationParameters const & simulationParameters)
+{
+    float const dt = simulationParameters.Common.SimulationTimeStepDuration / static_cast<float>(simulationParameters.FSCommonSimulator.NumMechanicalDynamicsIterations);
 
-    ElementCount perfectSquareCount = 0;
+    float * const restrict positionBuffer = reinterpret_cast<float *>(object.GetPoints().GetPositionBuffer());
+    float * const restrict velocityBuffer = reinterpret_cast<float *>(object.GetPoints().GetVelocityBuffer());
+    float const * const restrict externalForceBuffer = reinterpret_cast<float *>(mPointExternalForceBuffer.data());
+    float const * const restrict integrationFactorBuffer = reinterpret_cast<float *>(mPointIntegrationFactorBuffer.data());
 
-    std::array<PointPair, 4> perfectSquareSpringEndpoints;
+    float const globalDamping =
+        1.0f -
+        pow((1.0f - simulationParameters.FSCommonSimulator.GlobalDamping),
+            12.0f / static_cast<float>(simulationParameters.FSCommonSimulator.NumMechanicalDynamicsIterations));
 
-    for (int y = 0; y < pointMatrix.height; ++y)
+    // Pre-divide damp coefficient by dt to provide the scalar factor which, when multiplied with a displacement,
+    // provides the final, damped velocity
+    float const velocityFactor = (1.0f - globalDamping) / dt;
+
+    ///////////////////////
+
+    assert(mPointSpringForceBuffers.size() == 4);
+    float * const restrict springForceBuffer1 = reinterpret_cast<float *>(mPointSpringForceBuffers[0].data());
+    float * const restrict springForceBuffer2 = reinterpret_cast<float *>(mPointSpringForceBuffers[1].data());
+    float * const restrict springForceBuffer3 = reinterpret_cast<float *>(mPointSpringForceBuffers[2].data());
+    float * const restrict springForceBuffer4 = reinterpret_cast<float *>(mPointSpringForceBuffers[3].data());
+
+    size_t const count = object.GetPoints().GetBufferElementCount() * 2; // Two components per vector
+    for (size_t i = 0; i < count; ++i)
     {
-        for (int x = 0; x < pointMatrix.width; ++x)
+        float const springForce = springForceBuffer1[i] + springForceBuffer2[i] + springForceBuffer3[i] + springForceBuffer4[i];
+
+        //
+        // Verlet integration (fourth order, with velocity being first order)
+        //
+
+        float const deltaPos =
+            velocityBuffer[i] * dt
+            + (springForce + externalForceBuffer[i]) * integrationFactorBuffer[i];
+
+        positionBuffer[i] += deltaPos;
+        velocityBuffer[i] = deltaPos * velocityFactor;
+
+        // Zero out spring forces now that we've integrated them
+        springForceBuffer1[i] = 0.0f;
+        springForceBuffer2[i] = 0.0f;
+        springForceBuffer3[i] = 0.0f;
+        springForceBuffer4[i] = 0.0f;
+    }
+}
+
+void FSBySpringStructuralPseudoIntrinsicsMTVectorizedSimulator::IntegrateAndResetSpringForces_N(
+    Object & object,
+    SimulationParameters const & simulationParameters)
+{
+#if !FS_IS_ARCHITECTURE_X86_32() && !FS_IS_ARCHITECTURE_X86_64()
+#error Unsupported Architecture
+#endif
+    static_assert(vectorization_float_count<int> >= 4);
+
+    float const dt = simulationParameters.Common.SimulationTimeStepDuration / static_cast<float>(simulationParameters.FSCommonSimulator.NumMechanicalDynamicsIterations);
+
+    float * const restrict positionBuffer = reinterpret_cast<float *>(object.GetPoints().GetPositionBuffer());
+    float * const restrict velocityBuffer = reinterpret_cast<float *>(object.GetPoints().GetVelocityBuffer());
+    float const * const restrict externalForceBuffer = reinterpret_cast<float *>(mPointExternalForceBuffer.data());
+    float const * const restrict integrationFactorBuffer = reinterpret_cast<float *>(mPointIntegrationFactorBuffer.data());
+
+    float const globalDamping =
+        1.0f -
+        pow((1.0f - simulationParameters.FSCommonSimulator.GlobalDamping),
+            12.0f / static_cast<float>(simulationParameters.FSCommonSimulator.NumMechanicalDynamicsIterations));
+
+    // Pre-divide damp coefficient by dt to provide the scalar factor which, when multiplied with a displacement,
+    // provides the final, damped velocity
+    float const velocityFactor = (1.0f - globalDamping) / dt;
+
+    ///////////////////////
+
+    size_t const nBuffers = mPointSpringForceBuffersVectorized.size();
+    float * restrict * restrict const pointSprigForceBufferOfBuffers = mPointSpringForceBuffersVectorized.data();
+
+    assert((object.GetPoints().GetBufferElementCount() % 2) == 0);
+    size_t const count = object.GetPoints().GetBufferElementCount() * 2; // Two components per vector
+
+    __m128 const zero_4 = _mm_setzero_ps();
+    __m128 const dt_4 = _mm_load1_ps(&dt);
+    __m128 const velocityFactor_4 = _mm_load1_ps(&velocityFactor);
+
+    for (size_t p = 0; p < count; p += 4)
+    {
+        __m128 springForce_2 = zero_4;
+        for (size_t b = 0; b < nBuffers; ++b)
         {
-            // Check if this is vertex A of a square
-            if (pointMatrix[{x, y}]
-                && x < pointMatrix.width - 1 && pointMatrix[{x + 1, y}]
-                && y < pointMatrix.height - 1 && pointMatrix[{x + 1, y + 1}]
-                && pointMatrix[{x, y + 1}])
-            {
-                ElementIndex const a = *pointMatrix[{x, y}];
-                ElementIndex const b = *pointMatrix[{x + 1, y}];
-                ElementIndex const c = *pointMatrix[{x + 1, y + 1}];
-                ElementIndex const d = *pointMatrix[{x, y + 1}];
+            springForce_2 =
+                _mm_add_ps(
+                    springForce_2,
+                    _mm_load_ps(pointSprigForceBufferOfBuffers[b] + p));
 
-                // Check existence - and availability - of all springs now
-
-                ElementIndex crossSpringACIndex;
-                if (auto const springIt = pointPairToOldSpringIndexMap.find({ a, c });
-                    springIt != pointPairToOldSpringIndexMap.cend() && !remappedSpringMask[springIt->second])
-                {
-                    crossSpringACIndex = springIt->second;
-                }
-                else
-                {
-                    continue;
-                }
-
-                ElementIndex crossSpringBDIndex;
-                if (auto const springIt = pointPairToOldSpringIndexMap.find({ b, d });
-                    springIt != pointPairToOldSpringIndexMap.cend() && !remappedSpringMask[springIt->second])
-                {
-                    crossSpringBDIndex = springIt->second;
-                }
-                else
-                {
-                    continue;
-                }
-
-                if ((x + y) % 2 == 0)
-                {
-                    // Even: check AD, BC
-
-                    ElementIndex sideSpringADIndex;
-                    if (auto const springIt = pointPairToOldSpringIndexMap.find({ a, d });
-                        springIt != pointPairToOldSpringIndexMap.cend() && !remappedSpringMask[springIt->second])
-                    {
-                        sideSpringADIndex = springIt->second;
-                    }
-                    else
-                    {
-                        continue;
-                    }
-
-                    ElementIndex sideSpringBCIndex;
-                    if (auto const springIt = pointPairToOldSpringIndexMap.find({ b, c });
-                        springIt != pointPairToOldSpringIndexMap.cend() && !remappedSpringMask[springIt->second])
-                    {
-                        sideSpringBCIndex = springIt->second;
-                    }
-                    else
-                    {
-                        continue;
-                    }
-
-                    // It'a a perfect square
-
-                    // Re-order springs and make sure they have the right directions:
-                    //  A->C
-                    //  B->D
-                    //  A->D
-                    //  B->C
-
-                    optimalSpringRemap.AddOld(crossSpringACIndex);
-                    remappedSpringMask[crossSpringACIndex] = true;
-                    if (springs[crossSpringACIndex].PointBIndex != c)
-                    {
-                        assert(springs[crossSpringACIndex].PointBIndex == a);
-                        springFlipMask[crossSpringACIndex] = true;
-                    }
-
-                    optimalSpringRemap.AddOld(crossSpringBDIndex);
-                    remappedSpringMask[crossSpringBDIndex] = true;
-                    if (springs[crossSpringBDIndex].PointBIndex != d)
-                    {
-                        assert(springs[crossSpringBDIndex].PointBIndex == b);
-                        springFlipMask[crossSpringBDIndex] = true;
-                    }
-
-                    optimalSpringRemap.AddOld(sideSpringADIndex);
-                    remappedSpringMask[sideSpringADIndex] = true;
-                    if (springs[sideSpringADIndex].PointBIndex != d)
-                    {
-                        assert(springs[sideSpringADIndex].PointBIndex == a);
-                        springFlipMask[sideSpringADIndex] = true;
-                    }
-
-                    optimalSpringRemap.AddOld(sideSpringBCIndex);
-                    remappedSpringMask[sideSpringBCIndex] = true;
-                    if (springs[sideSpringBCIndex].PointBIndex != c)
-                    {
-                        assert(springs[sideSpringBCIndex].PointBIndex == b);
-                        springFlipMask[sideSpringBCIndex] = true;
-                    }
-                }
-                else
-                {
-                    // Odd: check AB, CD
-
-                    ElementIndex sideSpringABIndex;
-                    if (auto const springIt = pointPairToOldSpringIndexMap.find({ a, b });
-                        springIt != pointPairToOldSpringIndexMap.cend() && !remappedSpringMask[springIt->second])
-                    {
-                        sideSpringABIndex = springIt->second;
-                    }
-                    else
-                    {
-                        continue;
-                    }
-
-                    ElementIndex sideSpringCDIndex;
-                    if (auto const springIt = pointPairToOldSpringIndexMap.find({ c, d });
-                        springIt != pointPairToOldSpringIndexMap.cend() && !remappedSpringMask[springIt->second])
-                    {
-                        sideSpringCDIndex = springIt->second;
-                    }
-                    else
-                    {
-                        continue;
-                    }
-
-                    // It'a a perfect square
-
-                    // Re-order springs abd make sure they have the right directions:
-                    //  A->C
-                    //  D->B
-                    //  A->B
-                    //  D->C
-
-                    optimalSpringRemap.AddOld(crossSpringACIndex);
-                    remappedSpringMask[crossSpringACIndex] = true;
-                    if (springs[crossSpringACIndex].PointBIndex != c)
-                    {
-                        assert(springs[crossSpringACIndex].PointBIndex == a);
-                        springFlipMask[crossSpringACIndex] = true;
-                    }
-
-                    optimalSpringRemap.AddOld(crossSpringBDIndex);
-                    remappedSpringMask[crossSpringBDIndex] = true;
-                    if (springs[crossSpringBDIndex].PointBIndex != b)
-                    {
-                        assert(springs[crossSpringBDIndex].PointBIndex == d);
-                        springFlipMask[crossSpringBDIndex] = true;
-                    }
-
-                    optimalSpringRemap.AddOld(sideSpringABIndex);
-                    remappedSpringMask[sideSpringABIndex] = true;
-                    if (springs[sideSpringABIndex].PointBIndex != b)
-                    {
-                        assert(springs[sideSpringABIndex].PointBIndex == a);
-                        springFlipMask[sideSpringABIndex] = true;
-                    }
-
-                    optimalSpringRemap.AddOld(sideSpringCDIndex);
-                    remappedSpringMask[sideSpringCDIndex] = true;
-                    if (springs[sideSpringCDIndex].PointBIndex != c)
-                    {
-                        assert(springs[sideSpringCDIndex].PointBIndex == d);
-                        springFlipMask[sideSpringCDIndex] = true;
-                    }
-                }
-
-                // If we're here, this was a perfect square
-
-                // Remap points
-
-                if (!remappedPointMask[a])
-                {
-                    optimalPointRemap.AddOld(a);
-                    remappedPointMask[a] = true;
-                }
-
-                if (!remappedPointMask[b])
-                {
-                    optimalPointRemap.AddOld(b);
-                    remappedPointMask[b] = true;
-                }
-
-                if (!remappedPointMask[c])
-                {
-                    optimalPointRemap.AddOld(c);
-                    remappedPointMask[c] = true;
-                }
-
-                if (!remappedPointMask[d])
-                {
-                    optimalPointRemap.AddOld(d);
-                    remappedPointMask[d] = true;
-                }
-
-                ++perfectSquareCount;
-            }
+            _mm_store_ps(pointSprigForceBufferOfBuffers[b] + p, zero_4);
         }
+
+        // vec2f const deltaPos =
+        //    velocityBuffer[i] * dt
+        //    + (springForceBuffer[i] + externalForceBuffer[i]) * integrationFactorBuffer[i];
+        __m128 const deltaPos_2 =
+            _mm_add_ps(
+                _mm_mul_ps(
+                    _mm_load_ps(velocityBuffer + p),
+                    dt_4),
+                _mm_mul_ps(
+                    _mm_add_ps(
+                        springForce_2,
+                        _mm_load_ps(externalForceBuffer + p)),
+                    _mm_load_ps(integrationFactorBuffer + p)));
+
+        // positionBuffer[i] += deltaPos;
+        __m128 pos_2 = _mm_load_ps(positionBuffer + p);
+        pos_2 = _mm_add_ps(pos_2, deltaPos_2);
+        _mm_store_ps(positionBuffer + p, pos_2);
+
+        // velocityBuffer[i] = deltaPos * velocityFactor;
+        __m128 const vel_2 =
+            _mm_mul_ps(
+                deltaPos_2,
+                velocityFactor_4);
+        _mm_store_ps(velocityBuffer + p, vel_2);
     }
-
-    ObjectSimulatorSpecificStructure simulatorSpecificStructure;
-    simulatorSpecificStructure.SpringProcessingBlockSizes.emplace_back(perfectSquareCount);
-
-    //
-    // Map leftovers now
-    //
-
-    LogMessage("LayoutOptimizer: ", std::count(remappedPointMask.cbegin(), remappedPointMask.cend(), false), " leftover points, ",
-        std::count(remappedSpringMask.cbegin(), remappedSpringMask.cend(), false), " leftover springs");
-
-    for (ElementIndex p = 0; p < points.size(); ++p)
-    {
-        if (!remappedPointMask[p])
-        {
-            optimalPointRemap.AddOld(p);
-        }
-    }
-
-    for (ElementIndex s = 0; s < springs.size(); ++s)
-    {
-        if (!remappedSpringMask[s])
-        {
-            optimalSpringRemap.AddOld(s);
-        }
-    }
-
-    return LayoutRemap(
-        std::move(optimalPointRemap),
-        std::move(optimalSpringRemap),
-        std::move(springFlipMask),
-        std::move(simulatorSpecificStructure));
 }
