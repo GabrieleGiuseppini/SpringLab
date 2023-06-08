@@ -106,8 +106,6 @@ void FSBySpringStructuralPseudoIntrinsicsMTVectorizedSimulator::ApplySpringsForc
     float const * restrict const stiffnessCoefficientBuffer = mSpringStiffnessCoefficientBuffer.data();
     float const * restrict const dampingCoefficientBuffer = mSpringDampingCoefficientBuffer.data();
     
-    aligned_to_vword vec2f tmpSpringForces[4];
-
     ElementIndex s = startSpringIndex;
 
     //
@@ -118,12 +116,6 @@ void FSBySpringStructuralPseudoIntrinsicsMTVectorizedSimulator::ApplySpringsForc
 
     for (; s < endSpringIndexPerfectSquare; s += 4)
     {
-        // TODOHERE
-        __m128 const Zero = _mm_setzero_ps();
-
-        // XMM register notation:
-        //   low (left, or top) -> height (right, or bottom)
-
         //
         //    J          M   ---  a
         //    |\        /|
@@ -142,20 +134,6 @@ void FSBySpringStructuralPseudoIntrinsicsMTVectorizedSimulator::ApplySpringsForc
         //
         // Calculate displacements, string lengths, and spring directions
         //
-        // Steps:
-        // 
-        // l_pos_x   -   j_pos_x   =  s0_dis_x
-        // l_pos_y   -   j_pos_y   =  s0_dis_y
-        // k_pos_x   -   m_pos_x   =  s1_dis_x
-        // k_pos_y   -   m_pos_y   =  s1_dis_y
-        // 
-        // Swap 2H with 2L in first register, then:
-        // 
-        // k_pos_x   -   j_pos_x   =  s2_dis_x
-        // k_pos_y   -   j_pos_y   =  s2_dis_y
-        // l_pos_x   -   m_pos_x   =  s3_dis_x
-        // l_pos_y   -   m_pos_y   =  s3_dis_y
-        // 
 
         ElementIndex const pointJIndex = endpointsBuffer[s + 0].PointAIndex;
         ElementIndex const pointKIndex = endpointsBuffer[s + 1].PointBIndex;
@@ -167,58 +145,26 @@ void FSBySpringStructuralPseudoIntrinsicsMTVectorizedSimulator::ApplySpringsForc
         assert(pointLIndex == endpointsBuffer[s + 3].PointBIndex);
         assert(pointMIndex == endpointsBuffer[s + 3].PointAIndex);
 
-        // ?_pos_x
-        // ?_pos_y
-        // *
-        // *
-        __m128 const j_pos_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointPositionBuffer + pointJIndex)));
-        __m128 const k_pos_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointPositionBuffer + pointKIndex)));
-        __m128 const l_pos_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointPositionBuffer + pointLIndex)));
-        __m128 const m_pos_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointPositionBuffer + pointMIndex)));
+        vec2f const pointJPos = pointPositionBuffer[pointJIndex];
+        vec2f const pointKPos = pointPositionBuffer[pointKIndex];
+        vec2f const pointLPos = pointPositionBuffer[pointLIndex];
+        vec2f const pointMPos = pointPositionBuffer[pointMIndex];
 
-        __m128 const jm_pos_xy = _mm_movelh_ps(j_pos_xy, m_pos_xy); // First argument goes low
-        __m128 lk_pos_xy = _mm_movelh_ps(l_pos_xy, k_pos_xy); // First argument goes low
-        __m128 const s0s1_dis_xy = _mm_sub_ps(lk_pos_xy, jm_pos_xy);
-        lk_pos_xy = _mm_shuffle_ps(lk_pos_xy, lk_pos_xy, _MM_SHUFFLE(1, 0, 3, 2));
-        __m128 const s2s3_dis_xy = _mm_sub_ps(lk_pos_xy, jm_pos_xy);
+        vec2f const s0_dis = pointLPos - pointJPos;
+        vec2f const s1_dis = pointKPos - pointMPos;
+        vec2f const s2_dis = pointKPos - pointJPos;
+        vec2f const s3_dis = pointLPos - pointMPos;
 
-        // Shuffle:
-        //
-        // s0_dis_x     s0_dis_y
-        // s1_dis_x     s1_dis_y
-        // s2_dis_x     s2_dis_y
-        // s3_dis_x     s3_dis_y
-        __m128 const s0s1s2s3_dis_x = _mm_shuffle_ps(s0s1_dis_xy, s2s3_dis_xy, 0x88);
-        __m128 const s0s1s2s3_dis_y = _mm_shuffle_ps(s0s1_dis_xy, s2s3_dis_xy, 0xDD);
+        float const s0_len = s0_dis.length();
+        float const s1_len = s1_dis.length();
+        float const s2_len = s2_dis.length();
+        float const s3_len = s3_dis.length();
 
-        // Calculate spring lengths: sqrt( x*x + y*y )
-        //
-        // Note: the kung-fu below (reciprocal square, then reciprocal, etc.) should be faster:
-        //
-        //  Standard: sqrt 12, (div 11, and 1), (div 11, and 1) = 5instrs/36cycles
-        //  This one: rsqrt 4, and 1, (mul 4), (mul 4), rec 4, and 1 = 6instrs/18cycles
-
-        __m128 const sq_len =
-            _mm_add_ps(
-                _mm_mul_ps(s0s1s2s3_dis_x, s0s1s2s3_dis_x),
-                _mm_mul_ps(s0s1s2s3_dis_y, s0s1s2s3_dis_y));
-
-        __m128 const validMask = _mm_cmpneq_ps(sq_len, Zero); // SL==0 => 1/SL==0, to maintain "normalized == (0, 0)", as in vec2f        
-
-        __m128 const s0s1s2s3_springLength_inv =
-            _mm_and_ps(
-                _mm_rsqrt_ps(sq_len),
-                validMask);
-
-        __m128 const s0s1s2s3_springLength =
-            _mm_and_ps(
-                _mm_rcp_ps(s0s1s2s3_springLength_inv),
-                validMask);
-
-        // Calculate spring directions        
-        __m128 const s0s1s2s3_sdir_x = _mm_mul_ps(s0s1s2s3_dis_x, s0s1s2s3_springLength_inv);
-        __m128 const s0s1s2s3_sdir_y = _mm_mul_ps(s0s1s2s3_dis_y, s0s1s2s3_springLength_inv);
-
+        vec2f const s0_dir = s0_dis.normalise_approx(s0_len);
+        vec2f const s1_dir = s1_dis.normalise_approx(s1_len);
+        vec2f const s2_dir = s2_dis.normalise_approx(s2_len);
+        vec2f const s3_dir = s3_dis.normalise_approx(s3_len);
+        
         //////////////////////////////////////////////////////////////////////////////////////////////
 
         //
@@ -236,12 +182,10 @@ void FSBySpringStructuralPseudoIntrinsicsMTVectorizedSimulator::ApplySpringsForc
         // ( springLength[s3] - restLength[s3] ) * stiffness[s3]
         //
 
-        __m128 const s0s1s2s3_hooke_forceModuli =
-            _mm_mul_ps(
-                _mm_sub_ps(
-                    s0s1s2s3_springLength,
-                    _mm_load_ps(restLengthBuffer + s)),
-                _mm_load_ps(stiffnessCoefficientBuffer + s));
+        float const s0_hookForceMag = (s0_len - restLengthBuffer[s]) * stiffnessCoefficientBuffer[s];
+        float const s1_hookForceMag = (s1_len - restLengthBuffer[s + 1]) * stiffnessCoefficientBuffer[s + 1];
+        float const s2_hookForceMag = (s2_len - restLengthBuffer[s + 2]) * stiffnessCoefficientBuffer[s + 2];
+        float const s3_hookForceMag = (s3_len - restLengthBuffer[s + 3]) * stiffnessCoefficientBuffer[s + 3];
 
         //
         // 2. Damper forces
@@ -250,105 +194,50 @@ void FSBySpringStructuralPseudoIntrinsicsMTVectorizedSimulator::ApplySpringsForc
         // along the same direction as the spring, for endpoint A:
         //      relVelocity.dot(springDir) * dampingCoeff[s]
         //
-        // Strategy: 
-        // 
-        // (s0_relv_x * s0_sdir_x  +  s0_relv_y * s0_sdir_y) * dampCoeff[s0]
-        // (s1_relv_x * s1_sdir_x  +  s1_relv_y * s1_sdir_y) * dampCoeff[s1]
-        // (s2_relv_x * s2_sdir_x  +  s2_relv_y * s2_sdir_y) * dampCoeff[s2]
-        // (s3_relv_x * s3_sdir_x  +  s3_relv_y * s3_sdir_y) * dampCoeff[s3]
-        //
 
-        // ?_vel_x
-        // ?_vel_y
-        // *
-        // *
-        __m128 const j_vel_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointVelocityBuffer + pointJIndex)));
-        __m128 const k_vel_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointVelocityBuffer + pointKIndex)));
-        __m128 const l_vel_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointVelocityBuffer + pointLIndex)));
-        __m128 const m_vel_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointVelocityBuffer + pointMIndex)));
+        vec2f const pointJVel = pointVelocityBuffer[pointJIndex];
+        vec2f const pointKVel = pointVelocityBuffer[pointKIndex];
+        vec2f const pointLVel = pointVelocityBuffer[pointLIndex];
+        vec2f const pointMVel = pointVelocityBuffer[pointMIndex];
 
-        __m128 const jm_vel_xy = _mm_movelh_ps(j_vel_xy, m_vel_xy); // First argument goes low
-        __m128 lk_vel_xy = _mm_movelh_ps(l_vel_xy, k_vel_xy); // First argument goes low
-        __m128 const s0s1_rvel_xy = _mm_sub_ps(lk_vel_xy, jm_vel_xy);
-        lk_vel_xy = _mm_shuffle_ps(lk_vel_xy, lk_vel_xy, _MM_SHUFFLE(1, 0, 3, 2));
-        __m128 const s2s3_rvel_xy = _mm_sub_ps(lk_vel_xy, jm_vel_xy);
+        vec2f const s0_relVel = pointLVel - pointJVel;
+        vec2f const s1_relVel = pointKVel - pointMVel;
+        vec2f const s2_relVel = pointKVel - pointJVel;
+        vec2f const s3_relVel = pointLVel - pointMVel;
 
-        __m128 s0s1s2s3_rvel_x = _mm_shuffle_ps(s0s1_rvel_xy, s2s3_rvel_xy, 0x88);
-        __m128 s0s1s2s3_rvel_y = _mm_shuffle_ps(s0s1_rvel_xy, s2s3_rvel_xy, 0xDD);
-
-        __m128 const s0s1s2s3_damping_forceModuli =
-            _mm_mul_ps(
-                _mm_add_ps( // Dot product
-                    _mm_mul_ps(s0s1s2s3_rvel_x, s0s1s2s3_sdir_x),
-                    _mm_mul_ps(s0s1s2s3_rvel_y, s0s1s2s3_sdir_y)),
-                _mm_load_ps(dampingCoefficientBuffer + s));
+        float const s0_dampForceMag = s0_relVel.dot(s0_dir) * dampingCoefficientBuffer[s];
+        float const s1_dampForceMag = s1_relVel.dot(s1_dir) * dampingCoefficientBuffer[s + 1];
+        float const s2_dampForceMag = s2_relVel.dot(s2_dir) * dampingCoefficientBuffer[s + 2];
+        float const s3_dampForceMag = s3_relVel.dot(s3_dir) * dampingCoefficientBuffer[s + 3];
 
         //
         // 3. Apply forces: 
         //      force A = springDir * (hookeForce + dampingForce)
         //      force B = - forceA
         //
-        // Strategy:
-        //
-        //  s0_tforce_a_x  =   s0_sdir_x  *  (  hookeForce[s0] + dampingForce[s0] ) 
-        //  s1_tforce_a_x  =   s1_sdir_x  *  (  hookeForce[s1] + dampingForce[s1] )
-        //  s2_tforce_a_x  =   s2_sdir_x  *  (  hookeForce[s2] + dampingForce[s2] )
-        //  s3_tforce_a_x  =   s3_sdir_x  *  (  hookeForce[s3] + dampingForce[s3] )
-        //
-        //  s0_tforce_a_y  =   s0_sdir_y  *  (  hookeForce[s0] + dampingForce[s0] ) 
-        //  s1_tforce_a_y  =   s1_sdir_y  *  (  hookeForce[s1] + dampingForce[s1] )
-        //  s2_tforce_a_y  =   s2_sdir_y  *  (  hookeForce[s2] + dampingForce[s2] )
-        //  s3_tforce_a_y  =   s3_sdir_y  *  (  hookeForce[s3] + dampingForce[s3] )
-        //
 
-        __m128 const tForceModuli = _mm_add_ps(s0s1s2s3_hooke_forceModuli, s0s1s2s3_damping_forceModuli);
+        vec2f const s0_forceA = s0_dir * (s0_hookForceMag + s0_dampForceMag);
+        vec2f const s1_forceA = s1_dir * (s1_hookForceMag + s1_dampForceMag);
+        vec2f const s2_forceA = s2_dir * (s2_hookForceMag + s2_dampForceMag);
+        vec2f const s3_forceA = s3_dir * (s3_hookForceMag + s3_dampForceMag);
 
-        __m128 const s0s1s2s3_tforceA_x =
-            _mm_mul_ps(
-                s0s1s2s3_sdir_x,
-                tForceModuli);
-
-        __m128 const s0s1s2s3_tforceA_y =
-            _mm_mul_ps(
-                s0s1s2s3_sdir_y,
-                tForceModuli);
-
-        //
-        // Unpack and add forces:
-        //      pointSpringForceBuffer[pointAIndex] += total_forceA;
-        //      pointSpringForceBuffer[pointBIndex] -= total_forceA;
-        //
-        // j_sforce += s0_a_tforce + s2_a_tforce
-        // m_sforce += s1_a_tforce + s3_a_tforce
-        // 
-        // l_sforce -= s0_a_tforce + s3_a_tforce
-        // k_sforce -= s1_a_tforce + s2_a_tforce
-
-
-        __m128 s0s1_tforceA_xy = _mm_unpacklo_ps(s0s1s2s3_tforceA_x, s0s1s2s3_tforceA_y); // a[0], b[0], a[1], b[1]
-        __m128 s2s3_tforceA_xy = _mm_unpackhi_ps(s0s1s2s3_tforceA_x, s0s1s2s3_tforceA_y); // a[2], b[2], a[3], b[3]
-
-        __m128 const jm_sforce_xy = _mm_add_ps(s0s1_tforceA_xy, s2s3_tforceA_xy);
-        s2s3_tforceA_xy = _mm_shuffle_ps(s2s3_tforceA_xy, s2s3_tforceA_xy, _MM_SHUFFLE(1, 0, 3, 2));
-        __m128 const lk_sforce_xy = _mm_add_ps(s0s1_tforceA_xy, s2s3_tforceA_xy);
-
-        _mm_store_ps(reinterpret_cast<float *>(&(tmpSpringForces[0])), jm_sforce_xy);
-        _mm_store_ps(reinterpret_cast<float *>(&(tmpSpringForces[2])), lk_sforce_xy);
-
-        pointSpringForceBuffer[pointJIndex] += tmpSpringForces[0];
-        pointSpringForceBuffer[pointMIndex] += tmpSpringForces[1];
-        pointSpringForceBuffer[pointLIndex] -= tmpSpringForces[2];
-        pointSpringForceBuffer[pointKIndex] -= tmpSpringForces[3];
+        pointSpringForceBuffer[pointJIndex] += (s0_forceA + s2_forceA);
+        pointSpringForceBuffer[pointLIndex] -= (s0_forceA + s3_forceA);
+        pointSpringForceBuffer[pointMIndex] += (s1_forceA + s3_forceA);
+        pointSpringForceBuffer[pointKIndex] -= (s1_forceA + s2_forceA);
     }
 
     //
-    // 2. Remaining four-by-four's
+    // 2. Remaining four-by-four's - TODOHERE: should we do directly 1-by-1?
     //
 
     ElementCount const endSpringIndexVectorized = endSpringIndex - (endSpringIndex % 4);
 
     for (; s < endSpringIndexVectorized; s += 4)
     {
+        // TODO
+        aligned_to_vword vec2f tmpSpringForces[4];
+
         // Spring 0 displacement (s0_position.x, s0_position.y, *, *)
         __m128 const s0pa_pos_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointPositionBuffer + endpointsBuffer[s + 0].PointAIndex)));
         __m128 const s0pb_pos_xy = _mm_castpd_ps(_mm_load_sd(reinterpret_cast<double const * restrict>(pointPositionBuffer + endpointsBuffer[s + 0].PointBIndex)));
