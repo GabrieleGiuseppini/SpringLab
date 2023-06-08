@@ -7,8 +7,6 @@
 
 #include <cstdint>
 #include <memory>
-#include <mutex>
-#include <set>
 
 class ThreadPool;
 
@@ -27,7 +25,7 @@ public:
         return mIsRenderingMultithreaded;
     }
 
-    bool GetSimulationParallelism() const;
+    size_t GetSimulationParallelism() const;
 
     void SetSimulationParallelism(size_t parallelism);
 
@@ -47,19 +45,10 @@ public:
 
 private:
 
-    void AffinitizeThisThread();
-
-private:
-
     bool mIsRenderingMultithreaded; // Calculated via init args and hardware concurrency; never changes
     size_t mMaxSimulationParallelism; // Calculated via init args and hardware concurrency; never changes
 
     std::unique_ptr<ThreadPool> mSimulationThreadPool;
-
-    // Affinitization
-    using CpuIdType = std::uint8_t;    
-    std::set<CpuIdType> mAllocatedProcessors;
-    std::mutex mAllocatedProcessorsMutex;
 };
 
 #include "ThreadPool.h"

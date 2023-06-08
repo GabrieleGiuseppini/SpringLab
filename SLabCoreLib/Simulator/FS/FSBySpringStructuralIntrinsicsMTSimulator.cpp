@@ -49,8 +49,6 @@ void FSBySpringStructuralIntrinsicsMTSimulator::InitializeThreadingState(
     {
         parallelism = threadManager.GetSimulationParallelism();
 
-        LogMessage("TODOTEST2:", parallelism);
-
         ElementIndex springStart = 0;
         for (size_t t = 0; t < parallelism; ++t)
         {

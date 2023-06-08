@@ -19,7 +19,7 @@
  * This class implements a thread pool that executes batches of tasks.
  *
  */
-class ThreadPool
+class ThreadPool final
 {
 public:
 
