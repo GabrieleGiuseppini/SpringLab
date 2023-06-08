@@ -45,6 +45,8 @@ ThreadManager::ThreadManager(
 
 bool ThreadManager::GetSimulationParallelism() const
 {
+    // TODOTEST
+    LogMessage("TODOTEST1: ThreadManager::GetSimulationParallelism: ", mSimulationThreadPool->GetParallelism());
     return mSimulationThreadPool->GetParallelism();
 }
 
@@ -57,6 +59,9 @@ void ThreadManager::SetSimulationParallelism(size_t parallelism)
     //
 
     mSimulationThreadPool.reset();
+    mAllocatedProcessors.clear();
+
+    LogMessage("ThreadManager: creating simulation thread pool with parallelism=", parallelism);
     mSimulationThreadPool = std::make_unique<ThreadPool>(parallelism, *this);
 }
 
@@ -71,7 +76,8 @@ void ThreadManager::InitializeThisThread()
     // Affinitize thread
     //
 
-    AffinitizeThisThread();
+    // TODOTEST
+    //AffinitizeThisThread();
 
     //
     // Initialize floating point handling
@@ -110,32 +116,36 @@ void ThreadManager::AffinitizeThisThread()
         LogMessage("GetProcessAffinityMask: proc=", dwProcessAffinityMask, " system=", dwSystemAffinityMask);
 
         // Visit all CPU/bits until one is found
-        DWORD dwCpuId = 0;
-        DWORD dwCpuMask = 1;
-        for (; dwCpuId < sizeof(dwProcessAffinityMask) * 8 && dwCpuId < std::numeric_limits<CpuIdType>::max(); ++dwCpuId, dwCpuMask = (dwCpuMask << 1))
         {
-            CpuIdType const cpuId = static_cast<CpuIdType>(dwCpuId);
-            if (dwProcessAffinityMask & dwCpuMask // Allowed by process affinity mask
-                && mAllocatedProcessors.count(cpuId) == 0) // Not used already
+            std::lock_guard<std::mutex> lock(mAllocatedProcessorsMutex);
+
+            DWORD dwCpuId = 0;
+            DWORD dwCpuMask = 1;
+            for (; dwCpuId < sizeof(dwProcessAffinityMask) * 8 && dwCpuId < std::numeric_limits<CpuIdType>::max(); ++dwCpuId, dwCpuMask = (dwCpuMask << 1))
             {
-                //
-                // Found!
-                //
-
-                // Set thread affinity mask
-                DWORD_PTR const dwNewThreadAffinityMask = dwCpuMask;
-                DWORD_PTR dwOldThreadAffinityMask = ::SetThreadAffinityMask(GetCurrentThread(), dwNewThreadAffinityMask);
-
-                LogMessage("SetThreadAffinityMask(", dwNewThreadAffinityMask, " for CPU ", size_t(cpuId), ") returned ", dwOldThreadAffinityMask);
-
-                if (dwOldThreadAffinityMask != 0)
+                CpuIdType const cpuId = static_cast<CpuIdType>(dwCpuId);
+                if (dwProcessAffinityMask & dwCpuMask // Allowed by process affinity mask
+                    && mAllocatedProcessors.count(cpuId) == 0) // Not used already
                 {
-                    // We're done
+                    //
+                    // Found!
+                    //
 
-                    // Allocate this CPU
-                    mAllocatedProcessors.insert(cpuId);
+                    // Set thread affinity mask
+                    DWORD_PTR const dwNewThreadAffinityMask = dwCpuMask;
+                    DWORD_PTR dwOldThreadAffinityMask = ::SetThreadAffinityMask(GetCurrentThread(), dwNewThreadAffinityMask);
 
-                    return;
+                    LogMessage("SetThreadAffinityMask(", dwNewThreadAffinityMask, " for CPU ", size_t(cpuId), ") returned ", dwOldThreadAffinityMask);
+
+                    if (dwOldThreadAffinityMask != 0)
+                    {
+                        // We're done
+
+                        // Allocate this CPU
+                        mAllocatedProcessors.insert(cpuId);
+
+                        return;
+                    }
                 }
             }
         }

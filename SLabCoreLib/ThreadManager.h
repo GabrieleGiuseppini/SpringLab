@@ -7,6 +7,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <mutex>
 #include <set>
 
 class ThreadPool;
@@ -58,6 +59,7 @@ private:
     // Affinitization
     using CpuIdType = std::uint8_t;    
     std::set<CpuIdType> mAllocatedProcessors;
+    std::mutex mAllocatedProcessorsMutex;
 };
 
 #include "ThreadPool.h"

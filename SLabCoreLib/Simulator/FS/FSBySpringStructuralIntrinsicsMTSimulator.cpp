@@ -40,14 +40,16 @@ void FSBySpringStructuralIntrinsicsMTSimulator::InitializeThreadingState(
     mSpringRelaxationTasks.clear();
     mAdditionalPointSpringForceBuffers.clear();
 
-    // Number of 4-spring blocks per thread, assuming we use maximum threads
+    // Number of 4-spring blocks per thread, assuming we use all parallelism threads
     ElementCount const numberOfSprings = static_cast<ElementCount>(object.GetSprings().GetElementCount());
-    ElementCount const numberOfFourSpringsPerThread = numberOfSprings / (static_cast<ElementCount>(threadManager.GetMaxSimulationParallelism()) * 4);
+    ElementCount const numberOfFourSpringsPerThread = numberOfSprings / (static_cast<ElementCount>(threadManager.GetSimulationParallelism()) * 4);
 
     size_t parallelism;
     if (numberOfFourSpringsPerThread > 0)
     {
-        parallelism = threadManager.GetMaxSimulationParallelism();
+        parallelism = threadManager.GetSimulationParallelism();
+
+        LogMessage("TODOTEST2:", parallelism);
 
         ElementIndex springStart = 0;
         for (size_t t = 0; t < parallelism; ++t)

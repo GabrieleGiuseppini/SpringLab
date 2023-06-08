@@ -36,14 +36,14 @@ void FSBySpringStructuralIntrinsicsMTVectorizedSimulator::CreateState(
     mPointSpringForceBuffers.clear();
     mPointSpringForceBuffersVectorized.clear();
 
-    // Number of 4-spring blocks per thread, assuming we use maximum threads
+    // Number of 4-spring blocks per thread, assuming we use all parallelism
     ElementCount const numberOfSprings = static_cast<ElementCount>(object.GetSprings().GetElementCount());
-    ElementCount const numberOfFourSpringsPerThread = numberOfSprings / (static_cast<ElementCount>(threadManager.GetMaxSimulationParallelism()) * 4);
+    ElementCount const numberOfFourSpringsPerThread = numberOfSprings / (static_cast<ElementCount>(threadManager.GetSimulationParallelism()) * 4);
 
     size_t parallelism;
     if (numberOfFourSpringsPerThread > 0)
     {
-        parallelism = threadManager.GetMaxSimulationParallelism();
+        parallelism = threadManager.GetSimulationParallelism();
     }
     else
     {
@@ -74,6 +74,9 @@ void FSBySpringStructuralIntrinsicsMTVectorizedSimulator::CreateState(
 
         springStart = springEnd;
     }
+
+    LogMessage("FSBySpringStructuralIntrinsicsMTVectorizedSimulator: numSprings=", object.GetSprings().GetElementCount(), " springPerfectSquareCount=", mSpringPerfectSquareCount,
+        " numberOfFourSpringsPerThread=", numberOfFourSpringsPerThread, " numThreads=", parallelism);
 }
 
 void FSBySpringStructuralIntrinsicsMTVectorizedSimulator::ApplySpringsForces(
@@ -140,7 +143,7 @@ void FSBySpringStructuralIntrinsicsMTVectorizedSimulator::IntegrateAndResetSprin
     float const velocityFactor = (1.0f - globalDamping) / dt;
 
     ///////////////////////
-    
+
     assert(mPointSpringForceBuffers.size() == 1);
     float * const restrict springForceBuffer = reinterpret_cast<float *>(mPointSpringForceBuffers[0].data());
 
@@ -269,7 +272,7 @@ void FSBySpringStructuralIntrinsicsMTVectorizedSimulator::IntegrateAndResetSprin
 {
 #if !FS_IS_ARCHITECTURE_X86_32() && !FS_IS_ARCHITECTURE_X86_64()
 #error Unsupported Architecture
-#endif    
+#endif
     static_assert(vectorization_float_count<int> >= 4);
 
     float const dt = simulationParameters.Common.SimulationTimeStepDuration / static_cast<float>(simulationParameters.FSCommonSimulator.NumMechanicalDynamicsIterations);
@@ -309,7 +312,7 @@ void FSBySpringStructuralIntrinsicsMTVectorizedSimulator::IntegrateAndResetSprin
                 _mm_add_ps(
                     springForce_2,
                     _mm_load_ps(pointSprigForceBufferOfBuffers[b] + p));
-            
+
             _mm_store_ps(pointSprigForceBufferOfBuffers[b] + p, zero_4);
         }
 
@@ -340,4 +343,3 @@ void FSBySpringStructuralIntrinsicsMTVectorizedSimulator::IntegrateAndResetSprin
         _mm_store_ps(velocityBuffer + p, vel_2);
     }
 }
-
