@@ -61,19 +61,8 @@ private:
         Object & object,
         SimulationParameters const & simulationParameters) override;
 
-    void IntegrateAndResetSpringForces_1(
-        Object & object,
-        SimulationParameters const & simulationParameters);
-
-    void IntegrateAndResetSpringForces_2(
-        Object & object,
-        SimulationParameters const & simulationParameters);
-
-    void IntegrateAndResetSpringForces_4(
-        Object & object,
-        SimulationParameters const & simulationParameters);
-
-    void IntegrateAndResetSpringForces_N(
+    inline void IntegrateAndResetSpringForces_N(
+        size_t n,
         Object & object,
         SimulationParameters const & simulationParameters);
 
