@@ -280,61 +280,112 @@ void FSBySpringStructuralPseudoIntrinsicsMTVectorizedSimulator::IntegrateAndRese
     {
         case 1:
         {
-            IntegrateAndResetSpringForces_N(1, object, simulationParameters);
+            IntegrateAndResetSpringForces_N<1>(object, simulationParameters);
             break;
         }
 
         case 2:
         {
-            IntegrateAndResetSpringForces_N(2, object, simulationParameters);
+            IntegrateAndResetSpringForces_N<2>(object, simulationParameters);
             break;
         }
 
         case 3:
         {
-            IntegrateAndResetSpringForces_N(3, object, simulationParameters);
+            IntegrateAndResetSpringForces_N<3>(object, simulationParameters);
             break;
         }
 
         case 4:
         {
-            IntegrateAndResetSpringForces_N(4, object, simulationParameters);
+            IntegrateAndResetSpringForces_N<4>(object, simulationParameters);
             break;
         }
 
         case 5:
         {
-            IntegrateAndResetSpringForces_N(5, object, simulationParameters);
+            IntegrateAndResetSpringForces_N<5>(object, simulationParameters);
             break;
         }
 
         case 6:
         {
-            IntegrateAndResetSpringForces_N(6, object, simulationParameters);
+            IntegrateAndResetSpringForces_N<6>(object, simulationParameters);
             break;
         }
 
         case 7:
         {
-            IntegrateAndResetSpringForces_N(7, object, simulationParameters);
+            IntegrateAndResetSpringForces_N<7>(object, simulationParameters);
             break;
         }
 
         case 8:
         {
-            IntegrateAndResetSpringForces_N(8, object, simulationParameters);
+            IntegrateAndResetSpringForces_N<8>(object, simulationParameters);
             break;
         }
 
         default:
         {
-            IntegrateAndResetSpringForces_N(mSpringRelaxationTasks.size(), object, simulationParameters);
+            IntegrateAndResetSpringForces_NN(mSpringRelaxationTasks.size(), object, simulationParameters);
             break;
         }
     }
 }
 
+template<size_t N>
 void FSBySpringStructuralPseudoIntrinsicsMTVectorizedSimulator::IntegrateAndResetSpringForces_N(
+    Object & object,
+    SimulationParameters const & simulationParameters)
+{
+    float const dt = simulationParameters.Common.SimulationTimeStepDuration / static_cast<float>(simulationParameters.FSCommonSimulator.NumMechanicalDynamicsIterations);
+
+    vec2f * const restrict positionBuffer = object.GetPoints().GetPositionBuffer();
+    vec2f * const restrict velocityBuffer = object.GetPoints().GetVelocityBuffer();
+    vec2f const * const restrict externalForceBuffer = mPointExternalForceBuffer.data();
+    vec2f const * const restrict integrationFactorBuffer = mPointIntegrationFactorBuffer.data();
+
+    float const globalDamping =
+        1.0f -
+        pow((1.0f - simulationParameters.FSCommonSimulator.GlobalDamping),
+            12.0f / static_cast<float>(simulationParameters.FSCommonSimulator.NumMechanicalDynamicsIterations));
+
+    // Pre-divide damp coefficient by dt to provide the scalar factor which, when multiplied with a displacement,
+    // provides the final, damped velocity
+    float const velocityFactor = (1.0f - globalDamping) / dt;
+
+    ///////////////////////
+
+    size_t const count = object.GetPoints().GetBufferElementCount();
+    for (ElementIndex p : object.GetPoints())
+    {
+        vec2f springForce = vec2f::zero();
+        for (size_t t = 0; t < N; ++t)
+        {
+            springForce += mPointSpringForceBuffers[t][p];
+        }
+
+        //
+        // Verlet integration (fourth order, with velocity being first order)
+        //
+
+        vec2f const deltaPos =
+            velocityBuffer[p] * dt
+            + (springForce + externalForceBuffer[p]) * integrationFactorBuffer[p];
+
+        positionBuffer[p] += deltaPos;
+        velocityBuffer[p] = deltaPos * velocityFactor;
+
+        // Zero out spring forces now that we've integrated them
+        for (size_t t = 0; t < N; ++t)
+        {
+            mPointSpringForceBuffers[t][p] = vec2f::zero();
+        }
+    }
+}
+
+void FSBySpringStructuralPseudoIntrinsicsMTVectorizedSimulator::IntegrateAndResetSpringForces_NN(
     size_t n,
     Object & object,
     SimulationParameters const & simulationParameters)
@@ -364,9 +415,6 @@ void FSBySpringStructuralPseudoIntrinsicsMTVectorizedSimulator::IntegrateAndRese
         for (size_t t = 0; t < n; ++t)
         {
             springForce += mPointSpringForceBuffers[t][p];
-
-            // Zero out spring forces now that we've integrated them
-            mPointSpringForceBuffers[t][p] = vec2f::zero();
         }
 
         //
@@ -379,5 +427,11 @@ void FSBySpringStructuralPseudoIntrinsicsMTVectorizedSimulator::IntegrateAndRese
 
         positionBuffer[p] += deltaPos;
         velocityBuffer[p] = deltaPos * velocityFactor;
+
+        // Zero out spring forces now that we've integrated them
+        for (size_t t = 0; t < n; ++t)
+        {
+            mPointSpringForceBuffers[t][p] = vec2f::zero();
+        }
     }
 }

@@ -61,7 +61,12 @@ private:
         Object & object,
         SimulationParameters const & simulationParameters) override;
 
+    template<size_t N>
     inline void IntegrateAndResetSpringForces_N(
+        Object & object,
+        SimulationParameters const & simulationParameters);
+
+    inline void IntegrateAndResetSpringForces_NN(
         size_t n,
         Object & object,
         SimulationParameters const & simulationParameters);

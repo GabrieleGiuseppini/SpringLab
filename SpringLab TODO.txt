@@ -19,7 +19,7 @@ FS 10 - By Springs, With Intrinsics:
 		- CPU: 180us
 	- 544x68_bending_test
 		- Bending:
-		- CPU: 21,800us (min: 20,000)
+		- CPU: 20,200us
 FS 11 - By Springs, With Intrinsics, Layout Optimized:
 	- 80x5_bending_test
 		- Bending: 20
@@ -37,7 +37,7 @@ FS 12 - By Springs, Structural Intrinsics
 		- CPU: 150us (176us)
 	- 544x68_bending_test
 		- Bending:
-		- CPU: 15,200us
+		- CPU: 15,400us
 FS 13 - By Springs, Structural Intrinsics, MT
 	- 80x5_bending_test
 		- Bending: 20
@@ -76,16 +76,23 @@ FS 14 - By Spring - Structural Instrinsics - MT - Vectorized
 			- CPU: 440us
 	- 544x68_bending_test
 		- 1 thread:
-			- CPU: 14,900us -- DEFINITELY IMPROVEMENT
+			- CPU: 14,900us
 		- 2 threads:
-			- CPU: 10,600us - 12,500us -- DEFINITELY IMPROVEMENT
+			- CPU: 10,600us - 12,500us
 		- 3 threads:
-			- CPU:  9,200us - 10,200us -- DEFINITELY IMPROVEMENT
+			- CPU:  9,200us - 10,200us
 		- 4 threads:
-			- CPU:  8,300us - 9,200us -- DEFINITELY IMPROVEMENT
+			- CPU:  8,300us - 9,200us
 		- 8 threads:
 			- CPU:  9,300us - 9,800us
-	
+FS 15 - By Spring - Structural PseudoInstrinsics - MT - Vectorized
+	- 544x68_bending_test
+		- 1 thread:
+			- CPU: 24,500us
+		- 2 threads:
+			- CPU: 17,400us
+		- 4 threads:
+			- CPU: 13,800us	
 FS 20 - By Point:
 	- 80x5_bending_test
 		- Bending: 20
