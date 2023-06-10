@@ -1,6 +1,6 @@
 /***************************************************************************************
 * Original Author:      Gabriele Giuseppini
-* Created:              2020-05-15
+* Created:              2018-05-07
 * Copyright:            Gabriele Giuseppini  (https://github.com/GabrieleGiuseppini)
 ***************************************************************************************/
 #pragma once
@@ -72,6 +72,17 @@
 #define FS_IS_OS_WINDOWS() 1
 #endif
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+using register_int_32 = std::int32_t;
+using register_int_64 = std::int64_t;
+
+#if FS_IS_REGISTER_WIDTH_32()
+using register_int = register_int_32;
+#elif FS_IS_REGISTER_WIDTH_64()
+using register_int = register_int_64;
+#endif
+
 #define restrict __restrict
 
 template<typename T>
@@ -112,21 +123,17 @@ inline constexpr T ceil_square_power_of_two(T value)
 // Intrinsics
 ////////////////////////////////////////////////////////////////////////////////////////
 
-/*
-<mmintrin.h>  MMX
-<xmmintrin.h> SSE
-<emmintrin.h> SSE2
-<pmmintrin.h> SSE3
-<tmmintrin.h> SSSE3
-<smmintrin.h> SSE4.1
-<nmmintrin.h> SSE4.2
-<ammintrin.h> SSE4A
-<wmmintrin.h> AES
-<immintrin.h> AVX, AVX2, FMA
-*/
-
-#include <pmmintrin.h>
-
+#if FS_IS_ARCHITECTURE_X86_64() || FS_IS_ARCHITECTURE_X86_32()
+////<mmintrin.h>  MMX
+////<xmmintrin.h> SSE
+////<emmintrin.h> SSE2
+////<pmmintrin.h> SSE3
+////<tmmintrin.h> SSSE3
+////<smmintrin.h> SSE4.1
+////<nmmintrin.h> SSE4.2
+////<ammintrin.h> SSE4A
+////<wmmintrin.h> AES
+////<immintrin.h> AVX, AVX2, FMA
 /*
 // MSVC
 #include <intrin.h>
@@ -137,6 +144,8 @@ inline constexpr T ceil_square_power_of_two(T value)
 // MAC
 #include <pmmintrin.h>
 */
+#include <pmmintrin.h>
+#endif
 
 ////////////////////////////////////////////////////////////////////////////////////////
 // Alignment
@@ -158,7 +167,7 @@ static constexpr T vectorization_byte_count = vectorization_float_count<T> * siz
  */
 inline bool is_aligned_to_vectorization_word(void const * ptr) noexcept
 {
-    auto ui_ptr = reinterpret_cast<std::uintptr_t>(ptr);
+    auto const ui_ptr = reinterpret_cast<std::uintptr_t>(ptr);
     return !(ui_ptr % vectorization_byte_count<std::uintptr_t>);
 }
 
@@ -245,17 +254,6 @@ template<typename TElement>
 inline unique_aligned_buffer<TElement> make_unique_buffer_aligned_to_vectorization_word(size_t elementCount)
 {
     return unique_aligned_buffer<TElement>(
-        reinterpret_cast<TElement *>(alloc_aligned_to_vectorization_word(elementCount * sizeof(TElement))),
-        aligned_buffer_deleter<TElement>());
-}
-
-template<typename TElement>
-using shared_aligned_buffer = std::shared_ptr<TElement>;
-
-template<typename TElement>
-inline shared_aligned_buffer<TElement> make_shared_buffer_aligned_to_vectorization_word(size_t elementCount)
-{
-    return shared_aligned_buffer<TElement>(
         reinterpret_cast<TElement *>(alloc_aligned_to_vectorization_word(elementCount * sizeof(TElement))),
         aligned_buffer_deleter<TElement>());
 }

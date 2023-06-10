@@ -23,14 +23,22 @@ inline void EnableFloatingPointExceptions()
 
 inline void EnableFloatingPointFlushToZero()
 {
+#if FS_IS_ARCHITECTURE_X86_32() || FS_IS_ARCHITECTURE_X86_64()
     _MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON);
     _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
+#else
+    // Have no idea how to do this on other architectures...
+#endif
 }
 
 inline void DisableFloatingPointFlushToZero()
 {
+#if FS_IS_ARCHITECTURE_X86_32() || FS_IS_ARCHITECTURE_X86_64()
     _MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_OFF);
     _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_OFF);
+#else
+    // Have no idea how to do this on other architectures...
+#endif
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////

@@ -1,6 +1,6 @@
 /***************************************************************************************
 * Original Author:      Gabriele Giuseppini
-* Created:              2020-05-15
+* Created:              2018-02-18
 * Copyright:            Gabriele Giuseppini  (https://github.com/GabrieleGiuseppini)
 ***************************************************************************************/
 #pragma once
@@ -9,31 +9,121 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cmath>
 #include <cstdint>
 
 template<typename T>
 constexpr T Pi = T(3.1415926535897932385);
 
 /*
- * Converts the floating-point value to a 32-bit integer, truncating it down
+ * Converts the floating-point value to a 32-bit integer, truncating it towards zero.
  *
  * Assumes the result fits a 32-bit value. The behavior is undefined if it doesn't.
+ *
+ * As one would expect, FastTruncateToInt32(-7.6) == -7.
  */
-inline std::int32_t FastTruncateInt32(float value) noexcept
+inline register_int_32 FastTruncateToInt32(float value) noexcept
 {
+#if FS_IS_ARCHITECTURE_X86_32() || FS_IS_ARCHITECTURE_X86_64()
     return _mm_cvtt_ss2si(_mm_load_ss(&value));
+#else
+    return static_cast<register_int_32>(value);
+#endif
 }
 
 /*
- * Converts the floating-point value to a 64-bit integer, truncating it down.
+ * Converts the floating-point value to a 32-bit integer, truncating it towards negative infinity.
+ *
+ * Assumes the result fits a 32-bit value. The behavior is undefined if it doesn't.
+ *
+ * As one would expect, FastTruncateToInt32TowardsNInfinity(-7.6) == -8.
+ */
+inline register_int_32 FastTruncateToInt32TowardsNInfinity(float value) noexcept
+{
+    register_int_32 const v =
+#if FS_IS_ARCHITECTURE_X86_32() || FS_IS_ARCHITECTURE_X86_64()
+        _mm_cvtt_ss2si(_mm_load_ss(&value));
+#else
+        static_cast<register_int_32>(value);
+#endif
+
+    return (v > value) ? v - 1 : v;
+}
+
+/*
+ * Converts the floating-point value to a 64-bit integer, truncating it towards zero.
  *
  * Assumes the result fits a 64-bit value. The behavior is undefined if it doesn't.
  *
  * As one would expect, FastTruncateInt64(-7.6) == -7.
  */
-inline std::int64_t FastTruncateInt64(float value) noexcept
+inline register_int_64 FastTruncateToInt64(float value) noexcept
 {
+#if FS_IS_ARCHITECTURE_X86_64()
     return _mm_cvttss_si64(_mm_load_ss(&value));
+#else
+    return static_cast<register_int_64>(value);
+#endif
+}
+
+/*
+ *
+ * Converts the floating - point value to a 64 - bit integer, truncating it towards negative infinity.
+ *
+ * Assumes the result fits a 64 - bit value.The behavior is undefined if it doesn't.
+ *
+ * As one would expect, FastTruncateToInt64TowardsNInfinity(-7.6) == -8.
+ */
+inline register_int_64 FastTruncateToInt64TowardsNInfinity(float value) noexcept
+{
+    register_int_64 const v =
+#if FS_IS_ARCHITECTURE_X86_64()
+        _mm_cvttss_si64(_mm_load_ss(&value));
+#else
+        static_cast<register_int_64>(value);
+#endif
+
+    return (v > value) ? v - 1 : v;
+}
+
+/*
+ * Converts the floating-point value to an integer of the same width as the
+ * architecture's registers, truncating it towards zero.
+ * Used when the implementation doesn't really care about the returned
+ * type - for example because it needs to be used as an index.
+ *
+ * Assumes the result fits the integer. The behavior is undefined if it doesn't.
+ *
+ * As one would expect, FastTruncateToArchInt(-7.6) == -7.
+ */
+
+inline register_int FastTruncateToArchInt(float value) noexcept
+{
+#if FS_IS_REGISTER_WIDTH_32()
+    return FastTruncateToInt32(value);
+#elif FS_IS_REGISTER_WIDTH_64()
+    return FastTruncateToInt64(value);
+#endif
+}
+
+/*
+ * Converts the floating-point value to an integer of the same width as the
+ * architecture's registers, truncating it towards negative infinity.
+ * Used when the implementation doesn't really care about the returned
+ * type - for example because it needs to be used as an index.
+ *
+ * Assumes the result fits the integer. The behavior is undefined if it doesn't.
+ *
+ * As one would expect, FastTruncateToArchIntTowardsNInfinity(-7.6) == -8.
+ */
+
+inline register_int FastTruncateToArchIntTowardsNInfinity(float value) noexcept
+{
+#if FS_IS_REGISTER_WIDTH_32()
+    return FastTruncateToInt32TowardsNInfinity(value);
+#elif FS_IS_REGISTER_WIDTH_64()
+    return FastTruncateToInt64TowardsNInfinity(value);
+#endif
 }
 
 /*
@@ -107,14 +197,29 @@ inline float FastPow(
     return FastPow2(p * FastLog2(x));
 }
 
-inline float Clamp(
-    float x,
-    float lLimit,
-    float rLimit) noexcept
+namespace detail {
+    float constexpr SqrtNewtonRaphson(float x, float curr, float prev)
+    {
+        return curr == prev
+            ? curr
+            : SqrtNewtonRaphson(x, 0.5f * (curr + x / curr), curr);
+    }
+}
+
+float constexpr CompileTimeSqrt(float x)
+{
+    return detail::SqrtNewtonRaphson(x, x, 0.0f);
+}
+
+template<typename T>
+inline T Clamp(
+    T x,
+    T lLimit,
+    T rLimit) noexcept
 {
     assert(lLimit <= rLimit);
 
-    float const mx = x < lLimit ? lLimit : x;
+    T const mx = x < lLimit ? lLimit : x;
     return mx > rLimit ? rLimit : mx;
 }
 
@@ -124,7 +229,8 @@ inline T Mix(
     T val2,
     float x) noexcept
 {
-    return val1 * (1.0f - x) + val2 * x;
+    //return val1 * (1.0f - x) + val2 * x; // Original form; our form saves one subtraction
+    return val1 + (val2 - val1) * x;
 }
 
 inline float Step(
@@ -132,6 +238,19 @@ inline float Step(
     float x) noexcept
 {
     return x < lEdge ? 0.0f : 1.0f;
+}
+
+template <typename T>
+inline int Sign(T val)  // 0.0 returns +1.0
+{
+    return (T(0) <= val) - (val < T(0));
+}
+
+inline float SignStep(
+    float lEdge,
+    float x) noexcept
+{
+    return x < lEdge ? -1.0f : 1.0f;
 }
 
 inline float LinearStep(
@@ -156,23 +275,40 @@ inline float SmoothStep(
     return x * x * (3.0f - 2.0f * x); // 3x^2 -2x^3, Cubic Hermite
 }
 
+inline float SmootherStep(
+    float lEdge,
+    float rEdge,
+    float x) noexcept
+{
+    assert(lEdge <= rEdge);
+
+    x = Clamp((x - lEdge) / (rEdge - lEdge), 0.0f, 1.0f);
+
+    return x * x * x * (x * (x * 6.0f - 15.0f) + 10.0f); // 6x^5 - 15x^4 + 10x^3, fifth-order
+}
+
+inline float InverseSmoothStep(float x) noexcept
+{
+    return 0.5f - std::sin(std::asin(1.0f - 2.0f * x) / 3.0f);
+}
+
 /*
  * Maps a x value, belonging to [minX, maxX], to [minOutput, maxOutput],
  * such that when x is 1.0, output is oneOutput.
  */
 inline float MixPiecewiseLinear(
-	float minOutput,
-	float oneOutput,
-	float maxOutput,
-	float minX,
-	float maxX,
-	float x) noexcept
+    float minOutput,
+    float oneOutput,
+    float maxOutput,
+    float minX,
+    float maxX,
+    float x) noexcept
 {
-	assert((minOutput < oneOutput) && (oneOutput < maxOutput));
-	assert(minX <= x && x <= maxX);
-	assert(minX < 1.0 && 1.0 < maxX);
+    assert((minOutput <= oneOutput) && (oneOutput <= maxOutput));
+    assert(minX <= x && x <= maxX);
+    assert(minX < 1.0 && 1.0 < maxX);
 
-	return x <= 1.0f
-		? minOutput + (oneOutput - minOutput) * (x - minX) / (1.0f - minX)
-		: oneOutput + (maxOutput - oneOutput) * (x - 1.0f) / (maxX - 1.0f);
+    return x <= 1.0f
+        ? minOutput + (oneOutput - minOutput) * (x - minX) / (1.0f - minX)
+        : oneOutput + (maxOutput - oneOutput) * (x - 1.0f) / (maxX - 1.0f);
 }
