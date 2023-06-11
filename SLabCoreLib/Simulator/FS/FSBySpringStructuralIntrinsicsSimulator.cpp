@@ -740,8 +740,6 @@ ILayoutOptimizer::LayoutRemap FSBySpringStructuralIntrinsicsLayoutOptimizer::Rem
 
     ElementCount perfectSquareCount = 0;
 
-    std::array<PointPair, 4> perfectSquareSpringEndpoints;
-
     for (int y = 0; y < pointMatrix.height; ++y)
     {
         for (int x = 0; x < pointMatrix.width; ++x)

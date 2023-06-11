@@ -257,8 +257,6 @@ std::tuple<std::vector<ObjectBuildPoint>, std::vector<ObjectBuildSpring>, Object
 {
     auto layoutRemap = layoutOptimizer.Remap(pointIndexMatrix, pointInfos, springInfos);
 
-    // remap[ @ newIndex ] = oldIndex
-
     // Remap point info's
 
     std::vector<ObjectBuildPoint> pointInfos2;

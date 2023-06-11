@@ -34,7 +34,6 @@ void FSBySpringStructuralPseudoIntrinsicsMTVectorizedSimulator::CreateState(
     // Clear threading state
     mSpringRelaxationTasks.clear();
     mPointSpringForceBuffers.clear();
-    mPointSpringForceBuffersVectorized.clear();
 
     // Number of 4-spring blocks per thread, assuming we use all parallelism
     ElementCount const numberOfSprings = static_cast<ElementCount>(object.GetSprings().GetElementCount());
@@ -60,7 +59,6 @@ void FSBySpringStructuralPseudoIntrinsicsMTVectorizedSimulator::CreateState(
 
         // Create helper buffer for this thread
         mPointSpringForceBuffers.emplace_back(object.GetPoints().GetBufferElementCount(), 0, vec2f::zero());
-        mPointSpringForceBuffersVectorized.emplace_back(reinterpret_cast<float *>(mPointSpringForceBuffers.back().data()));
 
         mSpringRelaxationTasks.emplace_back(
             [this, &object, pointSpringForceBuffer = mPointSpringForceBuffers.back().data(), springStart, springEnd]()

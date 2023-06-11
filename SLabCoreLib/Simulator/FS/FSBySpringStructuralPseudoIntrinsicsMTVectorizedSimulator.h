@@ -76,5 +76,4 @@ private:
     std::vector<typename ThreadPool::Task> mSpringRelaxationTasks;
 
     std::vector<Buffer<vec2f>> mPointSpringForceBuffers;
-    std::vector<float * restrict> mPointSpringForceBuffersVectorized;
 };
