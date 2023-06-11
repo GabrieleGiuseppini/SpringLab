@@ -39,6 +39,7 @@
 long const ID_MAIN_CANVAS = wxNewId();
 
 long const ID_LOAD_OBJECT_MENUITEM = wxNewId();
+long const ID_MAKE_OBJECT_MENUITEM = wxNewId();
 long const ID_RESET_MENUITEM = wxNewId();
 long const ID_SAVE_SCREENSHOT_MENUITEM = wxNewId();
 long const ID_QUIT_MENUITEM = wxNewId();
@@ -206,6 +207,10 @@ MainFrame::MainFrame(wxApp * mainApp)
         wxMenuItem * loadObjectMenuItem = new wxMenuItem(fileMenu, ID_LOAD_OBJECT_MENUITEM, _("Load Object\tCtrl+O"), wxEmptyString, wxITEM_NORMAL);
         fileMenu->Append(loadObjectMenuItem);
         Connect(ID_LOAD_OBJECT_MENUITEM, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&MainFrame::OnLoadObjectMenuItemSelected);
+
+        wxMenuItem * makeObjectMenuItem = new wxMenuItem(fileMenu, ID_MAKE_OBJECT_MENUITEM, _("Make Object"), wxEmptyString, wxITEM_NORMAL);
+        fileMenu->Append(makeObjectMenuItem);
+        Connect(ID_MAKE_OBJECT_MENUITEM, wxEVT_COMMAND_MENU_SELECTED, (wxObjectEventFunction)&MainFrame::OnMakeObjectMenuItemSelected);
 
         wxMenuItem * resetMenuItem = new wxMenuItem(fileMenu, ID_RESET_MENUITEM, _("Reset\tCtrl+R"), wxEmptyString, wxITEM_NORMAL);
         fileMenu->Append(resetMenuItem);
@@ -553,6 +558,28 @@ void MainFrame::OnLoadObjectMenuItemSelected(wxCommandEvent & /*event*/)
         try
         {
             mSimulationController->LoadObject(filepath);
+        }
+        catch (std::exception const & ex)
+        {
+            OnError(ex.what(), false);
+        }
+    }
+}
+
+void MainFrame::OnMakeObjectMenuItemSelected(wxCommandEvent & /*event*/)
+{
+    if (!mSyntheticObjectDialog)
+    {
+        mSyntheticObjectDialog = std::make_unique<SyntheticObjectDialog>(
+            this);
+    }
+
+    auto numSprings = mSyntheticObjectDialog->AskNumSprings();
+    if (numSprings)
+    {
+        try
+        {
+            mSimulationController->MakeObject(*numSprings);
         }
         catch (std::exception const & ex)
         {
@@ -921,6 +948,12 @@ void MainFrame::FinishInitialization()
     //
 
     mSimulationController->RegisterEventHandler(mProbeToolbar);
+
+    //
+    // Load initial object
+    //
+
+    mSimulationController->LoadObject(ResourceLocator::GetDefaultObjectDefinitionFilePath());
 }
 
 void MainFrame::OnError(

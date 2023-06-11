@@ -11,6 +11,8 @@
 
 #include "Simulator/Common/SimulatorRegistry.h"
 
+#include <sstream>
+
 std::unique_ptr<SimulationController> SimulationController::Create(
     int initialCanvasWidth,
     int initialCanvasHeight)
@@ -49,14 +51,13 @@ SimulationController::SimulationController(
     , mSimulationParameters()
     , mObject()
     , mCurrentObjectName()
-    , mCurrentObjectDefinitionFilepath()
+    , mCurrentObjectDefinitionSource()
     , mIsSimulationStateDirty(false)
     // Parameters
     , mDoRenderAssignedParticleForces(false)
     // Stats
     , mPerfStats()
-{
-    LoadObject(ResourceLocator::GetDefaultObjectDefinitionFilePath());
+{    
 }
 
 void SimulationController::SetSimulator(std::string const & simulatorName)
@@ -90,7 +91,35 @@ void SimulationController::LoadObject(std::filesystem::path const & objectDefini
     Reset(
         std::move(newObject),
         objectName,
-        objectDefinitionFilepath);
+        ObjectDefinitionSource(
+            ObjectDefinitionSource::SourceType::File,
+            objectDefinitionFilepath,
+            0));
+}
+
+void SimulationController::MakeObject(size_t numSprings)
+{
+    // Create a new object
+    auto newObject = std::make_unique<Object>(
+        ObjectBuilder::MakeSynthetic(
+            numSprings,
+            mStructuralMaterialDatabase,
+            SimulatorRegistry::GetLayoutOptimizer(mCurrentSimulatorTypeName)));
+
+    std::stringstream ss;
+    ss << "SynthObject (" << numSprings << ")";
+
+    //
+    // No errors, so we may continue
+    //
+
+    Reset(
+        std::move(newObject),
+        ss.str(),
+        ObjectDefinitionSource(
+            ObjectDefinitionSource::SourceType::Synthetic,
+            "",
+            numSprings));
 }
 
 void SimulationController::UpdateSimulation()
@@ -172,9 +201,22 @@ void SimulationController::Render()
 
 void SimulationController::Reset()
 {
-    assert(!mCurrentObjectDefinitionFilepath.empty());
+    assert(mCurrentObjectDefinitionSource);
 
-    LoadObject(mCurrentObjectDefinitionFilepath);
+    switch (mCurrentObjectDefinitionSource->Type)
+    {
+        case ObjectDefinitionSource::SourceType::File:
+        {
+            LoadObject(mCurrentObjectDefinitionSource->DefinitionFilePath);
+            break;
+        }
+
+        case ObjectDefinitionSource::SourceType::Synthetic:
+        {
+            MakeObject(mCurrentObjectDefinitionSource->NumSprings);
+            break;
+        }
+    }
 }
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -212,7 +254,7 @@ void SimulationController::SetCommonDoApplyGravity(bool value)
 void SimulationController::Reset(
     std::unique_ptr<Object> newObject,
     std::string objectName,
-    std::filesystem::path objectDefinitionFilepath)
+    ObjectDefinitionSource && currentObjectDefinitionSource)
 {
     //
     // Take object in
@@ -220,7 +262,7 @@ void SimulationController::Reset(
 
     mObject = std::move(newObject);
     mCurrentObjectName = objectName;
-    mCurrentObjectDefinitionFilepath = objectDefinitionFilepath;
+    mCurrentObjectDefinitionSource = std::move(currentObjectDefinitionSource);
 
     //
     // Auto-zoom & center
@@ -257,7 +299,7 @@ void SimulationController::Reset(
     mIsSimulationStateDirty = false;
 
     // Publish reset
-    mEventDispatcher.OnSimulationReset();
+    mEventDispatcher.OnSimulationReset(mObject->GetSprings().GetElementCount());
 
     //
     // Reset stats

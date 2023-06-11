@@ -34,7 +34,17 @@ public:
         StructuralMaterialDatabase const & structuralMaterialDatabase,
         ILayoutOptimizer const & layoutOptimizer);
 
+    static Object MakeSynthetic(
+        size_t numSprings,
+        StructuralMaterialDatabase const & structuralMaterialDatabase,
+        ILayoutOptimizer const & layoutOptimizer);
+
 private:
+
+    static Object InternalCreate(
+        RgbImageData && structuralLayerImage,
+        StructuralMaterialDatabase const & structuralMaterialDatabase,
+        ILayoutOptimizer const & layoutOptimizer);
 
     /////////////////////////////////////////////////////////////////
     // Building helpers

@@ -17,10 +17,47 @@ Object ObjectBuilder::Create(
     StructuralMaterialDatabase const & structuralMaterialDatabase,
     ILayoutOptimizer const & layoutOptimizer)
 {
-    int const structureWidth = objectDefinition.StructuralLayerImage.Size.Width;
+    return InternalCreate(
+        std::move(objectDefinition.StructuralLayerImage),
+        structuralMaterialDatabase,
+        layoutOptimizer);
+}
+
+Object ObjectBuilder::MakeSynthetic(
+    size_t numSprings,
+    StructuralMaterialDatabase const & structuralMaterialDatabase,
+    ILayoutOptimizer const & layoutOptimizer)
+{
+    size_t const sideSprings = static_cast<size_t>(std::ceil((std::sqrt(1.0f + 4.0f * numSprings) - 1) / 4.0f));
+
+    // TODOHERE
+    // All left side fixed
+    // Latest (highest) rightmost pixel is probe
+
+    std::unique_ptr<rgbColor[]> pixels = std::unique_ptr<rgbColor[]>(new rgbColor[sideSprings * sideSprings]);
+    std::fill(
+        pixels.get(),
+        pixels.get() + sideSprings * sideSprings,
+        rgbColor(0x80, 0x80, 0x90));
+
+    return InternalCreate(
+        RgbImageData(
+            static_cast<int>(sideSprings),
+            static_cast<int>(sideSprings),
+            std::move(pixels)),
+        structuralMaterialDatabase,
+        layoutOptimizer);
+}
+
+Object ObjectBuilder::InternalCreate(
+    RgbImageData && structuralLayerImage,
+    StructuralMaterialDatabase const & structuralMaterialDatabase,
+    ILayoutOptimizer const & layoutOptimizer)
+{
+    int const structureWidth = structuralLayerImage.Size.Width;
     float const halfWidth = static_cast<float>(structureWidth / 2); // We want to align on integral world coords
 
-    int const structureHeight = objectDefinition.StructuralLayerImage.Size.Height;
+    int const structureHeight = structuralLayerImage.Size.Height;
     float const halfHeight = static_cast<float>(structureHeight / 2); // We want to align on integral world coords
 
     // Build Point's
@@ -44,7 +81,7 @@ Object ObjectBuilder::Create(
         // From bottom to top
         for (int y = 0; y < structureHeight; ++y)
         {
-            StructuralMaterialDatabase::ColorKey const colorKey = objectDefinition.StructuralLayerImage.Data[x + y * structureWidth];
+            StructuralMaterialDatabase::ColorKey const colorKey = structuralLayerImage.Data[x + y * structureWidth];
             StructuralMaterial const * structuralMaterial = structuralMaterialDatabase.FindStructuralMaterial(colorKey);
             if (nullptr != structuralMaterial)
             {
@@ -76,7 +113,7 @@ Object ObjectBuilder::Create(
 
     DetectSprings(
         pointIndexMatrix,
-        objectDefinition.StructuralLayerImage.Size,
+        structuralLayerImage.Size,
         pointInfos,
         springInfos);
 
@@ -110,7 +147,7 @@ Object ObjectBuilder::Create(
     // We're done!
     //
 
-    LogMessage("Created object: W=", objectDefinition.StructuralLayerImage.Size.Width, ", H=", objectDefinition.StructuralLayerImage.Size.Height, ", ",
+    LogMessage("Created object: W=", structuralLayerImage.Size.Width, ", H=", structuralLayerImage.Size.Height, ", ",
         points.GetElementCount(), "/", points.GetBufferElementCount(), "buf points, ",
         springs.GetElementCount(), " springs.");
 

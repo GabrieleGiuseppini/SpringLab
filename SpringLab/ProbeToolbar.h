@@ -36,7 +36,7 @@ public:
     // Simulation event handlers
     //
 
-    virtual void OnSimulationReset() override;
+    virtual void OnSimulationReset(size_t numSprings) override;
 
     virtual void OnMeasurement(
         float totalKineticEnergy,
@@ -66,6 +66,7 @@ private:
     // UI
     //
 
+    wxTextCtrl * mNumSpringsTextCtrl;
     wxTextCtrl * mBendingTextCtrl;
     wxTextCtrl * mLastSimulationDurationTextCtrl;
 

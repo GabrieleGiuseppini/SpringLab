@@ -11,6 +11,7 @@
 #include "ProbeToolbar.h"
 #include "SettingsDialog.h"
 #include "SettingsManager.h"
+#include "SyntheticObjectDialog.h"
 #include "ToolController.h"
 
 #include <SLabCoreLib/SimulationController.h>
@@ -79,6 +80,7 @@ private:
 
     std::unique_ptr<wxFileDialog> mFileOpenDialog;
     std::unique_ptr<SettingsDialog> mSettingsDialog;
+    std::unique_ptr<SyntheticObjectDialog> mSyntheticObjectDialog;
     std::unique_ptr<AboutDialog> mAboutDialog;
     std::unique_ptr<LoggingDialog> mLoggingDialog;
 
@@ -112,6 +114,7 @@ private:
 
     // Menu
     void OnLoadObjectMenuItemSelected(wxCommandEvent & event);
+    void OnMakeObjectMenuItemSelected(wxCommandEvent & event);
     void OnResetMenuItemSelected(wxCommandEvent & event);
     void OnSaveScreenshotMenuItemSelected(wxCommandEvent & event);
     void OnZoomInMenuItemSelected(wxCommandEvent & event);

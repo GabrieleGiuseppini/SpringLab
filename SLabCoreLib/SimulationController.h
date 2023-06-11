@@ -55,6 +55,8 @@ public:
 
     void LoadObject(std::filesystem::path const & objectDefinitionFilepath);
 
+    void MakeObject(size_t numSprings);
+
     void UpdateSimulation();
 
     void Render();
@@ -283,6 +285,30 @@ public:
 
 private:
 
+        struct ObjectDefinitionSource
+        {
+            enum class SourceType
+            {
+                File,
+                Synthetic
+            };
+
+            SourceType Type;
+            std::filesystem::path DefinitionFilePath;
+            size_t NumSprings;
+
+            ObjectDefinitionSource(
+                SourceType type,
+                std::filesystem::path const & definitionFilePath,
+                size_t numSprings)
+                : Type(type)
+                , DefinitionFilePath(definitionFilePath)
+                , NumSprings(numSprings)
+            {}
+        };
+
+private:
+
     SimulationController(
         std::unique_ptr<RenderContext> renderContext,
         StructuralMaterialDatabase structuralMaterialDatabase);
@@ -290,7 +316,7 @@ private:
     void Reset(
         std::unique_ptr<Object> newObject,
         std::string objectName,
-        std::filesystem::path objectDefinitionFilepath);
+        ObjectDefinitionSource && currentObjectDefinitionSource);
 
     void ObserveObject(PerfStats const & lastPerfStats);
 
@@ -314,7 +340,7 @@ private:
 
     std::unique_ptr<Object> mObject;
     std::string mCurrentObjectName;
-    std::filesystem::path mCurrentObjectDefinitionFilepath;
+    std::optional<ObjectDefinitionSource> mCurrentObjectDefinitionSource;
 
     bool mIsSimulationStateDirty;
 

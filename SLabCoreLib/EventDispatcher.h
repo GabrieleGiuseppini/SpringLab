@@ -20,11 +20,11 @@ public:
 
 public:
 
-    virtual void OnSimulationReset() override
+    virtual void OnSimulationReset(size_t numSprings) override
     {
         for (auto sink : mSinks)
         {
-            sink->OnSimulationReset();
+            sink->OnSimulationReset(numSprings);
         }
     }
 

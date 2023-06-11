@@ -43,13 +43,13 @@ ProbeToolbar::ProbeToolbar(wxWindow* parent)
 
         // Fixed scalars
         {
-            int constexpr TextCtrlWidth = 60;
+            int constexpr TextCtrlWidth = 100;
 
             wxGridBagSizer * gridSizer = new wxGridBagSizer(0, 0);
 
-            // Bending
+            // Num Springs
             {
-                auto label = new wxStaticText(this, wxID_ANY, _("Bending:"));
+                auto label = new wxStaticText(this, wxID_ANY, _("Springs:"));
                 gridSizer->Add(
                     label,
                     wxGBPosition(0, 0),
@@ -57,10 +57,29 @@ ProbeToolbar::ProbeToolbar(wxWindow* parent)
                     wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL,
                     0);
 
+                mNumSpringsTextCtrl = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxSize(TextCtrlWidth, -1), wxTE_RIGHT | wxTE_READONLY);
+                gridSizer->Add(
+                    mNumSpringsTextCtrl,
+                    wxGBPosition(0, 1),
+                    wxGBSpan(1, 1),
+                    wxEXPAND,
+                    0);
+            }
+
+            // Bending
+            {
+                auto label = new wxStaticText(this, wxID_ANY, _("Bending:"));
+                gridSizer->Add(
+                    label,
+                    wxGBPosition(1, 0),
+                    wxGBSpan(1, 1),
+                    wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL,
+                    0);
+
                 mBendingTextCtrl = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxSize(TextCtrlWidth, -1), wxTE_RIGHT | wxTE_READONLY);
                 gridSizer->Add(
                     mBendingTextCtrl,
-                    wxGBPosition(0, 1),
+                    wxGBPosition(1, 1),
                     wxGBSpan(1, 1),
                     wxEXPAND,
                     0);
@@ -71,7 +90,7 @@ ProbeToolbar::ProbeToolbar(wxWindow* parent)
                 auto label1 = new wxStaticText(this, wxID_ANY, _("CPU time:"));
                 gridSizer->Add(
                     label1,
-                    wxGBPosition(1, 0),
+                    wxGBPosition(2, 0),
                     wxGBSpan(1, 1),
                     wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL,
                     0);
@@ -79,7 +98,7 @@ ProbeToolbar::ProbeToolbar(wxWindow* parent)
                 mLastSimulationDurationTextCtrl = new wxTextCtrl(this, wxID_ANY, "", wxDefaultPosition, wxSize(TextCtrlWidth, -1), wxTE_RIGHT | wxTE_READONLY);
                 gridSizer->Add(
                     mLastSimulationDurationTextCtrl,
-                    wxGBPosition(1, 1),
+                    wxGBPosition(2, 1),
                     wxGBSpan(1, 1),
                     wxEXPAND,
                     0);
@@ -87,7 +106,7 @@ ProbeToolbar::ProbeToolbar(wxWindow* parent)
                 auto label2 = new wxStaticText(this, wxID_ANY, _("us"));
                 gridSizer->Add(
                     label2,
-                    wxGBPosition(1, 2),
+                    wxGBPosition(2, 2),
                     wxGBSpan(1, 1),
                     wxALIGN_LEFT | wxALIGN_CENTER_VERTICAL,
                     0);
@@ -163,8 +182,9 @@ std::unique_ptr<ScalarTimeSeriesProbeControl> ProbeToolbar::AddScalarTimeSeriesP
 
 ///////////////////////////////////////////////////////////////////////////////////////
 
-void ProbeToolbar::OnSimulationReset()
+void ProbeToolbar::OnSimulationReset(size_t numSprings)
 {
+    mNumSpringsTextCtrl->SetValue(std::to_string(numSprings));
     mBendingTextCtrl->SetValue("");
     mLastSimulationDurationTextCtrl->SetValue("");
 

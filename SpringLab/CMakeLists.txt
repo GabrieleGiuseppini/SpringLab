@@ -21,6 +21,8 @@ set  (SPRING_LAB_SOURCES
 	SettingsManager.h
 	StandardSystemPaths.cpp
 	StandardSystemPaths.h
+	SyntheticObjectDialog.cpp
+	SyntheticObjectDialog.h
 	ToolController.cpp
 	ToolController.h
 	Tools.cpp

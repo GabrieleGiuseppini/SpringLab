@@ -20,7 +20,7 @@
 
 struct ISimulationEventHandler
 {
-    virtual void OnSimulationReset()
+    virtual void OnSimulationReset(size_t /*numSprings*/)
     {
         // Default-implemented
     }
