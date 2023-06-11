@@ -28,22 +28,35 @@ Object ObjectBuilder::MakeSynthetic(
     StructuralMaterialDatabase const & structuralMaterialDatabase,
     ILayoutOptimizer const & layoutOptimizer)
 {
+    // Number of springs on bottom side
+    // TODOHERE
     size_t const sideSprings = static_cast<size_t>(std::ceil((std::sqrt(1.0f + 4.0f * numSprings) - 1) / 4.0f));
+
+    // Allocate image
+    size_t const sidePixels = sideSprings + 1;
+    std::unique_ptr<rgbColor[]> pixels = std::unique_ptr<rgbColor[]>(new rgbColor[sidePixels * sidePixels]);
+
+    //size_t actualNumSprings = 0;
+
+    //
+    // 1. Bottom stripe
+    //
+
+    // TODOHERE
 
     // TODOHERE
     // All left side fixed
     // Latest (highest) rightmost pixel is probe
 
-    std::unique_ptr<rgbColor[]> pixels = std::unique_ptr<rgbColor[]>(new rgbColor[sideSprings * sideSprings]);
     std::fill(
         pixels.get(),
-        pixels.get() + sideSprings * sideSprings,
+        pixels.get() + sidePixels * sidePixels,
         rgbColor(0x80, 0x80, 0x90));
 
     return InternalCreate(
         RgbImageData(
-            static_cast<int>(sideSprings),
-            static_cast<int>(sideSprings),
+            static_cast<int>(sidePixels),
+            static_cast<int>(sidePixels),
             std::move(pixels)),
         structuralMaterialDatabase,
         layoutOptimizer);
