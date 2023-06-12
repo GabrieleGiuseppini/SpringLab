@@ -312,8 +312,6 @@ void FSBySpringStructuralIntrinsicsMTVectorizedSimulator::IntegrateAndResetSprin
                 _mm_add_ps(
                     springForce_2,
                     _mm_load_ps(pointSprigForceBufferOfBuffers[b] + p));
-
-            _mm_store_ps(pointSprigForceBufferOfBuffers[b] + p, zero_4);
         }
 
         // vec2f const deltaPos =
@@ -341,5 +339,10 @@ void FSBySpringStructuralIntrinsicsMTVectorizedSimulator::IntegrateAndResetSprin
                 deltaPos_2,
                 velocityFactor_4);
         _mm_store_ps(velocityBuffer + p, vel_2);
+
+        for (size_t b = 0; b < nBuffers; ++b)
+        {
+            _mm_store_ps(pointSprigForceBufferOfBuffers[b] + p, zero_4);
+        }
     }
 }
