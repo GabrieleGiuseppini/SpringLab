@@ -10,6 +10,9 @@
 #include <cassert>
 #include <utility>
 
+
+rgbColor constexpr EmptyMaterialColorKey = rgbColor(255, 255, 255);
+
 //////////////////////////////////////////////////////////////////////////////
 
 Object ObjectBuilder::Create(
@@ -29,29 +32,76 @@ Object ObjectBuilder::MakeSynthetic(
     ILayoutOptimizer const & layoutOptimizer)
 {
     // Number of springs on bottom side
-    // TODOHERE
+    //
+    // Given a square with side sideSprings:
+    //  numSprings = sideSprings * (6 + (sideSprings - 1) * 4)
     size_t const sideSprings = static_cast<size_t>(std::ceil((std::sqrt(1.0f + 4.0f * numSprings) - 1) / 4.0f));
 
     // Allocate image
     size_t const sidePixels = sideSprings + 1;
     std::unique_ptr<rgbColor[]> pixels = std::unique_ptr<rgbColor[]>(new rgbColor[sidePixels * sidePixels]);
 
-    //size_t actualNumSprings = 0;
+    // Start "empty"
+    std::fill(
+        pixels.get(),
+        pixels.get() + sidePixels * sidePixels,
+        EmptyMaterialColorKey);
+
+    size_t actualNumSprings = 0;
 
     //
     // 1. Bottom stripe
     //
 
-    // TODOHERE
+    rgbColor constexpr MaterialColorKey = rgbColor(0x80, 0x80, 0x90); // Iron Grey
 
-    // TODOHERE
-    // All left side fixed
-    // Latest (highest) rightmost pixel is probe
+    int x = 0;
+    int y = 0;
+    pixels[0 + 0] = MaterialColorKey;
 
-    std::fill(
-        pixels.get(),
-        pixels.get() + sidePixels * sidePixels,
-        rgbColor(0x80, 0x80, 0x90));
+    for (x = 1; x < sidePixels && actualNumSprings < numSprings; ++x)
+    {
+        pixels[x + 0] = MaterialColorKey;
+        ++actualNumSprings;
+    }
+
+    //
+    // 2. Filling
+    //
+
+    x = 0;
+    y = 1;
+    while (actualNumSprings < numSprings)
+    {
+        assert(y < sidePixels); // Guaranteed by side calculation
+
+        pixels[x + y * sidePixels] = MaterialColorKey;
+
+        if (x == 0)
+        {
+            actualNumSprings += 2;
+        }
+        else if (x < sidePixels - 1)
+        {
+            actualNumSprings += 4;
+        }
+        else
+        {
+            assert(x == sidePixels - 1);
+            actualNumSprings += 3;
+        }
+
+        ++x;
+        if (x == sidePixels)
+        {
+            x = 0;
+            ++y;
+        }
+    }
+    
+    //
+    // Finalize
+    //
 
     return InternalCreate(
         RgbImageData(
@@ -113,7 +163,7 @@ Object ObjectBuilder::InternalCreate(
                     colorKey,
                     *structuralMaterial);
             }
-            else if (colorKey != rgbColor(255, 255, 255))
+            else if (colorKey != EmptyMaterialColorKey)
             {
                 throw SLabException("Pixel at coordinate (" + std::to_string(x) + ", " + std::to_string(y) + ") is not a recognized material");
             }
