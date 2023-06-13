@@ -928,11 +928,6 @@ ILayoutOptimizer::LayoutRemap FSBySpringStructuralIntrinsicsLayoutOptimizer::Rem
                     remappedPointMask[b] = true;
                 }
 
-                // This is because c and d are on the top row, which has not been visited yet;
-                // however, NOTE: we don't use this
-                assert(!remappedPointMask[c]);
-                assert(!remappedPointMask[d]);
-
                 if (!remappedPointMask[c])
                 {
                     optimalPointRemap.AddOld(c);
