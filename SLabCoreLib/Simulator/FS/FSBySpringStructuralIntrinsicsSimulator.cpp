@@ -153,7 +153,7 @@ void FSBySpringStructuralIntrinsicsSimulator::ApplySpringsForcesVectorized(
 #if !FS_IS_ARCHITECTURE_X86_32() && !FS_IS_ARCHITECTURE_X86_64()
 #error Unsupported Architecture
 #endif    
-    static_assert(vectorization_float_count<int> == 4);
+    static_assert(vectorization_float_count<int> >= 4);
 
     vec2f const * restrict const pointPositionBuffer = object.GetPoints().GetPositionBuffer();
     vec2f const * restrict const pointVelocityBuffer = object.GetPoints().GetVelocityBuffer();

@@ -306,7 +306,7 @@ void FSBySpringStructuralIntrinsicsMTVectorizedSimulator::IntegrateAndResetSprin
     ///////////////////////
 
     size_t const nBuffers = mPointSpringForceBuffersVectorized.size();
-    float * restrict * restrict const pointSprigForceBufferOfBuffers = mPointSpringForceBuffersVectorized.data();
+    float * const restrict * restrict const pointSpringForceBufferOfBuffers = mPointSpringForceBuffersVectorized.data();
 
     assert((object.GetPoints().GetBufferElementCount() % 2) == 0);
     size_t const count = object.GetPoints().GetBufferElementCount() * 2; // Two components per vector
@@ -323,7 +323,7 @@ void FSBySpringStructuralIntrinsicsMTVectorizedSimulator::IntegrateAndResetSprin
             springForce_2 =
                 _mm_add_ps(
                     springForce_2,
-                    _mm_load_ps(pointSprigForceBufferOfBuffers[b] + p));
+                    _mm_load_ps(pointSpringForceBufferOfBuffers[b] + p));
         }
 
         // vec2f const deltaPos =
@@ -354,7 +354,7 @@ void FSBySpringStructuralIntrinsicsMTVectorizedSimulator::IntegrateAndResetSprin
 
         for (size_t b = 0; b < nBuffers; ++b)
         {
-            _mm_store_ps(pointSprigForceBufferOfBuffers[b] + p, zero_4);
+            _mm_store_ps(pointSpringForceBufferOfBuffers[b] + p, zero_4);
         }
     }
 }

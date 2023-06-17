@@ -94,7 +94,7 @@ void FSBySpringStructuralPseudoIntrinsicsMTVectorizedSimulator::ApplySpringsForc
     ElementIndex startSpringIndex,
     ElementCount endSpringIndex)  // Excluded
 {
-    static_assert(vectorization_float_count<int> == 4);
+    static_assert(vectorization_float_count<int> >= 4);
 
     vec2f const * restrict const pointPositionBuffer = object.GetPoints().GetPositionBuffer();
     vec2f const * restrict const pointVelocityBuffer = object.GetPoints().GetVelocityBuffer();
