@@ -32,68 +32,67 @@ FS 11 - By Springs, With Intrinsics, Layout Optimized:
 		- Optimize 1:
 			- CPU: ?
 FS 12 - By Springs, Structural Intrinsics
-	- TODOHERE: redo all from here
 	- 80x5_bending_test
 		- Bending: 20
-		- CPU: 150us (176us)
+		- CPU: 114us
 	- 544x68_bending_test
-		- Bending:
-		- CPU: 15,400us
+		- Bending: 188.3
+		- CPU: 11,300us
 FS 13 - By Springs, Structural Intrinsics, MT
 	- 80x5_bending_test
 		- Bending: 20
 		- 1 thread:
-			- CPU: 153us		
+			- CPU: 122us		
 		- 2 threads:
-			- CPU: 160us	
+			- CPU: 148us	
 		- 4 threads:
-			- CPU: 210us		
+			- CPU: 202us		
 		- 8 threads:
-			- CPU: 420us	
+			- CPU: 440us	
 	- 544x68_bending_test
 		- Bending: 186-189
 		- 1 thread:
-			- CPU: 15,500us	- 16,000us
+			- CPU: 11,500us
 		- 2 threads:
-			- CPU: 11,000us - 12,600us
+			- CPU:  8,600us
 		- 3 threads:
-			- CPU:  9,500us - 10,500us (10,300us mostly)
+			- CPU:  7,500us
 		- 4 threads:
-			- CPU:	8,600us - 9,300us
+			- CPU:	7,300us
 		- 8 threads:
-			- CPU:  8,700us - 9,200us
-FS 14 - By Spring - Structural Instrinsics - MT - Vectorized
+			- CPU:  8,200us
+FS 14 - By Spring - Structural Instrinsics - MT - (Integration) Vectorized
 	- 80x5_bending_test
 		- Bending: 20
 		- 1 thread:
-			- CPU: 153us		
+			- CPU: 117us		
 		- 2 threads:
-			- CPU: 160us	
+			- CPU: 135us	
 		- 3 threads:
-			- CPU: 185us
+			- CPU: 160us
 		- 4 threads:
-			- CPU: 200us		
+			- CPU: 205us		
 		- 8 threads:
-			- CPU: 440us
+			- CPU: 490us
 	- 544x68_bending_test
 		- 1 thread:
-			- CPU: 14,900us
+			- CPU: 11,500us
 		- 2 threads:
-			- CPU: 10,600us - 12,500us
+			- CPU:  8,100us
 		- 3 threads:
-			- CPU:  9,200us - 10,200us
+			- CPU:  7,700us
 		- 4 threads:
-			- CPU:  8,300us - 9,200us
+			- CPU:  6,800us
 		- 8 threads:
-			- CPU:  9,300us - 9,800us
+			- CPU:  9,800us
 FS 15 - By Spring - Structural PseudoInstrinsics - MT - Vectorized
 	- 544x68_bending_test
 		- 1 thread:
-			- CPU: 24,500us
+			- CPU: 21,000us
 		- 2 threads:
-			- CPU: 17,400us
+			- CPU: 14,900us
 		- 4 threads:
-			- CPU: 13,800us	
+			- CPU: 12,900us	
 FS 20 - By Point:
 	- 80x5_bending_test
 		- Bending: 20
