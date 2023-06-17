@@ -32,8 +32,6 @@
 #define APPLICATION_NAME_WITH_SHORT_VERSION  APPLICATION_NAME " " APPLICATION_VERSION_SHORT_STR
 #define APPLICATION_NAME_WITH_LONG_VERSION   APPLICATION_NAME " " APPLICATION_VERSION_LONG_STR
 
-#define APPLICATION_DOWNLOAD_URL        "TODO"
-
 inline std::string ApplicationName = APPLICATION_NAME;
 
 //////////////////////////////////////////////////////////////

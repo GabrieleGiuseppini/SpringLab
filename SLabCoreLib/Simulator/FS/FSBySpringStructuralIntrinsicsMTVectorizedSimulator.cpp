@@ -218,6 +218,10 @@ void FSBySpringStructuralIntrinsicsMTVectorizedSimulator::IntegrateAndResetSprin
     Object & object,
     SimulationParameters const & simulationParameters)
 {
+    //
+    // This implementation is compiled with vectorized instructions by VS 2022
+    //
+
     float const dt = simulationParameters.Common.SimulationTimeStepDuration / static_cast<float>(simulationParameters.FSCommonSimulator.NumMechanicalDynamicsIterations);
 
     float * const restrict positionBuffer = reinterpret_cast<float *>(object.GetPoints().GetPositionBuffer());

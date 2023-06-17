@@ -32,6 +32,7 @@ FS 11 - By Springs, With Intrinsics, Layout Optimized:
 		- Optimize 1:
 			- CPU: ?
 FS 12 - By Springs, Structural Intrinsics
+	- TODOHERE: redo all from here
 	- 80x5_bending_test
 		- Bending: 20
 		- CPU: 150us (176us)
@@ -165,7 +166,7 @@ Gauss-Seidel - By Point:
 					- 2t: 930-980
 					- 4t: 1380-1420
 			+ Re-test with older pool, and decide whether it really pays off to use new one
-		= Check assembly of adding back spring forces - try to make it 4 at a time
+		+ Check assembly of adding back spring forces - try to make it 4 at a time
 			! Buffer::Fill is 3%
 			! Add is 2%
 			+ Nuke Simulator specialization for two pools - keep TaskThreadPool only
@@ -187,9 +188,6 @@ Gauss-Seidel - By Point:
 					+ Add new measurements to above
 				X Pointer increment instead of indexing
 				+ No alloc/delete for that local force vector
-				- All force buffers interleaved in same buffer
-					- With inline clear
-				
 		+ Redo all measurements (above) with large bar	
 		+ Bending improvements:
 			+ Vectorized, 1 thread:
@@ -198,6 +196,8 @@ Gauss-Seidel - By Point:
 					+ CPU = 20,000us (FSBase: 24,300us)
 				+ Then, 0.60x K:
 					+ Bending = 92.0
+		- More instrinsics optimizations @ ApplySpringForces:
+			- Displacement: save one sub by rotating pos first
 	+ 20. By Point
 	+ 21. By Point, Compact metadata
 	+ 22. By Point, Compact metadata, With integration

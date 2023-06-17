@@ -110,7 +110,7 @@ void FSBySpringStructuralPseudoIntrinsicsMTVectorizedSimulator::ApplySpringsForc
     // 1. Perfect squares
     //
 
-    ElementCount const endSpringIndexPerfectSquare = std::min(endSpringIndex, mSpringPerfectSquareCount);
+    ElementCount const endSpringIndexPerfectSquare = std::min(endSpringIndex, mSpringPerfectSquareCount * 4);
 
     for (; s < endSpringIndexPerfectSquare; s += 4)
     {

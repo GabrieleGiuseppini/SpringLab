@@ -97,7 +97,6 @@ void FSBySpringStructuralIntrinsicsSimulator::CreateState(
         mPointIntegrationFactorBuffer[pointIndex] = vec2f(integrationFactorBuffer, integrationFactorBuffer);
     }
 
-
     //
     // Initialize spring buffers
     //
@@ -173,7 +172,7 @@ void FSBySpringStructuralIntrinsicsSimulator::ApplySpringsForcesVectorized(
     // 1. Perfect squares
     //
 
-    ElementCount const endSpringIndexPerfectSquare = std::min(endSpringIndex, mSpringPerfectSquareCount);
+    ElementCount const endSpringIndexPerfectSquare = std::min(endSpringIndex, mSpringPerfectSquareCount * 4);
     
     for (; s < endSpringIndexPerfectSquare; s += 4)
     {
@@ -952,7 +951,7 @@ ILayoutOptimizer::LayoutRemap FSBySpringStructuralIntrinsicsLayoutOptimizer::Rem
     // Map leftovers now
     //
 
-    LogMessage("LayoutOptimizer: ", std::count(remappedPointMask.cbegin(), remappedPointMask.cend(), false), " leftover points, ",
+    LogMessage("LayoutOptimizer: ", perfectSquareCount, " perfect squares, ", std::count(remappedPointMask.cbegin(), remappedPointMask.cend(), false), " leftover points, ",
         std::count(remappedSpringMask.cbegin(), remappedSpringMask.cend(), false), " leftover springs");
 
     for (ElementIndex p = 0; p < points.size(); ++p)
