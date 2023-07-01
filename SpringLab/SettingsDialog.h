@@ -67,10 +67,9 @@ private:
     SliderControl<float> * mFSSimulatorGlobalDampingSlider;
 
     // PositionBased
-    SliderControl<size_t> * mPositionBasedSimulatorNumMechanicalDynamicsIterationsSlider;
+    SliderControl<size_t> * mPositionBasedSimulatorNumUpdateIterationsSlider;
     SliderControl<size_t> * mPositionBasedSimulatorNumSolverIterationsSlider;
-    SliderControl<float> * mPositionBasedSimulatorSpringReductionFraction;
-    SliderControl<float> * mPositionBasedSimulatorSpringDampingSlider;
+    SliderControl<float> * mPositionBasedSimulatorSpringStiffnessSlider;
     SliderControl<float> * mPositionBasedSimulatorGlobalDampingSlider;
 
     // FastMSS

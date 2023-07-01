@@ -35,7 +35,7 @@ void PositionBasedBasicSimulator::Update(
     SimulationParameters const & simulationParameters,
     ThreadManager & /*threadManager*/)
 {
-    for (size_t i = 0; i < simulationParameters.PositionBasedCommonSimulator.NumMechanicalDynamicsIterations; ++i)
+    for (size_t i = 0; i < simulationParameters.PositionBasedCommonSimulator.NumUpdateIterations; ++i)
     {
         IntegrateInitialDynamics(object, simulationParameters);
 
@@ -86,8 +86,8 @@ void PositionBasedBasicSimulator::CreateState(
         float const endpointBMassInv = 1.0f / mPointMassBuffer[endpointBIndex] * points.GetFrozenCoefficient(endpointBIndex);
         
         float const den = (endpointAMassInv + endpointBMassInv);
-        mSpringScalingFactorsBuffer[springIndex].EndpointA = endpointAMassInv / (den == 0.0f ? 1.0f : den);
-        mSpringScalingFactorsBuffer[springIndex].EndpointB = endpointBMassInv / (den == 0.0f ? 1.0f : den);
+        mSpringScalingFactorsBuffer[springIndex].EndpointA = endpointAMassInv / (den == 0.0f ? 1.0f : den) * simulationParameters.PositionBasedCommonSimulator.SpringStiffness;
+        mSpringScalingFactorsBuffer[springIndex].EndpointB = endpointBMassInv / (den == 0.0f ? 1.0f : den) * simulationParameters.PositionBasedCommonSimulator.SpringStiffness;
     }
 }
 
@@ -111,6 +111,7 @@ void PositionBasedBasicSimulator::IntegrateInitialDynamics(
         pointVelocityBuffer[p] =
             (pointVelocityBuffer[p] + pointExternalForceBuffer[p] * dt / pointMassBuffer[p] * pointFrozenCoefficientBuffer[p])
             * globalDampingCoefficient;
+
         pointPositionPredictionBuffer[p] = pointPositionBuffer[p] + pointVelocityBuffer[p] * dt;
     }
 }

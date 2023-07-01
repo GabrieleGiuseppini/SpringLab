@@ -36,10 +36,9 @@ BaseSettingsManager<SLabSettings>::BaseSettingsManagerFactory SettingsManager::M
     ADD_SETTING(float, FSSimulatorSpringDampingCoefficient);
     ADD_SETTING(float, FSSimulatorGlobalDamping);
 
-    ADD_SETTING(size_t, PositionBasedSimulatorNumMechanicalDynamicsIterations);
+    ADD_SETTING(size_t, PositionBasedSimulatorNumUpdateIterations);
     ADD_SETTING(size_t, PositionBasedSimulatorNumSolverIterations);
-    ADD_SETTING(float, PositionBasedSimulatorSpringReductionFraction);
-    ADD_SETTING(float, PositionBasedSimulatorSpringDampingCoefficient);
+    ADD_SETTING(float, PositionBasedSimulatorSpringStiffness);
     ADD_SETTING(float, PositionBasedSimulatorGlobalDamping);
 
     ADD_SETTING(size_t, FastMSSSimulatorNumLocalGlobalStepIterations);

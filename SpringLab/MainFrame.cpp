@@ -441,6 +441,11 @@ void MainFrame::OnMainGLCanvasResize(wxSizeEvent & event)
             event.GetSize().GetY());
     }
 
+    if (mProbeToolbar)
+    {
+        mProbeToolbar->Refresh();
+    }
+
     event.Skip();
 }
 

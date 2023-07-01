@@ -6,10 +6,9 @@
 #include "PositionBasedCommonSimulatorParameters.h"
 
 PositionBasedCommonSimulatorParameters::PositionBasedCommonSimulatorParameters()
-    : NumMechanicalDynamicsIterations(1)
+    : NumUpdateIterations(1)
     , NumSolverIterations(1)
-    , SpringReductionFraction(0.5f)
-    , SpringDampingCoefficient(0.03f)
+    , SpringStiffness(1.0f)
     , GlobalDamping(0.99983998f)
 {
 }

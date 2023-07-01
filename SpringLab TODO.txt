@@ -147,7 +147,7 @@ Gauss-Seidel - By Point:
 		+ Redo with reciprocals
 			! sqrt 12, (div 11, and 1), (div 11, and 1), sub 4 = 6/40
 			! rsqrt 4, and 1, (mul 4), (mul 4), rec 4, and 1, sub 4 = 7/22 
-	= 13. By Spring, With Structural Intrinsics, Multi-threaded
+	+ 13. By Spring, With Structural Intrinsics, Multi-threaded
 		+ Add large ship
 			+ Add fixed and bending			
 		+ Make bar of similar # of springs as Hesleden (38229 points, 150019 springs), with fixed and bending
@@ -195,8 +195,6 @@ Gauss-Seidel - By Point:
 					+ CPU = 20,000us (FSBase: 24,300us)
 				+ Then, 0.60x K:
 					+ Bending = 92.0
-		- More instrinsics optimizations @ ApplySpringForces:
-			- Displacement: save one sub by rotating pos first
 	+ 20. By Point
 	+ 21. By Point, Compact metadata
 	+ 22. By Point, Compact metadata, With integration
@@ -205,7 +203,7 @@ Gauss-Seidel - By Point:
 	= Position-Based, Basic (Muller)
 		+ Fix frozen
 		+ See infinite oscillations
-		- Nail down params for better rigidity
+		= Nail down params for better rigidity
 		- See if correctly re-using output of earlier iteration
 		- Add bending constraints
 			- Or not: after all they seems to only be useful in 3D when there are no springs constraining the bend...
