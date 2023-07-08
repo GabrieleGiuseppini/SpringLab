@@ -17,7 +17,7 @@ struct PositionBasedCommonSimulatorParameters
     // The number of solver iterations per iterations
     size_t NumSolverIterations;
     static size_t constexpr MinNumSolverIterations = 1;
-    static size_t constexpr MaxNumSolverIterations = 100;
+    static size_t constexpr MaxNumSolverIterations = 200;
 
     // The springs' stiffness
     float SpringStiffness;

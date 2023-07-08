@@ -117,10 +117,10 @@ FS 22 - By Point, Compact, Integrating:
 Gauss-Seidel - By Point:
 	- 80x5_bending_test
 		- Bending: 12
-		- CPU: 388us
-	- 544x68_bending_test
-		- Bending: 
-		- CPU: 
+		- CPU: 430us
+	- 544x68_bending_test (spring reduction fraction: 0.468750)
+		- Bending:  108.00 - 108.80
+		- CPU: 43,400us
 
 ##########################################################
 
@@ -203,8 +203,8 @@ Gauss-Seidel - By Point:
 	= Position-Based, Basic (Muller)
 		+ Fix frozen
 		+ See infinite oscillations
-		= Nail down params for better rigidity
-		- See if correctly re-using output of earlier iteration
+		+ Nail down params for better rigidity
+		+ See if correctly re-using output of earlier iteration
 		- Add bending constraints
 			- Or not: after all they seems to only be useful in 3D when there are no springs constraining the bend...
 			- But could still try and come up with constraints on the angles between each pair of springs incident to the same vertex

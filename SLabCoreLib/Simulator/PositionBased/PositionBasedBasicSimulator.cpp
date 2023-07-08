@@ -81,9 +81,9 @@ void PositionBasedBasicSimulator::CreateState(
         auto const endpointBIndex = springs.GetEndpointBIndex(springIndex);
 
         float const endpointAMass = mPointMassBuffer[endpointAIndex];
-        float const endpointAMassInv = 1.0f / mPointMassBuffer[endpointAIndex] * points.GetFrozenCoefficient(endpointAIndex);
+        float const endpointAMassInv = (1.0f / mPointMassBuffer[endpointAIndex]) * points.GetFrozenCoefficient(endpointAIndex);
         float const endpointBMass = mPointMassBuffer[endpointBIndex];
-        float const endpointBMassInv = 1.0f / mPointMassBuffer[endpointBIndex] * points.GetFrozenCoefficient(endpointBIndex);
+        float const endpointBMassInv = (1.0f / mPointMassBuffer[endpointBIndex]) * points.GetFrozenCoefficient(endpointBIndex);
         
         float const den = (endpointAMassInv + endpointBMassInv);
         mSpringScalingFactorsBuffer[springIndex].EndpointA = endpointAMassInv / (den == 0.0f ? 1.0f : den) * simulationParameters.PositionBasedCommonSimulator.SpringStiffness;
@@ -95,7 +95,7 @@ void PositionBasedBasicSimulator::IntegrateInitialDynamics(
     Object & object,
     SimulationParameters const & simulationParameters)
 {
-    float const dt = simulationParameters.Common.SimulationTimeStepDuration;
+    float const dt = simulationParameters.Common.SimulationTimeStepDuration / static_cast<float>(simulationParameters.PositionBasedCommonSimulator.NumUpdateIterations);
 
     float const globalDampingCoefficient = 1.0f - pow((1.0f - simulationParameters.PositionBasedCommonSimulator.GlobalDamping), 0.4f);
 
@@ -151,7 +151,7 @@ void PositionBasedBasicSimulator::FinalizeDynamics(
     Object & object,
     SimulationParameters const & simulationParameters)
 {
-    float const dt = simulationParameters.Common.SimulationTimeStepDuration;
+    float const dt = simulationParameters.Common.SimulationTimeStepDuration / static_cast<float>(simulationParameters.PositionBasedCommonSimulator.NumUpdateIterations);
 
     vec2f * restrict const pointPositionBuffer = object.GetPoints().GetPositionBuffer();
     vec2f * restrict const pointVelocityBuffer = object.GetPoints().GetVelocityBuffer();
