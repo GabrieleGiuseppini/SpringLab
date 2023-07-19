@@ -7,6 +7,8 @@
 
 #include "ImageData.h"
 #include "ShaderManager.h"
+#include "SLabOpenGL.h"
+#include "SLabOpenGLMappedBuffer.h"
 #include "Vectors.h"
 #include "ViewModel.h"
 

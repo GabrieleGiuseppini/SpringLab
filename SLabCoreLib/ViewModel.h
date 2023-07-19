@@ -5,9 +5,6 @@
 ***************************************************************************************/
 #pragma once
 
-#include "SLabMath.h"
-#include "SLabOpenGL.h"
-#include "SLabOpenGLMappedBuffer.h"
 #include "Vectors.h"
 
 #include <algorithm>
